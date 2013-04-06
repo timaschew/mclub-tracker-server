@@ -92,7 +92,7 @@ log4j = {
 	environments {
 		development {
 			info   'grails.app',
-				   'mclub.tracker',
+				   'mclub.tracker'
 			debug  'org.hibernate.SQL'
 		}
     }

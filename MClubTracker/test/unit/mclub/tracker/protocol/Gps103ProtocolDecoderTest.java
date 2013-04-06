@@ -34,7 +34,7 @@ import org.junit.Test;
 public class Gps103ProtocolDecoderTest {
 	@Test 
 	public void testDecode_nomove() throws Exception{
-		String msg = "imei:353451048729261,tracker,1304052225,15824189878,F,142532.000,A,3012.4191,N,12012.2353,E,0.00,,;";
+		String msg = "imei:123456789012345,tracker,1304052225,15824189878,F,142532.000,A,3012.4191,N,12012.2353,E,0.00,,;";
 		Gps103ProtocolDecoder decoder = new Gps103ProtocolDecoder(new MockTrackerService());
 		TrackerPosition p = (TrackerPosition)decoder.decode(null, null, msg);
 		assertNotNull(p);
@@ -42,7 +42,7 @@ public class Gps103ProtocolDecoderTest {
 	
 	@Test 
 	public void testDecode_acalarm() throws Exception{
-		String msg = "imei:353451048729261,ac alarm,1304052259,15824189878,F,145912.000,A,3011.4072,N,12009.1746,E,8.41,352.59,;";
+		String msg = "imei:123456789012345,ac alarm,1304052259,15824189878,F,145912.000,A,3011.4072,N,12009.1746,E,8.41,352.59,;";
 		Gps103ProtocolDecoder decoder = new Gps103ProtocolDecoder(new MockTrackerService());
 		TrackerPosition p = (TrackerPosition)decoder.decode(null, null, msg);
 		assertNotNull(p);

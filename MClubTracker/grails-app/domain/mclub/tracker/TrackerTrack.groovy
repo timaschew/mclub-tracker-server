@@ -1,0 +1,22 @@
+package mclub.tracker
+
+class TrackerTrack {
+
+    static constraints = {
+		description blank:true, nullable:true
+    }
+	
+	static mappings = {
+		deviceId index:'idx_device_id'
+		beginDate index:'idx_date_begin_end'
+		endDate index:'idx_date_begin_end'
+		description type:'text'
+		version false
+	}
+	
+	String title;
+	Date beginDate;
+	Date endDate;
+	Long deviceId; // PK of device record
+	String description;
+}

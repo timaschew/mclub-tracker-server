@@ -10,7 +10,6 @@ class BootStrap {
 		if(TrackerDevice.count() == 0){
 			// load initial data
 			new TrackerDevice(deviceId:'123456789012345').save(flush:true);
-			new TrackerDevice(deviceId:'353451048729261').save(flush:true);
 			
 			// mock device position
 			new TrackerPosition(

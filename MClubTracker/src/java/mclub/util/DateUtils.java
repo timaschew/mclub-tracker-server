@@ -31,11 +31,13 @@ import java.util.Date;
 public class DateUtils {
 	public static Date today(){
 		Calendar cal1 = Calendar.getInstance();
-		cal1.setTimeInMillis(System.currentTimeMillis());
 		cal1.set(Calendar.HOUR,0);
 		cal1.set(Calendar.MINUTE,0);
 		cal1.set(Calendar.SECOND,0);
 		cal1.set(Calendar.MILLISECOND,0);
 		return cal1.getTime();
 	}
+	
+	// 00:00:00.000 ~ 23:59:59.999
+	public static final long TIME_OF_ONE_DAY = 24 * 3600 * 1000 -1; 
 }
