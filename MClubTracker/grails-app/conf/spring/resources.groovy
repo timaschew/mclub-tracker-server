@@ -3,6 +3,6 @@ import mclub.tracker.TrackerServerManager;
 
 beans = {
 	trackerServerManager(TrackerServerManager){
-		trackerService = ref('trackerService')
+		trackerDataService = ref('trackerDataService')
 	}
 }

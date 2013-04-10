@@ -20,8 +20,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mclub.tracker.TrackerDataService;
 import mclub.tracker.TrackerPosition;
-import mclub.tracker.TrackerService;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Tk103ProtocolDecoder extends OneToOneDecoder{
-	TrackerService trackerService;
+	TrackerDataService trackerDataService;
 	
 	private Logger log = LoggerFactory.getLogger(Tk103ProtocolDecoder.class);
     /**
@@ -52,8 +52,8 @@ public class Tk103ProtocolDecoder extends OneToOneDecoder{
             "(\\d{8})" +                 // State
             "L([0-9a-fA-F]+)");          // Milage
 
-    public Tk103ProtocolDecoder(TrackerService tracService){
-    	this.trackerService = tracService;
+    public Tk103ProtocolDecoder(TrackerDataService trackerDataService){
+    	this.trackerDataService = trackerDataService;
     }
     
     @Override
@@ -85,7 +85,7 @@ public class Tk103ProtocolDecoder extends OneToOneDecoder{
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        Long deviceRecordId = trackerService.getIdByUniqueDeviceId(imei);
+        Long deviceRecordId = trackerDataService.getIdByUniqueDeviceId(imei);
         if(deviceRecordId == null){
         	log.warn("Unknown device - " + imei);
         	return null;

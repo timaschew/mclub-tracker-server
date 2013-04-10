@@ -44,22 +44,22 @@ public abstract class TrackerServer {
     private Bootstrap bootstrap;
     private String protocol;
     
-    private TrackerService trackerService;
+    private TrackerDataService trackerDataService;
 
     public String getProtocol() {
         return protocol;
     }
     
-    public TrackerService getTrackerService(){
-    	return trackerService;
+    public TrackerDataService getTrackerDataService(){
+    	return trackerDataService;
     }
     
 
-    public TrackerServer(Bootstrap bootstrap, String protocol, TrackerService trackerService) {
+    public TrackerServer(Bootstrap bootstrap, String protocol, TrackerDataService trackerDataService) {
     	
         this.bootstrap = bootstrap;
         this.protocol = protocol;
-        this.trackerService = trackerService;
+        this.trackerDataService = trackerDataService;
         
         // Set appropriate channel factory
         if (bootstrap instanceof ServerBootstrap) {
@@ -68,8 +68,8 @@ public abstract class TrackerServer {
             bootstrap.setFactory(NettyResource.getDatagramChannelFactory());
         }
 
-        address = (String)trackerService.getConfig("tracker." + protocol + ".address");
-        port = (Integer)trackerService.getConfig("tracker." + protocol + ".port");
+        address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
+        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
         if(port == null){
         	port = 5000;
         }

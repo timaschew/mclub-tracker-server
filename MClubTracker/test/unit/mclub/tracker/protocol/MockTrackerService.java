@@ -21,14 +21,14 @@
  */
 package mclub.tracker.protocol;
 
+import mclub.tracker.TrackerDataService;
 import mclub.tracker.TrackerPosition;
-import mclub.tracker.TrackerService;
 
 /**
  * @author shawn
  *
  */
-public class MockTrackerService extends TrackerService {
+public class MockTrackerService extends TrackerDataService {
 	private long pid = 1L;
 	/* (non-Javadoc)
 	 * @see mclub.tracker.TrackerService#getIdByUniqueDeviceId(java.lang.String)

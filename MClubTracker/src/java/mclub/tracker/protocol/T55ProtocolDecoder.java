@@ -20,8 +20,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mclub.tracker.TrackerDataService;
 import mclub.tracker.TrackerPosition;
-import mclub.tracker.TrackerService;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -34,10 +34,10 @@ public class T55ProtocolDecoder extends OneToOneDecoder{
 	private Logger log = LoggerFactory.getLogger(T55ProtocolDecoder.class);
 	private Long deviceId;
 	 
-	TrackerService trackerService;
+	TrackerDataService trackerDataService;
 
-	public T55ProtocolDecoder(TrackerService ts){
-		this.trackerService = ts;
+	public T55ProtocolDecoder(TrackerDataService ts){
+		this.trackerDataService = ts;
 	}
    
 
@@ -68,7 +68,7 @@ public class T55ProtocolDecoder extends OneToOneDecoder{
         if (sentence.contains("$PGID")) {
             String imei = sentence.substring(6, sentence.length() - 3);
             // this is the db id indeed!
-            deviceId = trackerService.getIdByUniqueDeviceId(imei);
+            deviceId = trackerDataService.getIdByUniqueDeviceId(imei);
             if(deviceId == null){
             	log.warn("Unknown device - " + imei);
             }

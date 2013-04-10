@@ -101,15 +101,15 @@ public abstract class BasePipelineFactory implements ChannelPipelineFactory {
         this.server = server;
         
         // enable logger
-        loggerEnabled = Boolean.TRUE.equals(server.getTrackerService().getConfig().get("tracker.logger.enabled"));
+        loggerEnabled = Boolean.TRUE.equals(server.getTrackerDataService().getConfig().get("tracker.logger.enabled"));
         
         // enable geocoder 
-        if(Boolean.TRUE.equals(server.getTrackerService().getConfig().get("tracker.geocoder.enabled"))){
+        if(Boolean.TRUE.equals(server.getTrackerDataService().getConfig().get("tracker.geocoder.enabled"))){
         	reverseGeocoder = new GoogleReverseGeocoder();
         }
         
         // enable tracker reset delay
-        String resetDelayProperty = (String)server.getTrackerService().getConfig().get("tracker." + protocol + ".resetDelay");
+        String resetDelayProperty = (String)server.getTrackerDataService().getConfig().get("tracker." + protocol + ".resetDelay");
         if (resetDelayProperty != null) {
             resetDelay = Integer.valueOf(resetDelayProperty);
         }
@@ -131,7 +131,7 @@ public abstract class BasePipelineFactory implements ChannelPipelineFactory {
         if (reverseGeocoder != null) {
             pipeline.addLast("geocoder", new ReverseGeocoderHandler(reverseGeocoder));
         }
-        pipeline.addLast("handler", new TrackerEventHandler(server.getTrackerService()));
+        pipeline.addLast("handler", new TrackerEventHandler(server.getTrackerDataService()));
         return pipeline;
     }
 

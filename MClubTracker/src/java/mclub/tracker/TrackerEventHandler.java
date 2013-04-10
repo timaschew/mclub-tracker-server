@@ -17,9 +17,6 @@ package mclub.tracker;
 
 import java.util.List;
 
-import mclub.tracker.TrackerPosition;
-import mclub.tracker.TrackerService;
-
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -37,16 +34,16 @@ import org.slf4j.LoggerFactory;
 @ChannelHandler.Sharable
 public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 	private Logger log = LoggerFactory.getLogger(TrackerEventHandler.class);
-	private TrackerService trackerService;
+	private TrackerDataService trackerDataService;
 	
-    TrackerEventHandler(TrackerService tracService) {
+    TrackerEventHandler(TrackerDataService trackerDataService) {
         super();
-        this.trackerService = tracService;
-        assert tracService != null;
+        this.trackerDataService = trackerDataService;
+        assert trackerDataService != null;
     }
     
-    public void setTracService(TrackerService tracService){
-    	this.trackerService = tracService;
+    public void setTracService(TrackerDataService trackerDataService){
+    	this.trackerDataService = trackerDataService;
     }
 
     private void processSinglePosition(TrackerPosition position) {
@@ -70,9 +67,9 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
         // Write position to database
         try {
-            Long id = trackerService.addPosition(position);
+            Long id = trackerDataService.addPosition(position);
             if (id != null) {
-            	trackerService.updateLatestPosition(position.getDeviceId(), id);
+            	trackerDataService.updateLatestPosition(position.getDeviceId(), id);
             }
         } catch (Exception error) {
             log.warn("save postion failed, " + error.getMessage());

@@ -1,5 +1,5 @@
 package mclub.tracker
-import java.util.Calendar;
+import java.util.Map;
 
 import grails.converters.JSON
 import mclub.util.DateUtils
@@ -97,7 +97,13 @@ class TrackerAPIController {
 			end = DateUtils.today();
 			begin = new Date(end.getTime() - 30 * DateUtils.TIME_OF_ONE_DAY);
 		}
-		render trackerService.listDailyTracks(deviceId, begin, end) as JSON;
+		
+		def tracks = trackerService.listDailyTracks(deviceId, begin, end);
+	
+		def results = tracks.collect{
+			return toTrackValues(deviceId, it);
+		}
+		render results as JSON;
 	}
 	
 	/**
@@ -116,7 +122,7 @@ class TrackerAPIController {
 		}
 		
 		// get the begin/end of that month
-		Calendar cal = Calendar.getInstance();
+		Calendar cal = DateUtils.getCalendar();
 		int y,m;
 		String monthStr = params['month'];
 		if(monthStr != null){
@@ -146,6 +152,22 @@ class TrackerAPIController {
 		if(log.infoEnabled){
 			log.info("begin: ${begin} / end: ${end}");
 		}
-		render trackerService.listDailyTracks(deviceId, begin,end) as JSON;
+		
+		def tracks = trackerService.listDailyTracks(deviceId, begin,end);
+		def results = tracks.collect{
+			return toTrackValues(deviceId, it);
+		}
+		render results as JSON
+	}
+	
+	def toTrackValues(String deviceId, TrackerTrack t){
+		return [
+			//FIXME - use deviceId may cause XSS !!!
+			'deviceId':deviceId.encodeAsHTML(),
+			'title':t.title,
+			'beginDate':t.beginDate.time,
+			'endDate':t.endDate.time,
+			'description':t.description?t.description:''
+			];
 	}
 }

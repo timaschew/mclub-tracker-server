@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TrackerServerManager {
 	Logger log = LoggerFactory.getLogger(TrackerServerManager.class);
-	TrackerService trackerService;
+	TrackerDataService trackerDataService;
 	
 	private List<TrackerServer> serverList = new ArrayList<TrackerServer>();
 	
@@ -69,7 +69,7 @@ public class TrackerServerManager {
 			return;
 		}
 		try{
-			TrackerServer server = new TrackerServer(new ServerBootstrap(), protocol, trackerService) {
+			TrackerServer server = new TrackerServer(new ServerBootstrap(), protocol, trackerDataService) {
 	            @Override
 	            protected void addSpecificHandlers(ChannelPipeline pipeline) {
 	                byte delimiter[] = { (byte) ')' };
@@ -77,7 +77,7 @@ public class TrackerServerManager {
 	                        new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
 	                pipeline.addLast("stringDecoder", new StringDecoder());
 	                pipeline.addLast("stringEncoder", new StringEncoder());
-	                Tk103ProtocolDecoder tk103 = new Tk103ProtocolDecoder(trackerService);
+	                Tk103ProtocolDecoder tk103 = new Tk103ProtocolDecoder(trackerDataService);
 	                pipeline.addLast("objectDecoder", tk103);
 	            }
 	        };
@@ -92,7 +92,7 @@ public class TrackerServerManager {
 		if (!isProtocolEnabled(protocol)){
 			return;
 		}
-		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerService) {
+		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerDataService) {
             @Override
             protected void addSpecificHandlers(ChannelPipeline pipeline) {
                 byte delimiter[] = { (byte) ';' };
@@ -100,7 +100,7 @@ public class TrackerServerManager {
                         new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
                 pipeline.addLast("stringDecoder", new StringDecoder());
                 pipeline.addLast("stringEncoder", new StringEncoder());
-                pipeline.addLast("objectDecoder", new Gps103ProtocolDecoder(trackerService));
+                pipeline.addLast("objectDecoder", new Gps103ProtocolDecoder(trackerDataService));
             }
         });
 	}
@@ -110,7 +110,7 @@ public class TrackerServerManager {
 		if (!isProtocolEnabled(protocol)){
 			return;
 		}
-		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerService) {
+		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerDataService) {
             @Override
             protected void addSpecificHandlers(ChannelPipeline pipeline) {
                 byte delimiter[] = { (byte) '\r', (byte) '\n' };
@@ -118,7 +118,7 @@ public class TrackerServerManager {
                         new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
                 pipeline.addLast("stringDecoder", new StringDecoder());
                 pipeline.addLast("stringEncoder", new StringEncoder());
-                pipeline.addLast("objectDecoder", new T55ProtocolDecoder(trackerService));
+                pipeline.addLast("objectDecoder", new T55ProtocolDecoder(trackerDataService));
             }
         });
 	}
@@ -129,10 +129,10 @@ public class TrackerServerManager {
 	 * @return
 	 */
 	private boolean isProtocolEnabled(String protocol){
-		return Boolean.TRUE.equals(trackerService.getConfig("tracker."+protocol+".enabled"));
+		return Boolean.TRUE.equals(trackerDataService.getConfig("tracker."+protocol+".enabled"));
 	}
 	
-	public void setTrackerService(TrackerService ts){
-		this.trackerService = ts;
+	public void setTrackerDataService(TrackerDataService ts){
+		this.trackerDataService = ts;
 	}
 }

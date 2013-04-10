@@ -23,6 +23,7 @@ package mclub.util;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * @author shawn
@@ -40,4 +41,8 @@ public class DateUtils {
 	
 	// 00:00:00.000 ~ 23:59:59.999
 	public static final long TIME_OF_ONE_DAY = 24 * 3600 * 1000 -1; 
+	
+	public static Calendar getCalendar(){
+		return Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+	}
 }

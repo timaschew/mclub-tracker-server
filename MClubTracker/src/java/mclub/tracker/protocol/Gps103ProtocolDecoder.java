@@ -20,8 +20,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mclub.tracker.TrackerDataService;
 import mclub.tracker.TrackerPosition;
-import mclub.tracker.TrackerService;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 
 public class Gps103ProtocolDecoder extends OneToOneDecoder{
 	private Logger log = LoggerFactory.getLogger(Gps103ProtocolDecoder.class);
-	TrackerService trackerService;
+	TrackerDataService trackerDataService;
 
-	public Gps103ProtocolDecoder(TrackerService ts){
-		this.trackerService = ts;
+	public Gps103ProtocolDecoder(TrackerDataService ts){
+		this.trackerDataService = ts;
 	}
 	
     /**
@@ -96,7 +96,7 @@ public class Gps103ProtocolDecoder extends OneToOneDecoder{
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        Long dbId = trackerService.getIdByUniqueDeviceId(imei);
+        Long dbId = trackerDataService.getIdByUniqueDeviceId(imei);
     	if(dbId == null){
     		log.warn("Unknown device - " + imei);
             return null;
