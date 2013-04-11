@@ -20,9 +20,9 @@ class TrackerAPIController {
 	 */
     def daily_positions() {
 		// the device id
-		def deviceId = params.id;
-		if(!deviceId){
-			deviceId = '123456789012345';// test purpose
+		def deviceUniqueId = params.id;
+		if(!deviceUniqueId){
+			deviceUniqueId = '353451048729261';// test purpose
 		}
 		
 		// Get the query date
@@ -33,31 +33,24 @@ class TrackerAPIController {
 		}else{
 			date = new Date(dateLong);
 		}
-		
-		if(date){
-			render text:"${date}/${date.time}"
-		} else{
-			render text:'OK'
-		}
-		def results = trackerService.listDevicePositionOfDay(deviceId, date)
-		/*
+
+		def results = trackerService.listDevicePositionOfDay(deviceUniqueId, date)
 		.collect{ p->
 			//TODO: null value and date time
 			return [
-				'id':p.id, 
+				//'rowid':p.id, 
 				'address':p.address,
 				'altitude':p.altitude,
 				'course':p.course,
-				'deviceId':p.deviceId,
+				//'deviceId':p.deviceId,
 				'extendedInfo':p.extendedInfo,
 				'latitude':p.latitude,
 				'longitude':p.longitude,
 				'power':p.power,
 				'speed':p.speed,
-				'time':p.time,
+				'time':p.time.getTime()
 			];
 		};
-		*/
 		render results as JSON
 	}
 	
@@ -71,9 +64,9 @@ class TrackerAPIController {
 	 */
 	def daily_tracks(){
 		// the device id
-		def deviceId = params.id;
-		if(!deviceId){
-			deviceId = '123456789012345';// test purpose
+		def deviceUniqueId = params.id;
+		if(!deviceUniqueId){
+			deviceUniqueId = '353451048729261';// test purpose
 		}
 		
 		Date begin,end;
@@ -98,10 +91,10 @@ class TrackerAPIController {
 			begin = new Date(end.getTime() - 30 * DateUtils.TIME_OF_ONE_DAY);
 		}
 		
-		def tracks = trackerService.listDailyTracks(deviceId, begin, end);
+		def tracks = trackerService.listDailyTracks(deviceUniqueId, begin, end);
 	
 		def results = tracks.collect{
-			return toTrackValues(deviceId, it);
+			return toTrackValues(deviceUniqueId, it);
 		}
 		render results as JSON;
 	}
@@ -116,9 +109,9 @@ class TrackerAPIController {
 	 */
 	def monthly_tracks(){
 		// the device id
-		def deviceId = params.id;
-		if(!deviceId){
-			deviceId = '123456789012345';// test purpose
+		def deviceUniqueId = params.id;
+		if(!deviceUniqueId){
+			deviceUniqueId = '353451048729261';// test purpose
 		}
 		
 		// get the begin/end of that month
@@ -153,17 +146,17 @@ class TrackerAPIController {
 			log.info("begin: ${begin} / end: ${end}");
 		}
 		
-		def tracks = trackerService.listDailyTracks(deviceId, begin,end);
+		def tracks = trackerService.listDailyTracks(deviceUniqueId, begin,end);
 		def results = tracks.collect{
-			return toTrackValues(deviceId, it);
+			return toTrackValues(deviceUniqueId, it);
 		}
 		render results as JSON
 	}
 	
-	def toTrackValues(String deviceId, TrackerTrack t){
+	def toTrackValues(String deviceUniqueId, TrackerTrack t){
 		return [
 			//FIXME - use deviceId may cause XSS !!!
-			'deviceId':deviceId.encodeAsHTML(),
+			'deviceId':deviceUniqueId.encodeAsHTML(),
 			'title':t.title,
 			'beginDate':t.beginDate.time,
 			'endDate':t.endDate.time,

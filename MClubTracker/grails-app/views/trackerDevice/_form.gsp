@@ -26,11 +26,11 @@
 	<g:field name="latestPositionId" type="number" value="${trackerDeviceInstance.latestPositionId}"/>
 </div>
 
-<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'deviceId', 'error')} ">
-	<label for="deviceId">
-		<g:message code="trackerDevice.deviceId.label" default="Device Id" />
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'udid', 'error')} ">
+	<label for="udid">
+		<g:message code="trackerDevice.udid.label" default="Device Id" />
 		
 	</label>
-	<g:textField name="deviceId" value="${trackerDeviceInstance?.deviceId}"/>
+	<g:textField name="udid" value="${trackerDeviceInstance?.udid}"/>
 </div>
 

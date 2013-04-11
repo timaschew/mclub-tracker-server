@@ -9,14 +9,21 @@ hibernate {
     cache.use_query_cache = false
     cache.region.factory_class = 'net.sf.ehcache.hibernate.EhCacheRegionFactory'
 }
+
 // environment specific settings
 environments {
     development {
         dataSource {
-            dbCreate = "create-drop" // one of 'create', 'create-drop', 'update', 'validate', ''
+            dbCreate = "create" // one of 'create', 'create-drop', 'update', 'validate', ''
             url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-			logSql = "true"
+//			logSql = "false"
         }
+		dataSource_traccar {
+			dbCreate = ""
+			url = "jdbc:h2:/Users/shawn/Desktop/traccar_db/database;MVCC=TRUE;LOCK_TIMEOUT=10000"
+			pooled = false
+			readonly = true
+		}
     }
     test {
         dataSource {
@@ -40,5 +47,11 @@ environments {
                validationQuery="SELECT 1"
             }
         }
+		dataSource_traccar {
+			dbCreate = ""
+			url = "jdbc:h2:traccar;MVCC=TRUE;LOCK_TIMEOUT=10000"
+			pooled = false
+			readonly = true
+		}
     }
 }

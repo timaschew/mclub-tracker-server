@@ -93,11 +93,14 @@ log4j = {
 		development {
 			info   'grails.app',
 				   'mclub.tracker'
-			debug  'org.hibernate.SQL'
+//			debug  'org.hibernate.SQL'
 		}
     }
 }
 
+// GPS103 tracker
+tracker.gps103.enabled = true
+tracker.gps103.port = 5001
 
 // TK103 tracker setup
 tracker.tk103.enabled = true

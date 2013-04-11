@@ -50,11 +50,11 @@
 				</li>
 				</g:if>
 			
-				<g:if test="${trackerDeviceInstance?.deviceId}">
+				<g:if test="${trackerDeviceInstance?.udid}">
 				<li class="fieldcontain">
-					<span id="deviceId-label" class="property-label"><g:message code="trackerDevice.deviceId.label" default="Device Id" /></span>
+					<span id="udid-label" class="property-label"><g:message code="trackerDevice.udid.label" default="Device Id" /></span>
 					
-						<span class="property-value" aria-labelledby="deviceId-label"><g:fieldValue bean="${trackerDeviceInstance}" field="deviceId"/></span>
+						<span class="property-value" aria-labelledby="udid-label"><g:fieldValue bean="${trackerDeviceInstance}" field="udid"/></span>
 					
 				</li>
 				</g:if>

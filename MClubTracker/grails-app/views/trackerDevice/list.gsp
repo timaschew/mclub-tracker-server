@@ -30,7 +30,7 @@
 					
 						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
 					
-						<g:sortableColumn property="deviceId" title="${message(code: 'trackerDevice.deviceId.label', default: 'Device Id')}" />
+						<g:sortableColumn property="udid" title="${message(code: 'trackerDevice.udid.label', default: 'Unique Device Id')}" />
 					
 					</tr>
 				</thead>
@@ -44,7 +44,7 @@
 					
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</td>
 					
-						<td>${fieldValue(bean: trackerDeviceInstance, field: "deviceId")}</td>
+						<td>${fieldValue(bean: trackerDeviceInstance, field: "udid")}</td>
 					
 					</tr>
 				</g:each>

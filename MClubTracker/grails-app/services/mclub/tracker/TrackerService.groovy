@@ -23,16 +23,16 @@ class TrackerService {
 		if(TrackerDevice.count() == 0){
 			TrackerDevice.withTransaction {
 				// load initial data
-				new TrackerDevice(deviceId:'123456789012345').save(flush:true);
+				new TrackerDevice(udid:'123456789012345').save(flush:true);
 			}
-			
+			//30.28022, 120.11774
 			// mock device position
 			trackerDataService.addPosition(new TrackerPosition(
 				deviceId:1,
 				time:new Date(),
 				valid:true,
-				latitude:20,
-				longitude:130,
+				latitude:30.28022,
+				longitude:120.11774,
 				altitude:0,
 				speed:28,
 				course:180
@@ -43,8 +43,8 @@ class TrackerService {
 				deviceId:1,
 				time:new Date(),
 				valid:true,
-				latitude:21,
-				longitude:131,
+				latitude:30.28122,
+				longitude:120.11774,
 				altitude:0,
 				speed:29,
 				course:181
@@ -53,13 +53,17 @@ class TrackerService {
 				deviceId:1,
 				time:new Date(),
 				valid:true,
-				latitude:22,
-				longitude:132,
+				latitude:30.28222,
+				longitude:120.11774,
 				altitude:0,
 				speed:30,
 				course:182
 			));
+		
+			// Test the traccar database
+			
 		}
+		
 	}
 	
 	@PreDestroy
@@ -73,8 +77,8 @@ class TrackerService {
 	 * @param date
 	 * @return
 	 */
-	public List<TrackerPosition> listDevicePositionOfDay(String deviceId, Date date){
-		def dbId = trackerDataService.getIdByUniqueDeviceId(deviceId);
+	public List<TrackerPosition> listDevicePositionOfDay(String deviceUniqueId, Date date){
+		def dbId = trackerDataService.getIdByUniqueDeviceId(deviceUniqueId);
 		if(dbId){
 			Date startTime = date;
 			Date endTime = new Date(date.getTime() + mclub.util.DateUtils.TIME_OF_ONE_DAY);
@@ -82,7 +86,7 @@ class TrackerService {
 			def results = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time >=:startTime AND p.time <= :endTime",[dbId:dbId, startTime:startTime, endTime:endTime, max:500]);
 			return results
 		}else{
-			log.info("Unknow device: ${deviceId}");
+			log.info("Unknow device: ${deviceUniqueId}");
 		}
 		return [];
 	}
@@ -95,8 +99,8 @@ class TrackerService {
 	 * @param endDay
 	 * @return
 	 */
-	public List<TrackerTrack> listDailyTracks(String deviceId, Date beginDay, Date endDay){
-		Long dbid = trackerDataService.getIdByUniqueDeviceId(deviceId);
+	public List<TrackerTrack> listDailyTracks(String deviceUniqueId, Date beginDay, Date endDay){
+		Long dbid = trackerDataService.getIdByUniqueDeviceId(deviceUniqueId);
 		if(!dbid){
 			// device not found
 			return [];
