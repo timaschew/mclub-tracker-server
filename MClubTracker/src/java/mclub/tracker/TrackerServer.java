@@ -160,4 +160,8 @@ public abstract class TrackerServer {
         ChannelGroupFuture future = getChannelGroup().close();
         future.awaitUninterruptibly();
     }
+    
+    public String toString(){
+    	return "[" + protocol + "] connector@" + Integer.toHexString(System.identityHashCode(this)); 
+    }
 }
