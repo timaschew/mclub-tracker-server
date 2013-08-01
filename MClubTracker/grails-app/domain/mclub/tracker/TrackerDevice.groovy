@@ -12,7 +12,7 @@ class TrackerDevice {
 		latestPositionId blank:true,nullable:true
     }
 	
-	static mappings = {
+	static mapping = {
 		udid index:'idx_udid_id'
 	}
 	

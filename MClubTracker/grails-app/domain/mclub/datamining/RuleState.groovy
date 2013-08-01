@@ -7,7 +7,6 @@ class RuleState {
     static constraints = {
     }
 	
-	
 	/**
 	 * The rule name
 	 */
