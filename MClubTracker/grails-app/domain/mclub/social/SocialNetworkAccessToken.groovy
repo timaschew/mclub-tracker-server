@@ -10,20 +10,25 @@ import java.util.Date;
 class SocialNetworkAccessToken {
 
 	static constraints = {
+		accessToken blank:true,nullable:true
+		refreshToken blank:true,nullable:true
+		expireTime blank:true,nullable:true
+		socialUserId blank:true,nullable:true
 	}
 	
-	static mappings = {
+	static mapping = {
 		version false
 	}
 
 	String accessToken;
 	String refreshToken;
+	Date expireTime;
 	
 	String socialUserId;
 	String socialUsername;
 	String socialPassword;
 	
 	String deviceId;
-	String userId;
+//	String userId;
 	Date lastUpdated;
 }

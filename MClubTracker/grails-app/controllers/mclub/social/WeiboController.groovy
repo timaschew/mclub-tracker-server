@@ -10,101 +10,157 @@ import weibo4j.util.BareBonesBrowserLaunch
 class WeiboController {
 
 	def index() {
-		render text:"auth,post,list,read"
-	}
-
-	private void saveDeviceIdInCookie(response, deviceId){
-		/*
-		// save device id in cookie
-		def cookie = new Cookie('deviceId', deviceId);
-		cookie.path = '/'
-		cookie.maxAge = 0;
-		response.addCookie( cookie)
-		*/
+		render text:"bind,auth,post,list,read"
 	}
 	
-	private String getDeviceIdFromCookie(request){
-		return null;
-//		return g.cookie(name: 'deviceId');
-	}
-	
+	/**
+	 * STEP 1 - Bind device with weibo account 
+	 * @param deviceId
+	 * @param username
+	 * @param password
+	 * @return
+	 */
 	def bind(String deviceId, String username, String password){
+		if(!deviceId){
+			deviceId = session.getAttribute("deviceId");
+		}
+		SocialNetworkAccessToken snat = null;
+		
+		// GET Info page
+		if(request.method.equalsIgnoreCase("GET")){
+			//TODO - read device id and show from db just display the form
+			if(deviceId){
+				snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+			}
+			render view:"bind_view.gsp", model:[record:snat] ;
+			return;
+		}
+		
+		// POST logic
 		if(!deviceId || !username || !password){
 			flash.message = 'missing parameter!';
 			render view:"bind_view.gsp"
 			return;
 		}
 		
+		// save to database
+		snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		if(!snat){
+			snat = new SocialNetworkAccessToken();
+			snat.deviceId = deviceId;
+		}
+		snat.socialUsername = username;
+		snat.socialPassword = password;
+		snat.save(flush:true);
 		
-	}
-	def auth(String deviceId, String code){
-		if(deviceId){
-			//store in cookie
-			saveDeviceIdInCookie(response,deviceId);
-		}else{
-			// try to get device id from cookie
-			deviceId = getDeviceIdFromCookie(request);
-		}
-		if(!deviceId){
-			render text:"Missing parameters", status:401
-			return;
-		}
+		// redirect to the authorize page
+		session.setAttribute("deviceId", deviceId);
 		Oauth oauth = new Oauth();
-		
+		String authURL =  oauth.authorize("code","forester");
+		redirect url:authURL;
+	}
+	
+	/**
+	 * STEP 2 - Jump back from OAuth server with code parameter available
+	 * @param deviceId
+	 * @param code
+	 * @return
+	 */
+	def auth(String deviceId, String code){
 		if(!code){
-			// STEP - 1
-			// retrieve the access token
-			
-			// first try our database
-			SocialNetworkAccessToken accessToken = SocialNetworkAccessToken.findByDeviceId(deviceId);
-			if(accessToken){
-				// return or render the access token
-				render text:"Your access token is: ${accessToken.accessToken}";
-			}else{
-				// redirect to sina oauth web page
-				String authURL =  oauth.authorize("code","forester");
-				redirect url:authURL;	
+			// we should have the code
+			render text:"Missing \"code\", aborted", status:401
+			return;
+		}
+
+		if(!deviceId){
+			// we should have device id stored in the session
+			// in bind() step
+			deviceId = session.getAttribute("deviceId");
+			if(!deviceId){
+				render text:"Missing \"deviceId\", aborted", status:401
+				return;
 			}
+		}
+		
+		// Retrieve access token by the code
+		Oauth oauth = new Oauth();
+		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		if(!snat){
+			// we must have the snat record ready. othersize redirect to the re-bind page
+			redirect action:'bind'
 			return;
 		}
 		
-		
-		// STEP - 2
-		// get access token by the code and save it
-		AccessToken token = null;
+		AccessToken weiboToken = null;
 		try{
-			token = oauth.getAccessTokenByCode(code);
-			// save the token in database
-			SocialNetworkAccessToken accessToken = SocialNetworkAccessToken.findByDeviceId(deviceId);
-			if(!accessToken){
-				accessToken = new SocialNetworkAccessToken();
-				accessToken.deviceId = deviceId;
-			}
-			accessToken.accessToken = token.accessToken;
-			accessToken.refreshToken = token.refreshToken;
-			accessToken.socialUserId = token.uid;
+			weiboToken = oauth.getAccessTokenByCode(code);
 			
-			accessToken.save(flush:true);
-			render text:"Your access token is: ${accessToken.accessToken}"
+			snat.accessToken = weiboToken.accessToken;
+			snat.refreshToken = weiboToken.refreshToken;
+			snat.socialUserId = weiboToken.uid;
+			snat.expireTime = new java.util.Date(System.currentTimeMillis() + Long.parseLong(weiboToken.expireIn) * 1000);
+			snat.save(flush:true);
+			render text:"Your access token is: ${snat.accessToken}, which will expire in ${snat.expireTime}"
 		}catch(Exception e){
 			render text:e.message, status:500
 		}
 	}
 
+	def refresh_token(String deviceId){
+		if(!deviceId){
+			deviceId = session.getAttribute('deviceId');
+			if(!deviceId){
+				render text:"Missing deviceId, aborted", status:409
+				return;
+			}
+		}
+		
+		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		if(snat){
+			// post user/pass to weibo server to renew the access token
+			Oauth oauth = new Oauth();
+			AccessToken t = oauth.refreshToken(snat.socialUsername, snat.socialPassword);
+			if(t){
+				// success!
+				snat.accessToken = t.accessToken;
+				snat.refreshToken = t.refreshToken;
+				// weibo api returns the expireIn value in seconds, convert to the date object
+				snat.expireTime = new java.util.Date(System.currentTimeMillis() + (Long.parseLong(t.expireIn) * 1000));
+				snat.save(flush:true);
+				render text:"Token refreshed: ${snat.accessToken}, expires in ${snat.expireTime}";
+				
+				return;
+			}
+		}
+		
+		// failed, redirect to the bind page
+		redirect action:'bind', params:[deviceId:deviceId];
+	}
+	
+	/**
+	 * Post weibo
+	 * @param deviceId
+	 * @param text
+	 * @return
+	 */
 	def post(String deviceId, String text){
+		if(!deviceId){
+			deviceId = session.getAttribute('deviceId');
+		}
 		if(!deviceId || !text){
 			render text:"Missing parameter", status:409
 			return;
 		}
 		
-		SocialNetworkAccessToken at = SocialNetworkAccessToken.findByDeviceId(deviceId);
-		if(!at){
-			redirect action:'auth', params:[deviceId:deviceId]
+		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		if(!snat){
+			redirect action:'bind', params:[deviceId:deviceId]
 			return;
 		}
 		
 		Timeline timeline = new Timeline();
-		timeline.setToken(at.accessToken);
+		timeline.setToken(snat.accessToken);
 		Status status = timeline.UpdateStatus(text);
 		render text:"post successed, ${status}"
 	}

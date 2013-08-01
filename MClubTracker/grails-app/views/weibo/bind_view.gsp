@@ -8,7 +8,7 @@
 <body>
 	<div class="body">
 		<div>${flash.message}</div>
-		<g:form action="bind">
+		<g:form action="bind" method="post">
 			<div class="fieldcontain">
 				<label for="deviceId">Device Id</label>
 				<g:textField name="deviceId" value="${bindForm?.deviceId}" />
