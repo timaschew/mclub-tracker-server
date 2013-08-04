@@ -20,5 +20,5 @@ class RuleState {
 	/**
 	 * Stored rule values, could be anything in text format
 	 */
-	String values;
+	String value;
 }
