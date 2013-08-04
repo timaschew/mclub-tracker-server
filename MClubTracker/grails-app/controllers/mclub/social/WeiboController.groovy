@@ -8,7 +8,8 @@ import weibo4j.model.WeiboException
 import weibo4j.util.BareBonesBrowserLaunch
 
 class WeiboController {
-
+	WeiboService weiboService;
+	
 	def index() {
 		render text:"bind,auth,post,list,read"
 	}
@@ -24,13 +25,13 @@ class WeiboController {
 		if(!deviceId){
 			deviceId = session.getAttribute("deviceId");
 		}
-		SocialNetworkAccessToken snat = null;
+		SocialAccessToken snat = null;
 		
 		// GET Info page
 		if(request.method.equalsIgnoreCase("GET")){
 			//TODO - read device id and show from db just display the form
 			if(deviceId){
-				snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+				snat = SocialAccessToken.findByDeviceId(deviceId);
 			}
 			render view:"bind_view.gsp", model:[record:snat] ;
 			return;
@@ -44,9 +45,9 @@ class WeiboController {
 		}
 		
 		// save to database
-		snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		snat = SocialAccessToken.findByDeviceId(deviceId);
 		if(!snat){
-			snat = new SocialNetworkAccessToken();
+			snat = new SocialAccessToken();
 			snat.deviceId = deviceId;
 		}
 		snat.socialUsername = username;
@@ -85,7 +86,7 @@ class WeiboController {
 		
 		// Retrieve access token by the code
 		Oauth oauth = new Oauth();
-		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		SocialAccessToken snat = SocialAccessToken.findByDeviceId(deviceId);
 		if(!snat){
 			// we must have the snat record ready. othersize redirect to the re-bind page
 			redirect action:'bind'
@@ -116,7 +117,7 @@ class WeiboController {
 			}
 		}
 		
-		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
+		SocialAccessToken snat = SocialAccessToken.findByDeviceId(deviceId);
 		if(snat){
 			// post user/pass to weibo server to renew the access token
 			Oauth oauth = new Oauth();
@@ -153,16 +154,13 @@ class WeiboController {
 			return;
 		}
 		
-		SocialNetworkAccessToken snat = SocialNetworkAccessToken.findByDeviceId(deviceId);
-		if(!snat){
+		Status status = weiboService.postStatus(deviceId,text);
+		if(!status){
+			// not binded
 			redirect action:'bind', params:[deviceId:deviceId]
-			return;
+		}else{
+			render text:"post successed, ${status}"
 		}
-		
-		Timeline timeline = new Timeline();
-		timeline.setToken(snat.accessToken);
-		Status status = timeline.UpdateStatus(text);
-		render text:"post successed, ${status}"
 	}
 
 	def list(){

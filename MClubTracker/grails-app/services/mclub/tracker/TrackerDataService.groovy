@@ -40,6 +40,7 @@ class TrackerDataService {
 		}
 		
 		// create dialy track if necessary
+		/*
 		Calendar cal = DateUtils.getCalendar();
 		cal.setTime(position.getTime());
 		int y = cal.get(Calendar.YEAR);
@@ -49,9 +50,10 @@ class TrackerDataService {
 		cal.set(Calendar.YEAR, y);
 		cal.set(Calendar.MONTH, m);
 		cal.set(Calendar.DATE, d);
-		
 		Date theDay = cal.getTime();
+		*/
 		
+		Date theDay = DateUtils.getDayOfTime(position.getTime());
 		Date begin = theDay;
 		Date end = new Date(theDay.getTime() + mclub.util.DateUtils.TIME_OF_ONE_DAY);
 		def c = TrackerTrack.executeQuery("SELECT count(*) FROM TrackerTrack tt WHERE tt.deviceId=:did AND tt.beginDate=:begin AND tt.endDate=:end",[did:position.deviceId,begin:begin,end:end]);
