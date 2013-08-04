@@ -39,10 +39,31 @@ public class DateUtils {
 		return cal1.getTime();
 	}
 	
+	public static Date yesterday(){
+		return new java.util.Date(today().getTime() - TIME_OF_ONE_DAY);
+	}
+	
+	public static Date tomorrow(){
+		return new java.util.Date(today().getTime() + TIME_OF_ONE_DAY);
+	}
+	
 	// 00:00:00.000 ~ 23:59:59.999
 	public static final long TIME_OF_ONE_DAY = 24 * 3600 * 1000 -1; 
 	
 	public static Calendar getCalendar(){
 		return Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
+	}
+	
+	public static Date getDayOfTime(Date time){
+		Calendar cal = DateUtils.getCalendar();
+		cal.setTime(time);
+		int y = cal.get(Calendar.YEAR);
+		int m = cal.get(Calendar.MONTH);
+		int d = cal.get(Calendar.DATE);
+		cal.clear();
+		cal.set(Calendar.YEAR, y);
+		cal.set(Calendar.MONTH, m);
+		cal.set(Calendar.DATE, d);
+		return cal.getTime();
 	}
 }

@@ -37,15 +37,17 @@ public class GoogleReverseGeocoder implements ReverseGeocoder {
      * Get address string by coordinates
      */
     public String getAddress(double latitude, double longitude) {
-
+    	BufferedReader reader = null;
         try {
+        	//Test string: http://maps.googleapis.com/maps/api/geocode/json?latlng=30.189261,120.156523&sensor=false
             URL url = new URL("http://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&sensor=false");
             URLConnection connection = url.openConnection();
 
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-            
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),Charset.forName("UTF-8")));
+            connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,en-US;q=0.4");
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),Charset.forName("UTF-8")));
 
+            //TODO - parse the json response
             // Find address line
             String line;
             while ((line = reader.readLine()) != null) {
@@ -59,6 +61,10 @@ public class GoogleReverseGeocoder implements ReverseGeocoder {
 
         } catch(Exception error) {
             log.warn(error.getMessage());
+        } finally{
+        	if(reader !=null){
+        		try{reader.close();}catch(Exception e){};
+        	}
         }
 
         return null;
