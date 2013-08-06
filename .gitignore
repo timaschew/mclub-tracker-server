@@ -16,3 +16,9 @@ Thumbs.db
 *.exe
 *.o
 *.so
+
+# IDE files #
+##################
+.project
+.classpath
+.settings
