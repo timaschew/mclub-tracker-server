@@ -31,12 +31,7 @@ import java.util.TimeZone;
  */
 public class DateUtils {
 	public static Date today(){
-		Calendar cal1 = Calendar.getInstance();
-		cal1.set(Calendar.HOUR,0);
-		cal1.set(Calendar.MINUTE,0);
-		cal1.set(Calendar.SECOND,0);
-		cal1.set(Calendar.MILLISECOND,0);
-		return cal1.getTime();
+		return getDayOfTime(new Date());
 	}
 	
 	public static Date yesterday(){
