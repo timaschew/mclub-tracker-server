@@ -1,11 +1,9 @@
 package mclub.datamining
 
+import mclub.datamining.rules.*
 import mclub.social.WeiboService
-import mclub.tracker.TrackerDevice
-import mclub.tracker.TrackerPosition
 import mclub.tracker.TrackerService
 import mclub.tracker.geocode.GoogleReverseGeocoder
-import mclub.util.DateUtils
 
 class RuleService {
 	List<Rule> rules = [];
@@ -24,170 +22,135 @@ class RuleService {
 		rules = [];
 	}
 	
+	/**
+	 * Manually load the rules
+	 * @return
+	 */
 	private def loadRules(){
 		// Rule that detects the wake up
-		//rules << new CountingRule();
-		rules << new WakeUpRule();
+		rules << new DailyGreetingRule();
 		rules << new IdleRule();
-		/*
-		rules << new AutoTrackRule();
-		*/
+		rules << new JamAlertRule();
+		rules << new SpeedAlertRule();
+		rules << new AutoTrackerGenerateRule();
 	}
 
 	// Run the rules, which is triggered by a timer
 	def runRules(){
 		log.debug("Running ${rules.size()} rules...");
+		def context = [
+			weiboService:weiboService,
+			addressResolver:addressResolver,
+			trackerService:trackerService
+		];
+	
 		for(Rule rule in rules){
-			rule.execute([:]);
+			try{
+				rule.execute(context);
+			}catch(Exception e){
+				log.warn("Error executing rule ${rule.name}",e);
+			}
+			
 		}
 	}
 	
-	/**
-	 * 每天接收到的第一个有效的GPS点，说明已经开机
-	 * 微博：啦啦啦，我醒啦(+位置)。主人要安全上路哦。
-	 * 重复：每天一次
-	 * @author shawn
-	 *
-	 */
-	class WakeUpRule extends AbstractRule{
-		
-		public String getName() {
-			return "WakeUpRule";
-		}
-		public int execute(Map<Object, Object> params) {
-			// get last execute time stamp
-			def state = loadState();
-			Long lets = state[lastExcutionTimeStamp];
-			if(lets && lets > DateUtils.today().getTime() && lets < DateUtils.tomorrow().getTime()){
-				// it's executed today
-				return 0;
-			}
-			
-			// load the GPS position
-			TrackerDevice dev = TrackerDevice.findByUdid(deviceId);
-			if(!dev){
-				// no such device, bail out
-				return 0;
-			}
-			TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE deviceId=:did AND tp.time > :yesterday AND tp.time < :tomorrow",
-				[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
-			if(pos){
-				String addr = null; //addressResolver.getAddress(pos.latitude, pos.longitude);
-				String msg = "嘀嘀嘀,准备出发！引擎转速:1000,水温:75,油量:50,一切正常. 主人要安全驾驶哦.";
-				if(addr){
-					msg += " (${addr})"
-				}
-				if(weiboService.postStatus(deviceId, msg)){
-					this.update(lastExcutionTimeStamp, System.currentTimeMillis());
-					this.commit();
-				}
-			}
-			return 0;
-		}
-	}
+//	/**
+//	 * 每天接收到的第一个有效的GPS点，说明已经开机
+//	 * 微博：啦啦啦，我醒啦(+位置)。主人要安全上路哦。
+//	 * 重复：每天一次
+//	 * @author shawn
+//	 *
+//	 */
+//	class WakeUpRule extends AbstractRule{
+//		
+//		public String getName() {
+//			return "WakeUpRule";
+//		}
+//		public int execute(Map<Object, Object> params) {
+//			// get last execute time stamp
+//			def state = loadState();
+//			Long lets = state[lastExcutionTimeStamp];
+//			if(lets && lets >= DateUtils.today().getTime()){
+//				// it's executed today
+//				return 0;
+//			}
+//			
+//			// load the GPS position
+//			TrackerDevice dev = TrackerDevice.findByUdid(deviceId);
+//			if(!dev){
+//				// no such device, bail out
+//				return 0;
+//			}
+//			
+//			log.info("${DateUtils.yesterday()}");
+//			log.info("${DateUtils.today()}");
+//			log.info("${DateUtils.tomorrow()}");
+//			
+//			TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:yesterday AND tp.time<:tomorrow",
+//				[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
+//			if(pos){
+//				String addr = null; //addressResolver.getAddress(pos.latitude, pos.longitude);
+//				String msg = "嘀嘀嘀,准备出发！引擎转速:1000,水温:75,油量:50,一切正常. 主人要安全驾驶哦.";
+//				if(addr){
+//					msg += " (${addr})"
+//				}
+//				if(weiboService.postStatus(deviceId, msg)){
+//					this.update(lastExcutionTimeStamp, System.currentTimeMillis());
+//					this.commit();
+//				}
+//			}else{
+//				log.info("No position found for today: ${DateUtils.today()}");
+//			}
+//			return 0;
+//		}
+//	}
 	
-	/**
-	 * 如果没有任何位置信息，超过14点以后，每天卖萌一次
-	 * 微博：哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~
-	 * 重复：14点以后，每天一次，
-	 * @author shawn
-	 *
-	 */
-	class IdleRule extends AbstractRule{
-		public String getName() {
-			return "IdleRule";
-		}
-		public int execute(Map<Object, Object> params) {
-			// get last execute time stamp
-			def state = loadState();
-			Long lets = state[lastExcutionTimeStamp];
-			if(lets && lets > DateUtils.today().getTime() && lets < DateUtils.tomorrow().getTime()){
-				// it's executed today
-				return 0;
-			}
-			
-			// load the GPS position
-			TrackerDevice dev = TrackerDevice.findByUdid(deviceId);
-			if(!dev){
-				// no such device, bail out
-				return 0;
-			}
-			TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE deviceId=:did AND tp.time > :yesterday AND tp.time < :tomorrow",
-				[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
-			if(!pos){
-				// if time is > 14:00
-				if(System.currentTimeMillis() - DateUtils.today().getTime() > (14 * 3600 * 1000)){
-					String msg = "哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~"
-					if(weiboService.postStatus(deviceId, msg)){
-						this.update(lastExcutionTimeStamp, System.currentTimeMillis());
-						this.commit();
-					}
-				}
-			}
-			return 0;
-		}
-	}
-}
-
-class CountingRule extends AbstractRule{
-	public String getName(){
-		return "CountingRule"
-	}
-
-	/*
-	 * 	
-	 */
-	public int execute(Map<Object,Object> params){
-		int count = 0;//this.incrementExecutionCountToday();
-		log.info("${getName()} count: ${count}");
-		return 0;
-	}
+	
+//	/**
+//	 * 如果没有任何位置信息，超过14点以后，每天卖萌一次
+//	 * 微博：哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~
+//	 * 重复：14点以后，每天一次，
+//	 * @author shawn
+//	 *
+//	 */
+//	class IdleRule extends AbstractRule{
+//		public String getName() {
+//			return "IdleRule";
+//		}
+//		public int execute(Map<Object, Object> params) {
+//			// get last execute time stamp
+//			def state = loadState();
+//			Long lets = state[lastExcutionTimeStamp];
+//			if(lets && lets > DateUtils.today().getTime()){
+//				// it's executed today
+//				return 0;
+//			}
+//			
+//			// load the GPS position
+//			TrackerDevice dev = TrackerDevice.findByUdid(deviceId);
+//			if(!dev){
+//				// no such device, bail out
+//				return 0;
+//			}
+//			TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE deviceId=:did AND tp.time>:yesterday AND tp.time<:tomorrow",
+//				[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
+//			if(!pos){
+//				// if time is > 14:00
+//				if(System.currentTimeMillis() - DateUtils.today().getTime() > (14 * 3600 * 1000)){
+//					String msg = "哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~"
+//					if(weiboService.postStatus(deviceId, msg)){
+//						this.update(lastExcutionTimeStamp, System.currentTimeMillis());
+//						this.commit();
+//					}
+//				}
+//			}
+//			return 0;
+//		}
+//	}
 }
 
 
 
-/**
- * 规则：在给定的时间/地点范围内，连续10个点速度<10KM/h的
- * 微博：呀呀呀 XXX 好堵啊，y分钟才开了z米，真想长个翅膀飞过去！
- * 重复：同一个地点，距上次执行间隔30分钟
- *
- * 例如：早上8~10点，钱江一桥南；早上8~11点，动物园；早上8：11点，北山路玉古路口
- */
-class JamAlertRule implements Rule{
-	public String getName(){
-		return "JamAlertRule";
-	}
-	public int execute(Map<Object, Object> params) {
-		return 0;
-	}
-}
 
-/**
- * 规则：连续5个点速度超过60KM，取最大值
- * 重复：距上次执行间隔30分钟
- * 微博：哦哦哦 我在(xx位置) 可以跑到yy KM/H。好爽！好舒畅！
- * @author shawn
- */
-class SpeedRule implements Rule{
-	public String getName() {
-		return "SpeedRule";
-	}
-	public int execute(Map<Object, Object> params) {
-		return 0;
-	}
-}
 
-/**
- * 自动轨迹生成
- * 规则：上3个点位置接近，速度趋0。无新节点上报距当下时间超过30分钟，或者距下一个节点的超过30分钟。
- * 微博：当当当 这趟我跑了xx公里，用了yy分钟，平均速度为zz KM/H. (好快好快|好慢好慢|一般一般！)
- * 重复：无限制
- */
-class AutoTrackRule implements Rule{
-	public String getName() {
-		return "AutoTrackRule";
-	}
-	public int execute(Map<Object, Object> params) {
-		return 0;
-	}
-}
+

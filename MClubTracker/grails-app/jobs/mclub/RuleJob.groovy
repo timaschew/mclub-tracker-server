@@ -6,7 +6,8 @@ import mclub.datamining.RuleService
 
 class RuleJob {
     static triggers = {
-      simple repeatInterval: 5000l, startDelay:5000l // execute job once in 5 seconds
+      simple repeatInterval: 300000l, startDelay:5000l // execute job once in 5 minutes
+		//simple repeatInterval: 5000l, startDelay:5000l // execute job once in 5 minutes
     }
 
 	def concurrent = false;
