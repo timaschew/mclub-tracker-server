@@ -37,9 +37,10 @@ class IdleRule extends AbstractRule{
 
 	public int execute(Map<Object, Object> context) {
 		WeiboService weiboService = context['weiboService'];
+		String deviceId = context['deviceId'];
 		
 		// get last execute time stamp
-		def state = loadState();
+		def state = loadState(deviceId);
 		Long lets = state[lastExcutionTimeStamp];
 		if(lets && lets > DateUtils.today().getTime()){
 			// it's executed today
@@ -59,8 +60,8 @@ class IdleRule extends AbstractRule{
 			if(System.currentTimeMillis() - DateUtils.today().getTime() > (14 * 3600 * 1000)){
 				String msg = "哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~"
 				if(weiboService.postStatus(deviceId, msg)){
-					this.update(lastExcutionTimeStamp, System.currentTimeMillis());
-					this.commit();
+					this.update(deviceId,lastExcutionTimeStamp, System.currentTimeMillis());
+					this.commit(deviceId);
 				}
 			}
 		}

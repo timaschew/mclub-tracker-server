@@ -32,7 +32,8 @@ import mclub.social.WeiboService
 class AutoTrackerGenerateRule extends AbstractRule{
 	public int execute(Map<Object, Object> context) {
 		WeiboService weiboService = context['weiboService'];
-
+		String deviceId = context['deviceId'];
+		
 		// TODO Auto-generated method stub
 		log.info("WeiboService ${weiboService}");
 		return 0;

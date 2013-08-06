@@ -36,9 +36,10 @@ import mclub.util.DateUtils
 public class DailyGreetingRule extends AbstractRule{
 	public int execute(Map<Object, Object> context) {
 		WeiboService weiboService = context['weiboService'];
+		String deviceId = context['deviceId'];
 		
 		// get last execute time stamp
-		def state = loadState();
+		def state = loadState(deviceId);
 		Long lets = state[lastExcutionTimeStamp];
 		if(lets && lets >= DateUtils.today().getTime()){
 			// it's executed today
@@ -52,10 +53,6 @@ public class DailyGreetingRule extends AbstractRule{
 			return 0;
 		}
 		
-		log.info("${DateUtils.yesterday()}");
-		log.info("${DateUtils.today()}");
-		log.info("${DateUtils.tomorrow()}");
-		
 		TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:yesterday AND tp.time<:tomorrow",
 			[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
 		if(pos){
@@ -66,8 +63,8 @@ public class DailyGreetingRule extends AbstractRule{
 				msg += " (${addr})"
 			}
 			if(weiboService.postStatus(deviceId, msg)){
-				this.update(lastExcutionTimeStamp, System.currentTimeMillis());
-				this.commit();
+				this.update(deviceId, lastExcutionTimeStamp, System.currentTimeMillis());
+				this.commit(deviceId);
 			}
 		}else{
 			log.info("No position found for today: ${DateUtils.today()}");
