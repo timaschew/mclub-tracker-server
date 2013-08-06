@@ -7,9 +7,9 @@ class TrackerTrack {
     }
 	
 	static mapping = {
-		deviceId index:'idx_device_id'
-		beginDate index:'idx_date_begin_end'
-		endDate index:'idx_date_begin_end'
+		deviceId index:'idx_trackertrack_deviceid'
+		beginDate index:'idx_trackertrack_begindate_enddate'
+		endDate index:'idx_trackertrack_begindate_enddate'
 		description type:'text'
 	}
 	

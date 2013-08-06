@@ -13,7 +13,7 @@ class TrackerDevice {
     }
 	
 	static mapping = {
-		udid index:'idx_udid_id'
+		udid index:'idx_trackerdevice_udid'
 	}
 	
 	String udid; // the unique device id, mostly, will be the imei;

@@ -5,7 +5,11 @@ import java.util.Date;
 class RuleState {
 
     static constraints = {
+		
     }
+	static mapping = {
+		deviceId index:'idx_rulestate_deviceid'
+	}
 	
 	/**
 	 * The rule name
@@ -21,4 +25,9 @@ class RuleState {
 	 * Stored rule values, could be anything in text format
 	 */
 	String value;
+	
+	/**
+	 * Associated device id
+	 */
+	String deviceId;
 }
