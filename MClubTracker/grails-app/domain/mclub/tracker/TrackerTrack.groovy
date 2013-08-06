@@ -11,7 +11,6 @@ class TrackerTrack {
 		beginDate index:'idx_date_begin_end'
 		endDate index:'idx_date_begin_end'
 		description type:'text'
-		version false
 	}
 	
 	String title;
