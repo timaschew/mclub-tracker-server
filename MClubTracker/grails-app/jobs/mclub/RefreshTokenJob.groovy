@@ -9,7 +9,7 @@ class RefreshTokenJob {
     }
 
 	def concurrent = false;
-	def sessionRequired = false // we have a global session for each quartz worker thread
+	def sessionRequired = true // we have a global session for each quartz worker thread
 	
 	WeiboService weiboService;
 	
