@@ -5,7 +5,7 @@ import mclub.social.WeiboService
 
 class RefreshTokenJob {
     static triggers = {
-		cron name: 'refreshTokenTrigger', cronExpression: "0 0 6 * * ?" // refresh token every day at 6:00 am
+		cron name: 'refreshTokenTrigger', cronExpression: "0 0 6,18 * * ?" // refresh token every day at 6:00 and 18:00
     }
 
 	def concurrent = false;
