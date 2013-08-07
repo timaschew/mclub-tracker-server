@@ -41,13 +41,6 @@ class AutoTrackerGenerateRule extends AbstractRule{
 	
 	private static final long HALF_HOUR = 0.5 * 3600 * 1000;
 	
-	private def closeActiveTrack(TrackerTrack activeTrack){
-		// update the track position
-		activeTrack.type = 0;
-		activeTrack.title = "Track ${activeTrack.beginDate}";
-		return activeTrack.save(flush:true);
-	}
-	
 	public int execute(Map<Object, Object> context) {
 		WeiboService weiboService = context['weiboService'];
 		String deviceId = context['deviceId'];
@@ -169,14 +162,11 @@ class AutoTrackerGenerateRule extends AbstractRule{
 			}
 			
 			String msg = "当当当 这趟我跑了${totalDistanceKM}公里,耗时${totalTimeString}.最高${maxSpdStr}km/h,平均${avgSpdStr}km/h. ${mood}";
-			log.info(msg);
-			/*
 			if(weiboService.postStatus(deviceId, msg)){
 				// save last update timestamp
 				this.update(deviceId, lastExcutionTimeStamp, System.currentTimeMillis());
 				this.commit(deviceId);
 			}
-			*/
 		}
 				
 		return 0;
