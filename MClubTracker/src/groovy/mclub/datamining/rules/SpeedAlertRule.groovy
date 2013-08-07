@@ -27,6 +27,7 @@ import mclub.social.WeiboService
 import mclub.tracker.TrackerDevice
 import mclub.tracker.TrackerPosition
 import mclub.tracker.geocode.ReverseGeocoder
+import mclub.util.LocationUtils
 
 /**
  * 规则：当前的10个点，如果最早点的时间不超过10分钟，则认为有效。计算10个点的平均速度，如果速度 < 5，则认为是堵车，30~40则认为正常，40 ~ 60 认为较快， >60则认为很快
@@ -43,14 +44,14 @@ class SpeedAlertRule extends AbstractRule{
 		// check last execution time
 		def state = loadState(deviceId)
 		Long lets = state[lastExcutionTimeStamp];
-		if(lets && ((lets + 15 * 60 * 1000) > System.currentTimeMillis())){
+		if(lets && (System.currentTimeMillis() - lets < 15 * 60 * 1000)){
 			// executes at least every 15mins
 			return 0;
 		}
 		
 		TrackerDevice dev = TrackerDevice.findByUdid(deviceId);
 		if(!dev){
-			log.info("No device found for ${deviceId}");
+			log.warn("No device found for ${deviceId}");
 			return 0;
 		}
 		
@@ -65,21 +66,22 @@ class SpeedAlertRule extends AbstractRule{
 		TrackerPosition p0 = points[0];
 		TrackerPosition p9 = points[9];
 		if(System.currentTimeMillis() - p9.time.time > 10 * 60 * 1000 ){
-			log.info("points are expired: ${p9.time}");
+			log.info("no new positions to check against.");
 			return 0;
 		}
 		
 		// calculate the average speed
-		double avgSpeed = 0;
+		double totalDistance;
+		TrackerPosition lastP = null;
 		for(TrackerPosition p : points){
-			avgSpeed += p.speed;
-		} 
-		avgSpeed = avgSpeed / points.size();
-		
-		// convert from knot to kmh
-		avgSpeed = avgSpeed * 1.852;
+			if(lastP){
+				totalDistance += LocationUtils.distance(lastP.latitude, lastP.longitude, p.latitude, p.longitude);
+			}
+			lastP = p;
+		}
+		// real average speed of the 10 points 
+		double avgSpeed = (totalDistance / ((p0.time.time - p9.time.time) / 1000)) * 3.6
 		String avgSpeedStr = new DecimalFormat("0.00").format(avgSpeed);
-//		String location = addressResolver.getAddress(p0.latitude,p0.longitude);
 		
 		log.info("Average speed: ${(avgSpeed)}");
 		String spd = "不正常";
@@ -92,7 +94,7 @@ class SpeedAlertRule extends AbstractRule{
 		}else if(avgSpeed < 120){
 			spd = "路上没车，嗖嗖开的飞快(${avgSpeedStr}km/h)"
 		}else{
-			spd = "呃...主人你以前是开飞机么？开太快啦！"
+			spd = "呃...主人你以前是开飞机么？太快啦！"
 		}
 		String msg = "${spd}."
 		
