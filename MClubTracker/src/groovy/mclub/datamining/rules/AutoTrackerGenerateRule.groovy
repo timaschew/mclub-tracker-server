@@ -21,7 +21,8 @@
  */
 package mclub.datamining.rules
 
-import java.text.SimpleDateFormat
+import java.text.DecimalFormat
+
 import mclub.social.WeiboService
 import mclub.tracker.TrackerDevice
 import mclub.tracker.TrackerPosition
@@ -37,6 +38,16 @@ import mclub.util.LocationUtils
  * 重复：无限制
  */
 class AutoTrackerGenerateRule extends AbstractRule{
+	
+	private static final long HALF_HOUR = 0.5 * 3600 * 1000;
+	
+	private def closeActiveTrack(TrackerTrack activeTrack){
+		// update the track position
+		activeTrack.type = 0;
+		activeTrack.title = "Track ${activeTrack.beginDate}";
+		return activeTrack.save(flush:true);
+	}
+	
 	public int execute(Map<Object, Object> context) {
 		WeiboService weiboService = context['weiboService'];
 		String deviceId = context['deviceId'];
@@ -64,40 +75,45 @@ class AutoTrackerGenerateRule extends AbstractRule{
 				startTime = DateUtils.today(); // start from today
 			}
 		}
-		
 		// count all 'un-tracked' positions
-		def untrackedPositionCount = TrackerPosition.countByDeviceIdAndTimeGreaterThanEquals(dev.id,startTime);
-		if(untrackedPositionCount < 5){
-			// not enough positions to start a track
-			log.info("No positions to track");
-			return 0;
+		def untrackedPositionCount = TrackerPosition.countByDeviceIdAndTimeGreaterThan(dev.id,startTime);
+		
+		// we have untracked positions!
+		if(untrackedPositionCount > 0){
+			// only start an active track when 5 or more positions collected
+			if(!activeTrack && untrackedPositionCount < 5){
+				log.info("No enough positions (${untrackedPositionCount})to start a new track");
+				return 0;
+			}
+	
+			// create or update the active track
+			TrackerPosition p1,p2;
+			// load first/last positions
+			def query = "FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:startTime ORDER BY tp.time"
+			p1 = TrackerPosition.find(query,[did:dev.id,startTime:startTime]);
+			p2 = TrackerPosition.find(query + " DESC",[did:dev.id,startTime:startTime]);
+			
+			log.info("${p1} - ${p2}");
+			if(!activeTrack){
+				// create new active track. note - we at least have 5 positions here
+				activeTrack = new TrackerTrack();
+				activeTrack.deviceId = dev.id;
+				activeTrack.title = "Active track";
+				activeTrack.beginDate = p1.time;
+				activeTrack.endDate = p2.time;
+				activeTrack.type = 1;
+			}else{
+				// update/extending the existing active track. note - we at least have 1 positions here
+				activeTrack.endDate = p2.time;
+			}
+			if(!activeTrack.save(flush:true)){
+				log.error("Error saving active track: ${activeTrack.errors}");
+				return 0;
+			}
 		}
 		
-		// load first/last positions
-		def query = "FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:startTime ORDER BY tp.time"
-		TrackerPosition p1 = TrackerPosition.find(query,[did:dev.id,startTime:startTime]);
-		TrackerPosition p2 = TrackerPosition.find(query + " DESC",[did:dev.id,startTime:startTime]);
-		log.info(p1);
-		log.info(p2);
-		
-		// create active track if not found
-		if(!activeTrack){
-			activeTrack = new TrackerTrack();
-			activeTrack.deviceId = dev.id;
-			activeTrack.title = "Active track";
-			activeTrack.beginDate = p1.time;
-			activeTrack.endDate = p2.time;
-			activeTrack.type = 1;
-		}else{
-			activeTrack.endDate = p2.time;
-		}
-		if(!activeTrack.save(flush:true)){
-			log.error("Error saving active track: ${activeTrack.errors}");
-			return 0;
-		}
-		
-		// no updates in 30m
-		if(System.currentTimeMillis() -  p2.time.time > 0.5 * 3600 * 1000 ){
+		// finish track if last position is occurred half hour ago
+		if(activeTrack && System.currentTimeMillis() - activeTrack.endDate.time > HALF_HOUR){
 			// update the track position
 			activeTrack.type = 0;
 			activeTrack.title = "Track ${activeTrack.beginDate}";
@@ -105,12 +121,19 @@ class AutoTrackerGenerateRule extends AbstractRule{
 				log.error("Error saving active track: ${activeTrack.errors}");
 				return 0;
 			}
+			log.info("Finished ${activeTrack.title}");
 			
+			// ==========================================================
+			// prepare the weibo message
 			// load all positions for that track
 			def all = TrackerPosition.findAllByDeviceIdAndTimeBetween(dev.id,activeTrack.beginDate,activeTrack.endDate);
 			double totalDistance;
+			double maxSpeed;
 			TrackerPosition lastP = null;
 			for(TrackerPosition p : all){
+				if(p.speed > maxSpeed){
+					maxSpeed = p.speed;
+				}
 				if(lastP){
 					totalDistance += LocationUtils.distance(lastP.latitude, lastP.longitude, p.latitude, p.longitude);
 				}
@@ -121,26 +144,41 @@ class AutoTrackerGenerateRule extends AbstractRule{
 			long totalTimeMs = (activeTrack.endDate.time - activeTrack.beginDate.time);
 			String totalTimeString = DateUtils.prettyTimeString(totalTimeMs);//totalTimeMs / 1000 / 60;
 			double avgSpeedKMH = (totalDistance / (double)(totalTimeMs / 1000)) * 3.6f; // km/h
+			String avgSpdStr = new DecimalFormat("0.00").format(avgSpeedKMH);
 			
-			String mood;
-			if(avgSpeedKMH < 25){
-				mood = "好慢好慢";
-			}else if(avgSpeedKMH < 45){
-				mood = "一般一般";
+			double maxSpeedKMH = maxSpeed * 1.852;
+			String maxSpdStr = new DecimalFormat("0.00").format(maxSpeedKMH);
+						
+			String mood = "正常";
+			if(avgSpeedKMH < 5){
+				mood = "这路堵得没法开啊！";
+			}else if(avgSpeedKMH < 20){
+				mood = "路上挺堵的！";
+			}else if(avgSpeedKMH < 30){
+				mood = "基本不堵！";
+			}else if(avgSpeedKMH < 40){
+				mood = "一路畅通！"
+			}else if(avgSpeedKMH < 60){
+				mood = "开得飞快！"
+			}else if(avgSpeedKMH < 80){
+				mood = "高速高速！"
+			}else if(avgSpeedKMH < 120){
+				mood = "感觉在飙车！"
 			}else{
-				mood = "好快好快";
+				mood = "呃...我其实是架飞机！"
 			}
 			
-			String msg = "当当当 这趟我跑了${totalDistanceKM}公里，耗时${totalTimeString}，平均时速 ${avgSpeedKMH}km/h. ${mood}";
-			log.info();
+			String msg = "当当当 这趟我跑了${totalDistanceKM}公里,耗时${totalTimeString}.最高${maxSpdStr}km/h,平均${avgSpdStr}km/h. ${mood}";
+			log.info(msg);
+			/*
 			if(weiboService.postStatus(deviceId, msg)){
 				// save last update timestamp
 				this.update(deviceId, lastExcutionTimeStamp, System.currentTimeMillis());
 				this.commit(deviceId);
 			}
-			
+			*/
 		}
-		
+				
 		return 0;
 	}
 }
