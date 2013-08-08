@@ -53,12 +53,10 @@ public class DailyGreetingRule extends AbstractRule{
 			return 0;
 		}
 		
-		TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:yesterday AND tp.time<:tomorrow",
-			[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
+		TrackerPosition pos = TrackerPosition.findByDeviceIdAndTimeGreaterThan(dev.id,DateUtils.today());
 		if(pos){
 			String addr = null; //addressResolver.getAddress(pos.latitude, pos.longitude);
-			//String msg = "嘀嘀嘀,准备出发！引擎转速:1000,水温:75,油量:50,一切正常. 主人要安全驾驶哦.";
-			String msg = "嘀嘀嘀,准备出发！引擎转速/水温/油量, 一切正常. 主人要安全驾驶哦.";
+			String msg = "嘀嘀嘀,开始工作啦！引擎转速/水温/油量 一切正常. 主人要安全驾驶哦.";
 			if(addr){
 				msg += " (${addr})"
 			}

@@ -53,12 +53,11 @@ class IdleRule extends AbstractRule{
 			// no such device, bail out
 			return 0;
 		}
-		TrackerPosition pos = TrackerPosition.find("FROM TrackerPosition tp WHERE deviceId=:did AND tp.time>:yesterday AND tp.time<:tomorrow",
-				[did:dev.id,yesterday:DateUtils.yesterday(),tomorrow:DateUtils.tomorrow()]);
+		TrackerPosition pos = TrackerPosition.findByDeviceIdAndTimeGreaterThan(dev.id,DateUtils.today());
 		if(!pos){
 			// if time is > 14:00
 			if(System.currentTimeMillis() - DateUtils.today().getTime() > (14 * 3600 * 1000)){
-				String msg = "哎呀都下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~"
+				String msg = "哎呀都到下午了,主人还没出现。伦家好无聊啊...好想出去溜达一圈~~~"
 				if(weiboService.postStatus(deviceId, msg)){
 					this.update(deviceId,lastExcutionTimeStamp, System.currentTimeMillis());
 					this.commit(deviceId);
