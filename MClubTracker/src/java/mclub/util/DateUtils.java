@@ -31,6 +31,10 @@ import java.util.TimeZone;
  */
 public class DateUtils {
 	public static Date today(){
+		/*
+		Date today = new Date(System.currentTimeMillis() - 2 * 24 * 3600 * 1000);
+		return getDayOfTime(today);
+		*/
 		return getDayOfTime(new Date());
 	}
 	
@@ -60,5 +64,24 @@ public class DateUtils {
 		cal.set(Calendar.MONTH, m);
 		cal.set(Calendar.DATE, d);
 		return cal.getTime();
+	}
+	
+	public static String prettyTimeString(long elapsed){
+		long diffInSeconds = elapsed / 1000;
+
+	    long diff[] = new long[] { 0, 0, 0, 0 };
+	    /* sec */diff[3] = (diffInSeconds >= 60 ? diffInSeconds % 60 : diffInSeconds);
+	    /* min */diff[2] = (diffInSeconds = (diffInSeconds / 60)) >= 60 ? diffInSeconds % 60 : diffInSeconds;
+	    /* hours */diff[1] = (diffInSeconds = (diffInSeconds / 60)) >= 24 ? diffInSeconds % 24 : diffInSeconds;
+	    /* days */diff[0] = (diffInSeconds = (diffInSeconds / 24));
+	    StringBuilder sb = new StringBuilder();
+	    if(diff[0] > 0){
+	    	sb.append(String.format("%d天",diff[0]));
+	    }
+	    if(diff[1] > 0){
+	    	sb.append(String.format("%d小时",diff[1]));
+	    }
+	    sb.append(String.format("%d分钟",diff[2]));
+	    return sb.toString();
 	}
 }
