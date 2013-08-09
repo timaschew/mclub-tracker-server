@@ -39,40 +39,6 @@ class TrackerDataService {
 			return null;
 		}
 		
-		// create dialy track if necessary
-		/*
-		Calendar cal = DateUtils.getCalendar();
-		cal.setTime(position.getTime());
-		int y = cal.get(Calendar.YEAR);
-		int m = cal.get(Calendar.MONTH);
-		int d = cal.get(Calendar.DATE);
-		cal.clear();
-		cal.set(Calendar.YEAR, y);
-		cal.set(Calendar.MONTH, m);
-		cal.set(Calendar.DATE, d);
-		Date theDay = cal.getTime();
-		*/
-		
-		Date theDay = DateUtils.getDayOfTime(position.getTime());
-		Date begin = theDay;
-		Date end = new Date(theDay.getTime() + mclub.util.DateUtils.TIME_OF_ONE_DAY);
-		def c = TrackerTrack.executeQuery("SELECT count(*) FROM TrackerTrack tt WHERE tt.deviceId=:did AND tt.beginDate=:begin AND tt.endDate=:end",[did:position.deviceId,begin:begin,end:end]);
-		 
-		if(c.size() == 1 && 0 == c[0]){
-			// create one
-			TrackerTrack t = new TrackerTrack();
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			t.title = "Daily Track of " + format.format(begin);
-			t.deviceId = position.deviceId;
-			t.beginDate = begin;
-			t.endDate = end;
-			if(!t.save(flush:true)){
-				if(log.isWarnEnabled()){
-					log.warn("Error save track ${t.title}, error: ${t.errors}");
-				}
-			}
-		}
-		// ...
 		return position.id;
 	}
 	
