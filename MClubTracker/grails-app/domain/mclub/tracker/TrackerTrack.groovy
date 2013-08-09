@@ -4,6 +4,7 @@ class TrackerTrack {
 
     static constraints = {
 		description blank:true, nullable:true
+		type blank:true, nullable:true
     }
 	
 	static mapping = {
@@ -18,4 +19,5 @@ class TrackerTrack {
 	Date endDate;
 	Long deviceId; // PK of device record
 	String description;
+	Integer type = 0; // normal track is 0 and active track is 1
 }
