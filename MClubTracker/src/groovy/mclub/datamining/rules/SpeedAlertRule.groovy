@@ -84,19 +84,20 @@ class SpeedAlertRule extends AbstractRule{
 		String avgSpeedStr = new DecimalFormat("0.00").format(avgSpeed);
 		
 		log.info("Average speed: ${(avgSpeed)}");
-		String spd = "不正常";
+		String msg = "不正常";
 		if(avgSpeed < 5){
-			spd = "堵在路上啦";
+			msg = "堵在路上啦";
+		}else if(avgSpeed < 20){
+			msg = "路况正常，车速一般(平均${avgSpeedStr}km/h)"
 		}else if(avgSpeed < 40){
-			spd = "路况不错，车速正常(${avgSpeedStr}km/h)"
+			msg = "路况不错，车速正常(平均${avgSpeedStr}km/h)"
 		}else if(avgSpeed < 60){
-			spd = "路况很好，车速挺快哒(${avgSpeedStr}km/h)"
+			msg = "路况很好，车速挺快哒(平均${avgSpeedStr}km/h)"
 		}else if(avgSpeed < 120){
-			spd = "路上没车，嗖嗖开的飞快(${avgSpeedStr}km/h)"
+			msg = "路上没车，嗖嗖开的飞快(平均${avgSpeedStr}km/h)"
 		}else{
-			spd = "呃...主人你以前是开飞机么？太快啦！"
+			msg = "呃...主人你以前是开飞机么？太快啦！(平均${avgSpeedStr}km/h)"
 		}
-		String msg = "${spd}."
 		
 		if(weiboService.postStatus(deviceId, msg, p0.latitude,p0.longitude)){
 			// post success, so update the rule execution timestamp
