@@ -54,13 +54,14 @@ import org.springframework.context.ApplicationContext
 class LivePositionService {
 	private Nettosphere server;
 	boolean lazyInit = false
+	boolean debug = true;
 
 	@PostConstruct
 	public void start(){
 		// Start websocket server for realtime position push service
 		Config.Builder b = new Config.Builder();
-		b.host("127.0.0.1")
-				.port(20883)
+				b.port(20883)
+				.host("0.0.0.0")
 				.resource(LivePositionAtmosphereService.class)
 				.resource(LivePositionWebSocketHandler.class);
 
@@ -85,6 +86,8 @@ class LivePositionService {
 		log.info("Live Position Service stopped");
 	}
 	
+	private ConcurrentHashMap<String,Date> lastUpdateTimeStamp = new ConcurrentHashMap<String,Date>();
+	
 	/**
 	 * Load all tracker latest position and push back to client
 	 * 
@@ -104,20 +107,28 @@ class LivePositionService {
 			return;
 		}
 		
-		// construct the devie lastest position data
+		// construct the device current position data
 		def data = [];
 		devices.each{dev->
 			TrackerPosition pos = TrackerPosition.get(dev.latestPositionId);
 			if(pos){
-				data << [
-					id:dev.id,
-					latitude:pos.latitude,
-					longitude:pos.longitude,
-					altitude:pos.altitude,
-					speed:pos.speed
-				];
+				// check last update time
+				Date last = lastUpdateTimeStamp[dev.udid];
+				if(debug || (!last || pos.time.time > last.time)){
+					lastUpdateTimeStamp[dev.udid] = pos.time;
+					data << [
+						id:dev.id,
+						udid:dev.udid,
+						latitude:pos.latitude,
+						longitude:pos.longitude,
+						altitude:pos.altitude,
+						speed:pos.speed,
+						time:pos.time
+					];
+				}
 			}
 		}
+		
 		// bail out if nothing found
 		if(data.size() == 0){
 			return;
@@ -137,6 +148,7 @@ class LivePositionService {
 			}
 		}
 		for(WebSocket ws in failedSocks){
+			log.info("Closing broken wsockets: ${ws}");
 			removeClient(ws);
 			try{ws.close();}catch(Exception e){}
 		}
@@ -156,7 +168,11 @@ class LivePositionService {
 	WebSocket addClient(String clientId, WebSocket ws){
 		WebSocket prev = id2sock.put(clientId, ws);
 		sock2id[ws] = clientId;
-		return prev;
+		if(prev != ws){
+			return prev
+		}else{
+			return null;
+		}
 	}
 	
 	/**
@@ -210,10 +226,11 @@ class LivePositionWebSocketHandler implements WebSocketHandler{
 		try{
 			def m = slurper.parseText(message);
 			if(m){
+				LivePositionService lps = LivePositionService.getInstance();
 				String cid = m['clientId'];
 				if(cid){
-					WebSocket prev = LivePositionService.getInstance().addClient(cid, ws);
-					if(prev != null && prev != ws){
+					WebSocket prev = lps.addClient(cid, ws);
+					if(prev){
 						// close the previously associated one
 						try{prev.close();}catch(Exception e){};
 					}
@@ -221,6 +238,10 @@ class LivePositionWebSocketHandler implements WebSocketHandler{
 					ws.write("ok");
 					log.info("client ${cid} connected for live position update");
 					return;
+				}
+				boolean debug = m['debug'];
+				if(debug != lps.debug){
+					lps.debug = debug;
 				}
 			}
 		}catch(Exception e){
