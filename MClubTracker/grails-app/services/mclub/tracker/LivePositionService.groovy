@@ -123,6 +123,7 @@ class LivePositionService {
 						longitude:pos.longitude,
 						altitude:pos.altitude,
 						speed:pos.speed,
+						course:pos.course,
 						time:pos.time
 					];
 				}
@@ -183,7 +184,7 @@ class LivePositionService {
 	String removeClient(WebSocket ws){
 		String clientId = sock2id.remove(ws);
 		if(clientId){
-			id2sock[clientId] = null;
+			id2sock.remove(clientId);
 		}
 		return clientId;
 	}

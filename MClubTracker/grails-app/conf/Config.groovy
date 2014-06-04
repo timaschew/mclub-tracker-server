@@ -34,6 +34,7 @@ grails.mime.types = [
 
 // What URL patterns should be processed by the resources plugin
 grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
+grails.resources.adhoc.excludes = ['**/WEB-INF/**','**/META-INF/**']
 
 // The default codec used to encode data with ${}
 grails.views.default.codec = "none" // none, html, base64
@@ -92,8 +93,14 @@ log4j = {
 	environments {
 		development {
 			info   'grails.app',
-				   'mclub.tracker'
+				   'mclub.tracker',
+				   'mclub.datamining'
 //			debug  'org.hibernate.SQL'
+		}
+		production {
+			info   'grails.app',
+			'mclub.tracker',
+			'mclub.datamining'
 		}
     }
 }
@@ -116,3 +123,27 @@ tracker.t55.port = 5005
 // enables tracker log
 tracker.logger.enabled = true
 tracker.geocode.enabled = false
+
+// Uncomment and edit the following lines to start using Grails encoding & escaping improvements
+
+/* remove this line 
+// GSP settings
+grails {
+    views {
+        gsp {
+            encoding = 'UTF-8'
+            htmlcodec = 'xml' // use xml escaping instead of HTML4 escaping
+            codecs {
+                expression = 'html' // escapes values inside null
+                scriptlet = 'none' // escapes output from scriptlets in GSPs
+                taglib = 'none' // escapes output from taglibs
+                staticparts = 'none' // escapes output from static template parts
+            }
+        }
+        // escapes all not-encoded output at final stage of outputting
+        filteringCodecForContentType {
+            //'text/html' = 'html'
+        }
+    }
+}
+remove this line */

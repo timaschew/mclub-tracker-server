@@ -91,7 +91,7 @@ class TrackerAPIController {
 			begin = new Date(end.getTime() - 30 * DateUtils.TIME_OF_ONE_DAY);
 		}
 		
-		def tracks = trackerService.listDailyTracks(deviceUniqueId, begin, end);
+		def tracks = trackerService.listTracksBetweenDays(deviceUniqueId, begin, end);
 	
 		def results = tracks.collect{
 			return toTrackValues(deviceUniqueId, it);
@@ -146,7 +146,7 @@ class TrackerAPIController {
 			log.info("begin: ${begin} / end: ${end}");
 		}
 		
-		def tracks = trackerService.listDailyTracks(deviceUniqueId, begin,end);
+		def tracks = trackerService.listTracksBetweenDays(deviceUniqueId, begin,end);
 		def results = tracks.collect{
 			return toTrackValues(deviceUniqueId, it);
 		}

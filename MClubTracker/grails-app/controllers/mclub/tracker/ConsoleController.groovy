@@ -6,7 +6,7 @@ class ConsoleController {
 	def tracCarDataImportService;
     def index() { }
 	
-	def raw(){
+	def raw_data(){
 		if(request.method == 'GET'){
 			render view:'raw_data_view'
 			return;

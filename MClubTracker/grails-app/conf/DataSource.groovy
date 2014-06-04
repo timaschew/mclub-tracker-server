@@ -14,9 +14,14 @@ hibernate {
 environments {
     development {
         dataSource {
-            dbCreate = "create" // one of 'create', 'create-drop', 'update', 'validate', ''
-            url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-//			logSql = "false"
+            //dbCreate = "create" // one of 'create', 'create-drop', 'update', 'validate', ''
+			//url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
+
+			dbCreate = "update"
+			url = "jdbc:h2:/Users/shawn/works/mClub/mclub-tracker-server.git/data/mclub_tracker;MVCC=TRUE;LOCK_TIMEOUT=10000"
+
+//			pooled = false
+			logSql = false
         }
 		dataSource_traccar {
 			dbCreate = ""
