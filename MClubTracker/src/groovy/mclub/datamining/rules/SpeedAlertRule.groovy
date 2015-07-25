@@ -65,8 +65,8 @@ class SpeedAlertRule extends AbstractRule{
 		// the first point should be in 10mins
 		TrackerPosition p0 = points[0];
 		TrackerPosition p9 = points[9];
-		if(System.currentTimeMillis() - p9.time.time > 10 * 60 * 1000 ){
-			log.info("no new positions to check against.");
+		if(System.currentTimeMillis() - p9.time.getTime() > (10 * 60 * 1000) ){
+			log.info("no new positions to check against., current time: ${new java.util.Date()}, p9.time:${p9.time}", );
 			return 0;
 		}
 		
