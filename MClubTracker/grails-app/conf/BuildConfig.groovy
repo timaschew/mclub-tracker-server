@@ -59,19 +59,27 @@ grails.project.dependency.resolution = {
 		compile ('org.atmosphere:nettosphere:2.0.0.RC4'){
 			excludes "slf4j-api","logback-core","logback-classic","geronimo-servlet_3.0_spec"
 		}
+		
+		/*
+		compile ('commons-httpclient:commons-httpclient:3.1'){
+			excludes "commons-codec","commons-logging"
+		}
+		*/
+		compile 'org.htmlparser:htmlparser:1.6'
+		compile 'com.alibaba:fastjson:1.1.41'
 //		test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
     }
 
 plugins {
         // plugins for the build system only
-        build ":tomcat:7.0.52.1"
+        build ":tomcat:7.0.54"
 
         // plugins for the compile step
         compile ":scaffolding:2.0.3"
         compile ':cache:1.1.1'
 
         // plugins needed at runtime but not for compilation
-        runtime ":hibernate:3.6.10.15" // or ':hibernate4:4.3.5.3' for Hibernate 4
+		runtime ':hibernate:3.6.10.16' // ':hibernate4:4.3.5.4' for Hibernate 4
         runtime ":database-migration:1.4.0"
         runtime ":jquery:1.10.2"
         runtime ":resources:1.2.8"
