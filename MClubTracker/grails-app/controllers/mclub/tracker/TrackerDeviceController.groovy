@@ -16,11 +16,15 @@ class TrackerDeviceController {
     }
 
     def create() {
-        [trackerDeviceInstance: new TrackerDevice(params)]
+		def t = new TrackerDevice();
+		t.properties = request;
+        [trackerDeviceInstance: t];
     }
 
     def save() {
-        def trackerDeviceInstance = new TrackerDevice(params)
+		// data binding changes as per http://grails.github.io/grails-doc/2.5.x/guide/upgradingFrom23.html
+        def trackerDeviceInstance = new TrackerDevice();
+		trackerDeviceInstance.properties = request;
         if (!trackerDeviceInstance.save(flush: true)) {
             render(view: "create", model: [trackerDeviceInstance: trackerDeviceInstance])
             return
@@ -70,7 +74,7 @@ class TrackerDeviceController {
             }
         }
 
-        trackerDeviceInstance.properties = params
+        trackerDeviceInstance.properties = request;
 
         if (!trackerDeviceInstance.save(flush: true)) {
             render(view: "edit", model: [trackerDeviceInstance: trackerDeviceInstance])

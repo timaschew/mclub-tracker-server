@@ -68,26 +68,29 @@ grails.project.dependency.resolution = {
 		compile 'org.htmlparser:htmlparser:1.6'
 		compile 'com.alibaba:fastjson:1.1.41'
 //		test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
+		
+		runtime 'com.h2database:h2:1.3.175'   // or 'com.h2database:h2:1.4.186' for most recent
     }
 
 plugins {
         // plugins for the build system only
-        build ":tomcat:7.0.54"
+        build ":tomcat:7.0.55.2"
 
         // plugins for the compile step
-        compile ":scaffolding:2.0.3"
-        compile ':cache:1.1.1'
+        compile ":scaffolding:2.1.2"
+        compile ':cache:1.1.8'
+		compile ':asset-pipeline:2.1.5'
 
         // plugins needed at runtime but not for compilation
-		runtime ':hibernate:3.6.10.16' // ':hibernate4:4.3.5.4' for Hibernate 4
+		runtime ':hibernate:3.6.10.19' // ':hibernate4:4.3.8.1' for Hibernate 4
         runtime ":database-migration:1.4.0"
-        runtime ":jquery:1.10.2"
+        runtime ":jquery:1.11.0.2"
         runtime ":resources:1.2.8"
         // Uncomment these (or add new ones) to enable additional resources capabilities
         //runtime ":zipped-resources:1.0.1"
         //runtime ":cached-resources:1.1"
         //runtime ":yui-minify-resources:0.1.5"
 //		compile ":gwt:0.8"
-		compile ":quartz:1.0-RC10"
+		compile ":quartz:1.0.2"
     }
 }
