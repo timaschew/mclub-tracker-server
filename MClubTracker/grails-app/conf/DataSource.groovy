@@ -39,7 +39,7 @@ environments {
     production {
         dataSource {
             dbCreate = "update"
-            url = "jdbc:h2:mclub_tracker;MVCC=TRUE;LOCK_TIMEOUT=10000"
+            url = "jdbc:h2:~/mclub-tracker/main_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
             pooled = true
             properties {
                maxActive = -1
@@ -54,7 +54,7 @@ environments {
         }
 		dataSource_traccar {
 			dbCreate = ""
-			url = "jdbc:h2:traccar;MVCC=TRUE;LOCK_TIMEOUT=10000"
+			url = "jdbc:h2:~/mclub-tracker/trac_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
 			pooled = false
 			readonly = true
 		}
