@@ -77,12 +77,12 @@ public abstract class TrackerServer {
         bootstrap.setPipelineFactory(new BasePipelineFactory(this, protocol) {
             @Override
             protected void addSpecificHandlers(ChannelPipeline pipeline) {
-                TrackerServer.this.addSpecificHandlers(pipeline);
+                TrackerServer.this.addProtocolHandlers(pipeline);
             }
         });
     }
 
-    protected abstract void addSpecificHandlers(ChannelPipeline pipeline);
+    protected abstract void addProtocolHandlers(ChannelPipeline pipeline);
 
     /**
      * Server port

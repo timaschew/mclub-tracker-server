@@ -7,8 +7,11 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import mclub.tracker.protocol.Gps103ProtocolDecoder;
+import mclub.tracker.protocol.Gps103TrackerServer;
 import mclub.tracker.protocol.T55ProtocolDecoder;
+import mclub.tracker.protocol.T55TrackerServer;
 import mclub.tracker.protocol.Tk103ProtocolDecoder;
+import mclub.tracker.protocol.Tk103TrackerServer;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -69,18 +72,7 @@ public class TrackerServerManager {
 			return;
 		}
 		try{
-			TrackerServer server = new TrackerServer(new ServerBootstrap(), protocol, trackerDataService) {
-	            @Override
-	            protected void addSpecificHandlers(ChannelPipeline pipeline) {
-	                byte delimiter[] = { (byte) ')' };
-	                pipeline.addLast("frameDecoder",
-	                        new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
-	                pipeline.addLast("stringDecoder", new StringDecoder());
-	                pipeline.addLast("stringEncoder", new StringEncoder());
-	                Tk103ProtocolDecoder tk103 = new Tk103ProtocolDecoder(trackerDataService);
-	                pipeline.addLast("objectDecoder", tk103);
-	            }
-	        };
+			TrackerServer server = new Tk103TrackerServer(new ServerBootstrap(), protocol, trackerDataService);
 	        serverList.add(server);
 		}catch(Exception e){
 			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
@@ -92,17 +84,11 @@ public class TrackerServerManager {
 		if (!isProtocolEnabled(protocol)){
 			return;
 		}
-		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerDataService) {
-            @Override
-            protected void addSpecificHandlers(ChannelPipeline pipeline) {
-                byte delimiter[] = { (byte) ';' };
-                pipeline.addLast("frameDecoder",
-                        new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
-                pipeline.addLast("stringDecoder", new StringDecoder());
-                pipeline.addLast("stringEncoder", new StringEncoder());
-                pipeline.addLast("objectDecoder", new Gps103ProtocolDecoder(trackerDataService));
-            }
-        });
+		try{
+			serverList.add(new Gps103TrackerServer(new ServerBootstrap(), protocol,trackerDataService));
+		}catch(Exception e){
+			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
+		}
 	}
 	
 	private void initT55Server(){
@@ -110,17 +96,11 @@ public class TrackerServerManager {
 		if (!isProtocolEnabled(protocol)){
 			return;
 		}
-		serverList.add(new TrackerServer(new ServerBootstrap(), protocol,trackerDataService) {
-            @Override
-            protected void addSpecificHandlers(ChannelPipeline pipeline) {
-                byte delimiter[] = { (byte) '\r', (byte) '\n' };
-                pipeline.addLast("frameDecoder",
-                        new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
-                pipeline.addLast("stringDecoder", new StringDecoder());
-                pipeline.addLast("stringEncoder", new StringEncoder());
-                pipeline.addLast("objectDecoder", new T55ProtocolDecoder(trackerDataService));
-            }
-        });
+		try{
+			serverList.add(new T55TrackerServer(new ServerBootstrap(), protocol,trackerDataService));
+		}catch(Exception e){
+			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
+		}
 	}
 	
 	/**
