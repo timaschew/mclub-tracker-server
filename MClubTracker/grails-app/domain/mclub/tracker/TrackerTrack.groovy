@@ -2,6 +2,9 @@ package mclub.tracker
 
 class TrackerTrack {
 
+	public static final int TRACK_TYPE_NORMAL = 0;
+	public static final int TRACK_TYPE_ACTIVE = 1;
+	
     static constraints = {
 		description blank:true, nullable:true
 		type blank:true, nullable:true
@@ -19,5 +22,5 @@ class TrackerTrack {
 	Date endDate;
 	Long deviceId; // PK of device record
 	String description;
-	Integer type = 0; // normal track is 0 and active track is 1
+	Integer type = TRACK_TYPE_NORMAL; // normal track is 0 and active track is 1
 }
