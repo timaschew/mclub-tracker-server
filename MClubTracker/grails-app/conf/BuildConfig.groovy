@@ -66,10 +66,13 @@ grails.project.dependency.resolution = {
 		}
 		*/
 		compile 'org.htmlparser:htmlparser:1.6'
-		compile 'com.alibaba:fastjson:1.1.41'
-//		test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
+		compile 'com.alibaba:fastjson:1.2.6'
+		//test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
 		
-		runtime 'com.h2database:h2:1.3.175'   // or 'com.h2database:h2:1.4.186' for most recent
+		runtime 'com.h2database:h2:1.4.187'   // or 'com.h2database:h2:1.3.175' for older version
+		
+		//compile 'org.geotools:gt-main:2.6.0'
+		//compile 'net.sf.json-lib:json-lib:2.4'
     }
 
 plugins {
