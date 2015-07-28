@@ -47,7 +47,8 @@ import mclub.tracker.TrackerServer;
  *
  */
 public class Gps103TrackerServer extends TrackerServer{
-
+	private Logger log = LoggerFactory.getLogger(Gps103TrackerServer.class);
+	
 	/**
 	 * @param bootstrap
 	 * @param protocol
@@ -67,9 +68,136 @@ public class Gps103TrackerServer extends TrackerServer{
                  new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
          pipeline.addLast("stringDecoder", new StringDecoder());
          pipeline.addLast("stringEncoder", new StringEncoder());
-         pipeline.addLast("objectDecoder", new Gps103ProtocolDecoder());
+         pipeline.addLast("objectDecoder", new OneToOneDecoder(){
+             protected Object decode(
+                     ChannelHandlerContext ctx, Channel channel, Object msg)
+                     throws Exception {
+             	return Gps103TrackerServer.this.decode(ctx, channel, msg);
+             }
+         });
     }
 
+
+    /*
+     * Decode the incoming tracker messages
+     */
+    protected Object decode(
+            ChannelHandlerContext ctx, Channel channel, Object msg)
+            throws Exception {
+
+        String sentence = (String) msg;
+
+        // Send response #1
+        if (sentence.contains("##")) {
+            if (channel != null) {
+                channel.write("LOAD");
+            }
+            return null;
+        }
+
+        // Send response #2
+        if (sentence.length() == 15 && Character.isDigit(sentence.charAt(0))) {
+            if (channel != null) {
+                channel.write("ON");
+            }
+            return null;
+        }
+
+        // Parse message
+        Matcher parser = pattern.matcher(sentence);
+        if (!parser.matches()) {
+            log.info("Parsing error");
+            return null;
+        }
+
+        // Create new position
+        TrackerPosition position = new TrackerPosition();
+        StringBuilder extendedInfo = new StringBuilder("<protocol>gps103</protocol>");
+
+        Integer index = 1;
+
+        // Get device by IMEI
+        String imei = parser.group(index++);
+        Long dbId = Gps103TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
+    	if(dbId == null){
+    		log.warn("Unknown device - " + imei);
+            return null;
+    	}
+        position.setDeviceId(dbId);
+
+        // Alarm message
+        extendedInfo.append("<alarm>");
+        extendedInfo.append(parser.group(index++));
+        extendedInfo.append("</alarm>");
+        
+        // Date
+        Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        time.clear();
+        time.set(Calendar.YEAR, 2000 + Integer.valueOf(parser.group(index++)));
+        time.set(Calendar.MONTH, Integer.valueOf(parser.group(index++)) - 1);
+        time.set(Calendar.DAY_OF_MONTH, Integer.valueOf(parser.group(index++)));
+        
+        int localHours = Integer.valueOf(parser.group(index++));
+        int localMinutes = Integer.valueOf(parser.group(index++));
+        
+        int utcHours = Integer.valueOf(parser.group(index++));
+        int utcMinutes = Integer.valueOf(parser.group(index++));
+
+        // Time
+        time.set(Calendar.HOUR, localHours);
+        time.set(Calendar.MINUTE, localMinutes);
+        time.set(Calendar.SECOND, Integer.valueOf(parser.group(index++)));
+        time.set(Calendar.MILLISECOND, Integer.valueOf(parser.group(index++)));
+        
+        // Timezone calculation
+        int deltaMinutes = (localHours - utcHours) * 60 + localMinutes - utcMinutes;
+        if (deltaMinutes <= -12 * 60) {
+            deltaMinutes += 24 * 60;
+        } else if (deltaMinutes > 12 * 60) {
+            deltaMinutes -= 24 * 60;
+        }
+        time.add(Calendar.MINUTE, -deltaMinutes);
+        position.setTime(time.getTime());
+
+        // Validity
+        position.setValid(parser.group(index++).compareTo("A") == 0 ? true : false);
+
+        // Latitude
+        Double latitude = Double.valueOf(parser.group(index++));
+        latitude += Double.valueOf(parser.group(index++)) / 60;
+        if (parser.group(index++).compareTo("S") == 0) latitude = -latitude;
+        position.setLatitude(latitude);
+
+        // Longitude
+        Double lonlitude = Double.valueOf(parser.group(index++));
+        lonlitude += Double.valueOf(parser.group(index++)) / 60;
+        String hemisphere = parser.group(index++);
+        if (hemisphere != null) {
+            if (hemisphere.compareTo("W") == 0) lonlitude = -lonlitude;
+        }
+        position.setLongitude(lonlitude);
+
+        // Altitude
+        position.setAltitude(0.0);
+
+        // Speed
+        position.setSpeed(Double.valueOf(parser.group(index++)));
+
+        // Course
+        String course = parser.group(index++);
+        if (course != null) {
+            position.setCourse(Double.valueOf(course));
+        } else {
+            position.setCourse(0.0);
+        }
+
+        // Extended info
+        position.setExtendedInfo(extendedInfo.toString());
+
+        return position;
+    }
+    
+    
     /**
      * Regular expressions pattern
      */
@@ -91,125 +219,4 @@ public class Gps103TrackerServer extends TrackerServer{
             "(\\d+\\.\\d+)?" +                  // Course
             ".*");
     
-    class Gps103ProtocolDecoder extends OneToOneDecoder{
-    	private Logger log = LoggerFactory.getLogger(Gps103ProtocolDecoder.class);
-
-        @Override
-        protected Object decode(
-                ChannelHandlerContext ctx, Channel channel, Object msg)
-                throws Exception {
-
-            String sentence = (String) msg;
-
-            // Send response #1
-            if (sentence.contains("##")) {
-                if (channel != null) {
-                    channel.write("LOAD");
-                }
-                return null;
-            }
-
-            // Send response #2
-            if (sentence.length() == 15 && Character.isDigit(sentence.charAt(0))) {
-                if (channel != null) {
-                    channel.write("ON");
-                }
-                return null;
-            }
-
-            // Parse message
-            Matcher parser = pattern.matcher(sentence);
-            if (!parser.matches()) {
-                log.info("Parsing error");
-                return null;
-            }
-
-            // Create new position
-            TrackerPosition position = new TrackerPosition();
-            StringBuilder extendedInfo = new StringBuilder("<protocol>gps103</protocol>");
-
-            Integer index = 1;
-
-            // Get device by IMEI
-            String imei = parser.group(index++);
-            Long dbId = Gps103TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
-        	if(dbId == null){
-        		log.warn("Unknown device - " + imei);
-                return null;
-        	}
-            position.setDeviceId(dbId);
-
-            // Alarm message
-            extendedInfo.append("<alarm>");
-            extendedInfo.append(parser.group(index++));
-            extendedInfo.append("</alarm>");
-            
-            // Date
-            Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            time.clear();
-            time.set(Calendar.YEAR, 2000 + Integer.valueOf(parser.group(index++)));
-            time.set(Calendar.MONTH, Integer.valueOf(parser.group(index++)) - 1);
-            time.set(Calendar.DAY_OF_MONTH, Integer.valueOf(parser.group(index++)));
-            
-            int localHours = Integer.valueOf(parser.group(index++));
-            int localMinutes = Integer.valueOf(parser.group(index++));
-            
-            int utcHours = Integer.valueOf(parser.group(index++));
-            int utcMinutes = Integer.valueOf(parser.group(index++));
-
-            // Time
-            time.set(Calendar.HOUR, localHours);
-            time.set(Calendar.MINUTE, localMinutes);
-            time.set(Calendar.SECOND, Integer.valueOf(parser.group(index++)));
-            time.set(Calendar.MILLISECOND, Integer.valueOf(parser.group(index++)));
-            
-            // Timezone calculation
-            int deltaMinutes = (localHours - utcHours) * 60 + localMinutes - utcMinutes;
-            if (deltaMinutes <= -12 * 60) {
-                deltaMinutes += 24 * 60;
-            } else if (deltaMinutes > 12 * 60) {
-                deltaMinutes -= 24 * 60;
-            }
-            time.add(Calendar.MINUTE, -deltaMinutes);
-            position.setTime(time.getTime());
-
-            // Validity
-            position.setValid(parser.group(index++).compareTo("A") == 0 ? true : false);
-
-            // Latitude
-            Double latitude = Double.valueOf(parser.group(index++));
-            latitude += Double.valueOf(parser.group(index++)) / 60;
-            if (parser.group(index++).compareTo("S") == 0) latitude = -latitude;
-            position.setLatitude(latitude);
-
-            // Longitude
-            Double lonlitude = Double.valueOf(parser.group(index++));
-            lonlitude += Double.valueOf(parser.group(index++)) / 60;
-            String hemisphere = parser.group(index++);
-            if (hemisphere != null) {
-                if (hemisphere.compareTo("W") == 0) lonlitude = -lonlitude;
-            }
-            position.setLongitude(lonlitude);
-
-            // Altitude
-            position.setAltitude(0.0);
-
-            // Speed
-            position.setSpeed(Double.valueOf(parser.group(index++)));
-
-            // Course
-            String course = parser.group(index++);
-            if (course != null) {
-                position.setCourse(Double.valueOf(course));
-            } else {
-                position.setCourse(0.0);
-            }
-
-            // Extended info
-            position.setExtendedInfo(extendedInfo.toString());
-
-            return position;
-        }
-
-    }
 }

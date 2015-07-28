@@ -67,7 +67,14 @@ public class T55TrackerServer extends TrackerServer{
                 new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
         pipeline.addLast("stringDecoder", new StringDecoder());
         pipeline.addLast("stringEncoder", new StringEncoder());
-        pipeline.addLast("objectDecoder", new T55ProtocolDecoder());	    
+        pipeline.addLast("objectDecoder", new OneToOneDecoder(){
+
+			protected Object decode(ChannelHandlerContext ctx, Channel channel,
+					Object msg) throws Exception {
+				return null;
+			}
+        	
+        });	    
     }
 
     /**
@@ -107,6 +114,7 @@ public class T55TrackerServer extends TrackerServer{
                 deviceId = T55TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
                 if(deviceId == null){
                 	log.warn("Unknown device - " + imei);
+                	return null;
                 }
             }
 
