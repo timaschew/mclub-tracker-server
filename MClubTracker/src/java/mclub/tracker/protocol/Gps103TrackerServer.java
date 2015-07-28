@@ -118,7 +118,7 @@ public class Gps103TrackerServer extends TrackerServer{
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        Long dbId = Gps103TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
+        Long dbId = getTrackerDataService().getIdByUniqueDeviceId(imei);
     	if(dbId == null){
     		log.warn("Unknown device - " + imei);
             return null;

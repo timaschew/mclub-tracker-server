@@ -104,7 +104,7 @@ public class Tk103TrackerServer extends TrackerServer{
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        Long deviceRecordId = Tk103TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
+        Long deviceRecordId = getTrackerDataService().getIdByUniqueDeviceId(imei);
         if(deviceRecordId == null){
         	log.warn("Unknown device - " + imei);
         	return null;

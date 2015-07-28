@@ -67,14 +67,7 @@ public class T55TrackerServer extends TrackerServer{
                 new DelimiterBasedFrameDecoder(1024, ChannelBuffers.wrappedBuffer(delimiter)));
         pipeline.addLast("stringDecoder", new StringDecoder());
         pipeline.addLast("stringEncoder", new StringEncoder());
-        pipeline.addLast("objectDecoder", new OneToOneDecoder(){
-
-			protected Object decode(ChannelHandlerContext ctx, Channel channel,
-					Object msg) throws Exception {
-				return null;
-			}
-        	
-        });	    
+        pipeline.addLast("objectDecoder", new T55ProtocolDecoder(getTrackerDataService()));	    
     }
 
     /**
@@ -96,10 +89,15 @@ public class T55TrackerServer extends TrackerServer{
     /**
      *  T55ProtocolDecoder for netty
      */
-    class T55ProtocolDecoder extends OneToOneDecoder{
+    static class T55ProtocolDecoder extends OneToOneDecoder{
     	private Logger log = LoggerFactory.getLogger(T55ProtocolDecoder.class);
     	private Long deviceId;
-    	 
+    	private TrackerDataService trackerDataService;
+    	
+    	T55ProtocolDecoder(TrackerDataService trackerDataService){
+    		this.trackerDataService = trackerDataService;
+    	}
+    	
         @Override
         protected Object decode(
                 ChannelHandlerContext ctx, Channel channel, Object msg)
@@ -111,7 +109,7 @@ public class T55TrackerServer extends TrackerServer{
             if (sentence.contains("$PGID")) {
                 String imei = sentence.substring(6, sentence.length() - 3);
                 // this is the db id indeed!
-                deviceId = T55TrackerServer.this.getTrackerDataService().getIdByUniqueDeviceId(imei);
+                deviceId = trackerDataService.getIdByUniqueDeviceId(imei);
                 if(deviceId == null){
                 	log.warn("Unknown device - " + imei);
                 	return null;
