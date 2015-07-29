@@ -24,16 +24,34 @@ package mclub.tracker;
 import java.net.InetSocketAddress;
 import java.nio.ByteOrder;
 
+import mclub.tracker.geocode.GoogleReverseGeocoder;
+import mclub.tracker.geocode.ReverseGeocoder;
+import mclub.tracker.geocode.ReverseGeocoderHandler;
+
 import org.jboss.netty.bootstrap.Bootstrap;
 import org.jboss.netty.bootstrap.ConnectionlessBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.buffer.HeapChannelBufferFactory;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelEvent;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.DownstreamMessageEvent;
+import org.jboss.netty.channel.ExceptionEvent;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.handler.logging.LoggingHandler;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -43,13 +61,20 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 public abstract class TrackerServer {
     private Bootstrap bootstrap;
     private String protocol;
+    private Logger log = LoggerFactory.getLogger(getClass());
+    
+    private Boolean loggerEnabled, reverseGeocoderEnabled;
+    private Integer resetDelay;
+    private ReverseGeocoder reverseGeocoder;
     
     private TrackerDataService trackerDataService;
 
+    /********************************************************************************/
+    /* Dependencies */
+    /********************************************************************************/
     public String getProtocol() {
         return protocol;
-    }
-    
+    }    
     public TrackerDataService getTrackerDataService(){
     	return trackerDataService;
     }
@@ -74,18 +99,92 @@ public abstract class TrackerServer {
         	port = 5000;
         }
 
-        bootstrap.setPipelineFactory(new BasePipelineFactory(this, protocol) {
-            @Override
-            protected void addSpecificHandlers(ChannelPipeline pipeline) {
-                TrackerServer.this.addProtocolHandlers(pipeline);
-            }
+        // enable logger
+        loggerEnabled = Boolean.TRUE.equals(trackerDataService.getConfig().get("tracker.logger.enabled"));
+        // enable geocoder        
+        reverseGeocoderEnabled = Boolean.TRUE.equals(trackerDataService.getConfig().get("tracker.geocoder.enabled")); 
+        if(reverseGeocoderEnabled){
+        	reverseGeocoder = new GoogleReverseGeocoder();
+        }
+        
+        // enable tracker reset delay
+        String resetDelayProperty = (String)trackerDataService.getConfig().get("tracker." + protocol + ".resetDelay");
+        if (resetDelayProperty != null) {
+            resetDelay = Integer.valueOf(resetDelayProperty);
+        }
+        
+        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+
+			public ChannelPipeline getPipeline() throws Exception {
+				ChannelPipeline pipeline = Channels.pipeline();
+		        if (resetDelay != null) {
+		            pipeline.addLast("idleHandler", new IdleStateHandler(NettyResource.getTimer(), resetDelay, 0, 0));
+		        }
+		        pipeline.addLast("openHandler", new OpenChannelHandler());
+		        if (loggerEnabled) {
+		            pipeline.addLast("logger", new StandardLoggingHandler());
+		        }
+		        addProtocolHandlers(pipeline);
+		        if (reverseGeocoder != null) {
+		            pipeline.addLast("geocoder", new ReverseGeocoderHandler(reverseGeocoder));
+		        }
+		        pipeline.addLast("handler", new TrackerEventHandler(getTrackerDataService()));
+		        return pipeline;
+			}
         });
     }
 
     protected abstract void addProtocolHandlers(ChannelPipeline pipeline);
 
+    /********************************************************************************/
+    /* Netty PipelineFactory and Handlers */
+    /********************************************************************************/
+    
     /**
-     * Server port
+     * Open channel handler
+     */
+    protected class OpenChannelHandler extends SimpleChannelHandler {
+        @Override
+        public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
+            getChannelGroup().add(e.getChannel());
+        }
+    }
+    /**
+     * Logging using global logger
+     */
+    protected class StandardLoggingHandler extends LoggingHandler {
+
+        @Override
+        public void log(ChannelEvent e) {
+            if (e instanceof MessageEvent) {
+                MessageEvent event = (MessageEvent) e;
+                StringBuilder msg = new StringBuilder();
+
+                msg.append("[").append(((InetSocketAddress) e.getChannel().getLocalAddress()).getPort());
+                msg.append((e instanceof DownstreamMessageEvent) ? " -> " : " <- ");
+                msg.append(((InetSocketAddress) event.getRemoteAddress()).getAddress().getHostAddress()).append("]");
+
+                // Append hex message
+                if (event.getMessage() instanceof ChannelBuffer) {
+                    msg.append(" - (HEX: ");
+                    msg.append(ChannelBuffers.hexDump((ChannelBuffer) event.getMessage()));
+                    msg.append(")");
+                }
+
+                log.debug(msg.toString());
+            } else if (e instanceof ExceptionEvent) {
+                ExceptionEvent event = (ExceptionEvent) e;
+                log.warn(event.getCause().toString());
+            }
+        }
+    }
+    
+    
+    /********************************************************************************/
+    /* Properties */
+    /********************************************************************************/
+    /*
+     * Server socket port
      */
     private Integer port;
 
@@ -97,8 +196,8 @@ public abstract class TrackerServer {
         this.port = port;
     }
 
-    /**
-     * Server listening interface
+    /*
+     * Server socket address
      */
     private String address;
 
@@ -130,6 +229,10 @@ public abstract class TrackerServer {
         bootstrap.setPipelineFactory(pipelineFactory);
     }
 
+    /********************************************************************************/
+    /* Server life cycle */
+    /********************************************************************************/
+    
     /**
      * Start server
      */
@@ -151,6 +254,8 @@ public abstract class TrackerServer {
         if (channel != null) {
             getChannelGroup().add(channel);
         }
+        
+        log.info(" " + this + " started");
     }
 
     /**
@@ -159,9 +264,11 @@ public abstract class TrackerServer {
     public void stop() {
         ChannelGroupFuture future = getChannelGroup().close();
         future.awaitUninterruptibly();
+        
+        log.info(" " + this + " stopped");
     }
     
     public String toString(){
-    	return "[" + protocol + "] connector@" + Integer.toHexString(System.identityHashCode(this)); 
+    	return "[" + protocol + "] server@" + Integer.toHexString(System.identityHashCode(this)); 
     }
 }

@@ -30,21 +30,19 @@ public class TrackerServerManager {
 	
 	@PostConstruct
 	public void startup(){
-		log.info("Startup");
+		log.info("Startup track servers...");
 		
 		initServers();
 		
 		for (TrackerServer server: serverList) {
-			log.info(" Starting " + server);
             server.start();
         }
 	}
 	
 	@PreDestroy
 	public void shutdown(){
-		log.info("Shutdown");
+		log.info("Shutdown track servers...");
 		for (TrackerServer server: serverList) {
-			log.info(" Stopping " + server);
             server.stop();
         }
 		
