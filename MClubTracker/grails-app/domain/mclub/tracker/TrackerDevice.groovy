@@ -16,7 +16,7 @@ class TrackerDevice {
 		udid index:'idx_trackerdevice_udid'
 	}
 	
-	String udid; // the unique device id, mostly, will be the imei;
+	String udid; // the unique device id, could be IMEI or callsign or manual assigned devices;
 	
 	String imei;
 	String phoneNumber;

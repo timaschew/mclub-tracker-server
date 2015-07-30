@@ -190,4 +190,150 @@ class TrackerAPIController {
 		
 		render text:'OK'
 	}
+	
+	/**
+	 * Returns the geojson of device position
+	 * @param udid
+	 * @return
+	 */
+	def geojson(String udid){
+		if(!udid){
+			udid = params.id
+		}
+		if(!udid){
+			render text:"Missing udid";
+			return;
+		}
+		
+		def devices = [];
+		if(udid.equals("*")){
+			devices  = TrackerDevice.list();
+		}else{
+			def dev = TrackerDevice.findByUdid(udid);
+			if(dev) devices << dev; 
+		}
+		
+		def featureCollection = [:];
+		
+		def features = [];
+		devices?.each{ dev->
+			features << buildGeojsonFeature(dev);
+		}
+		if(!features.isEmpty()){
+			featureCollection['type'] = 'FeatureCollection';
+			featureCollection['features'] = features; 
+		}
+		render featureCollection as JSON;
+	}
+	
+	/*
+	 {
+	   "type": "Feature",
+	   "properties": {
+		 "id": "ire3k295",
+		 "title": "Cornell University",
+		 "description": "<div style=\"width:330px;height:240px;overflow:auto\"><div class=\"googft-info-window\" style=\"font-family:sans-serif\"> <b>Governmental Body/Entity:</b> Cornell University<br><p> <b>Type of Drone:</b> University Built (One-Third Scale Piper Cub) UAS</p><p><b>Status:</b> Expired</p><p> <b>General Location of Drone Activity:</b> Aurora, NY</p><p> <b>Stated objective/purpose of COA:</b> The purpose of the proposed UAV flights in this COA is to develop and use experimentally, a system to vertically profile the atmosphere from 300 ft agl to 3000 ft agl.  The UAV payload will be instrumentation to continuously measure temperature, relative humidity, wind speed and wind direction as the UAV spirals vertically from 300 ft agl to 3000 ft agl and back down to 300 ft agl.  The UAV will maintain a GPS controlled circle with a 1500 ft diameter utilizing a Micropilot 1028 autopilot.  The climb rate will be 150 ft/min and the duration of the flight will be approximately 40 min. This system will replace the release of helium filled balloons with radio equipped weather packages and the use of tethered blimps utilized to lift weather instrumentation into the lower atmosphere.   An UAV mounted system is superior because the helium filled free flying balloons rise through the lower 3000 ft of the atmosphere too quickly for accurate weather data.  The tethered blimps have a FAA imposed altitude restriction of 1000-1500 ft due to their danger to aircraft and the inability of the operators to react quickly enough to avoid full scale aircraft.  In contrast, a UAV mounted system can spiral up to 3000 ft in a relatively short time period, yielding high quality weather measurements and can quickly be diverted to avoid full scale aircraft which enter into the area of UAV flights.</p><p> <b>Effective Dates:</b> 3/1/2010-2/28/2011</p><p> <b>Comments:</b> </p><p><b>Link to Records:</b> <a href=\"https://www.eff.org/document/cornell-university-drone-records\" target=\"_blank\">https://www.eff.org/document/cornell-university-drone-records</a></p> </div></div>",
+		 "marker-color": "#00bcce",
+		 "marker-size": "medium",
+		 "marker-symbol": "airport",
+		 "marker-zoom": ""
+	   },
+	   "geometry": {
+		 "type": "Point",
+		 "coordinates": [
+		   -76.702448,
+		   42.753959
+		 ]
+	   },
+	   "id": "ci9bzhum74haejrlvrn7i8fep"
+	 }
+	 
+	 */
+	private Map<String,Object> buildGeojsonFeature(TrackerDevice device){
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
+		if(!pos){
+			return null;
+		}
+		def feature_properties = [
+			'title':"tk-${device.udid}",
+			'description':"tracker demo",
+			'marker-color':"#00bcce",
+			'marker-size': "medium",
+			'marker-symbol': "airport",
+			"marker-zoom": ""
+			]
+		def feature_geometry = [
+			"type": "Point",
+			"coordinates": [pos.longitude, pos.latitude]
+			]
+		
+		def feature = [
+			'type':"Feature",
+			'properties':feature_properties,
+			'geometry' : feature_geometry,
+			'id' : device.id
+			];
+		return feature;
+	}
+	
+	/**
+	 * Returns an array of device positions.
+	 * @param udid
+	 * @return
+	 */
+	def live_positions(String udid){
+		if(!udid){
+			udid = params.id
+		}
+		if(!udid){
+			render text:"Missing udid";
+			return;
+		}
+		
+		def allDevicePositions = [];
+		
+		if(udid.equals("*")){
+			// load all tracker's latest positions
+			def devices = TrackerDevice.list();
+			devices?.each{ dev->
+				allDevicePositions << buildDevicePositionValues(dev);
+			}
+		}else{
+			TrackerDevice dev = TrackerDevice.findByUdid(udid);
+			if(dev){
+				allDevicePositions << buildDevicePositionValues(dev);
+			}
+		}
+		
+		render allDevicePositions as JSON;
+	}
+	
+	private Map<String,Object> convertToPositionValues(TrackerDevice device, TrackerPosition pos){
+		def	values = [
+			//id:device.id,
+			//udid:device.udid,
+			latitude:pos.latitude,
+			longitude:pos.longitude,
+			altitude:pos.altitude,
+			speed:pos.speed,
+			course:pos.course,
+			time:pos.time
+		];
+		return values;
+	}
+	
+	private Map<String,Object> buildDevicePositionValues(TrackerDevice device){
+		def values = [:]
+
+		values['udid'] = device.udid;
+		values['name'] = device.phoneNumber;
+		def positions = [];
+		values['positions'] = positions;
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
+		if(pos){
+			// check last update time
+			positions << convertToPositionValues(device,pos);
+		}
+		return values
+	}
 }
