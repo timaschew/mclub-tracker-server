@@ -22,6 +22,7 @@
 package mclub.tracker.protocol;
 
 import java.util.Calendar;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,8 +39,8 @@ import org.jboss.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import mclub.tracker.PositionData;
 import mclub.tracker.TrackerDataService;
-import mclub.tracker.TrackerPosition;
 import mclub.tracker.TrackerServer;
 
 /**
@@ -76,6 +77,9 @@ public class Tk103TrackerServer extends TrackerServer{
         });	    
     }
 
+    /*
+     * decode received setence to object
+     */
     protected Object decode(
             ChannelHandlerContext ctx, Channel channel, Object msg)
             throws Exception {
@@ -97,69 +101,65 @@ public class Tk103TrackerServer extends TrackerServer{
             return null;
         }
 
-        // Create new position
-        TrackerPosition position = new TrackerPosition();
-        StringBuilder extendedInfo = new StringBuilder("<protocol>tk103</protocol>");
-        Integer index = 1;
+        try{
+            // Create new position
+            PositionData position = new PositionData();
+            Integer index = 1;
 
-        // Get device by IMEI
-        String imei = parser.group(index++);
-        Long deviceRecordId = getTrackerDataService().getIdByUniqueDeviceId(imei);
-        if(deviceRecordId == null){
-        	log.warn("Unknown device - " + imei);
+            // Get device by IMEI
+            String imei = parser.group(index++);
+            position.setUdid(imei);
+            position.setImei(imei);
+            
+            // Date
+            Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            time.clear();
+            time.set(Calendar.YEAR, 2000 + Integer.valueOf(parser.group(index++)));
+            time.set(Calendar.MONTH, Integer.valueOf(parser.group(index++)) - 1);
+            time.set(Calendar.DAY_OF_MONTH, Integer.valueOf(parser.group(index++)));
+
+            // Validity
+            position.setValid(parser.group(index++).compareTo("A") == 0 ? true : false);
+
+            // Latitude
+            Double latitude = Double.valueOf(parser.group(index++));
+            latitude += Double.valueOf(parser.group(index++)) / 60;
+            if (parser.group(index++).compareTo("S") == 0) latitude = -latitude;
+            position.setLatitude(latitude);
+
+            // Longitude
+            Double lonlitude = Double.valueOf(parser.group(index++));
+            lonlitude += Double.valueOf(parser.group(index++)) / 60;
+            if (parser.group(index++).compareTo("W") == 0) lonlitude = -lonlitude;
+            position.setLongitude(lonlitude);
+
+            // Altitude
+            position.setAltitude(0.0);
+
+            // Speed
+            position.setSpeed(Double.valueOf(parser.group(index++)));
+
+            // Time
+            time.set(Calendar.HOUR, Integer.valueOf(parser.group(index++)));
+            time.set(Calendar.MINUTE, Integer.valueOf(parser.group(index++)));
+            time.set(Calendar.SECOND, Integer.valueOf(parser.group(index++)));
+            position.setTime(time.getTime());
+
+            // Course
+            position.setCourse(Double.valueOf(parser.group(index++)));
+            
+            Map<String,Object> extendedInfo = position.getExtendedInfo();
+            extendedInfo.put("protocol", "tk103");
+            // State
+            extendedInfo.put("state",parser.group(index++));
+
+            // Mileage
+            extendedInfo.put("milage",Integer.parseInt(parser.group(index++), 16));
+            return position;
+        }catch(Exception e){
+        	log.info("Failed decode tk103 message: " + sentence,e);
         	return null;
         }
-        position.setDeviceId(deviceRecordId);
-
-        // Date
-        Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        time.clear();
-        time.set(Calendar.YEAR, 2000 + Integer.valueOf(parser.group(index++)));
-        time.set(Calendar.MONTH, Integer.valueOf(parser.group(index++)) - 1);
-        time.set(Calendar.DAY_OF_MONTH, Integer.valueOf(parser.group(index++)));
-
-        // Validity
-        position.setValid(parser.group(index++).compareTo("A") == 0 ? true : false);
-
-        // Latitude
-        Double latitude = Double.valueOf(parser.group(index++));
-        latitude += Double.valueOf(parser.group(index++)) / 60;
-        if (parser.group(index++).compareTo("S") == 0) latitude = -latitude;
-        position.setLatitude(latitude);
-
-        // Longitude
-        Double lonlitude = Double.valueOf(parser.group(index++));
-        lonlitude += Double.valueOf(parser.group(index++)) / 60;
-        if (parser.group(index++).compareTo("W") == 0) lonlitude = -lonlitude;
-        position.setLongitude(lonlitude);
-
-        // Altitude
-        position.setAltitude(0.0);
-
-        // Speed
-        position.setSpeed(Double.valueOf(parser.group(index++)));
-
-        // Time
-        time.set(Calendar.HOUR, Integer.valueOf(parser.group(index++)));
-        time.set(Calendar.MINUTE, Integer.valueOf(parser.group(index++)));
-        time.set(Calendar.SECOND, Integer.valueOf(parser.group(index++)));
-        position.setTime(time.getTime());
-
-        // Course
-        position.setCourse(Double.valueOf(parser.group(index++)));
-        
-        // State
-        extendedInfo.append("<state>");
-        extendedInfo.append(parser.group(index++));
-        extendedInfo.append("</state>");
-
-        // Milage
-        extendedInfo.append("<milage>");
-        extendedInfo.append(Integer.parseInt(parser.group(index++), 16));
-        extendedInfo.append("</milage>");
-
-        position.setExtendedInfo(extendedInfo.toString());
-        return position;
     }
     
     /**

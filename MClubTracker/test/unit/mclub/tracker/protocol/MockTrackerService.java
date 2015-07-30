@@ -39,7 +39,7 @@ public class MockTrackerService extends TrackerDataService {
 	 * @see mclub.tracker.TrackerService#getIdByUniqueDeviceId(java.lang.String)
 	 */
     @Override
-    public Long getIdByUniqueDeviceId(String imeiOrUdid) {
+    public Long lookupDeviceId(String imeiOrUdid) {
     	return 1L;
     }
 

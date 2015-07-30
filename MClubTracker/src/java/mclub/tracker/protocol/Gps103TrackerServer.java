@@ -22,6 +22,7 @@
 package mclub.tracker.protocol;
 
 import java.util.Calendar;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,8 +39,8 @@ import org.jboss.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import mclub.tracker.PositionData;
 import mclub.tracker.TrackerDataService;
-import mclub.tracker.TrackerPosition;
 import mclub.tracker.TrackerServer;
 
 /**
@@ -111,24 +112,16 @@ public class Gps103TrackerServer extends TrackerServer{
         }
 
         // Create new position
-        TrackerPosition position = new TrackerPosition();
-        StringBuilder extendedInfo = new StringBuilder("<protocol>gps103</protocol>");
-
+        PositionData position = new PositionData();
+        
         Integer index = 1;
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        Long dbId = getTrackerDataService().getIdByUniqueDeviceId(imei);
-    	if(dbId == null){
-    		log.warn("Unknown device - " + imei);
-            return null;
-    	}
-        position.setDeviceId(dbId);
+        position.setImei(imei);
+        position.setUdid(imei);
 
-        // Alarm message
-        extendedInfo.append("<alarm>");
-        extendedInfo.append(parser.group(index++));
-        extendedInfo.append("</alarm>");
+        String alarm =  parser.group(index++);
         
         // Date
         Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -191,9 +184,13 @@ public class Gps103TrackerServer extends TrackerServer{
             position.setCourse(0.0);
         }
 
-        // Extended info
-        position.setExtendedInfo(extendedInfo.toString());
-
+        // Extended info from GPS103 protocol
+        Map<String,Object> extendedInfo = position.getExtendedInfo();
+        extendedInfo.put("protocol", "gps103");
+        // Alarm message
+        if(alarm != null)
+        	extendedInfo.put("alarm", alarm);
+        
         return position;
     }
     

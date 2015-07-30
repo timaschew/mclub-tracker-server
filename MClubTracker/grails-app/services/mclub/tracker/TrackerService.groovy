@@ -69,7 +69,7 @@ class TrackerService {
 	 * @return
 	 */
 	public List<TrackerPosition> listDevicePositionOfDay(String deviceUniqueId, Date date){
-		def dbId = trackerDataService.getIdByUniqueDeviceId(deviceUniqueId);
+		def dbId = trackerDataService.lookupDeviceId(deviceUniqueId);
 		if(dbId){
 			Date startTime = date;
 			Date endTime = new Date(date.getTime() + mclub.util.DateUtils.TIME_OF_ONE_DAY);
@@ -91,7 +91,7 @@ class TrackerService {
 	 * @return
 	 */
 	public List<TrackerTrack> listTracksBetweenDays(String deviceUniqueId, Date beginDay, Date endDay){
-		Long dbid = trackerDataService.getIdByUniqueDeviceId(deviceUniqueId);
+		Long dbid = trackerDataService.lookupDeviceId(deviceUniqueId);
 		if(!dbid){
 			// device not found
 			return [];

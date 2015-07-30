@@ -6,6 +6,8 @@ import mclub.util.DateUtils
 
 class TrackerAPIController {
 	TrackerService trackerService;
+	TrackerDataService trackerDataService;
+	
 	def index(){
 		render text:'Tracker API 0.1'
 	}
@@ -162,5 +164,30 @@ class TrackerAPIController {
 			'endDate':t.endDate.time,
 			'description':t.description?t.description:''
 			];
+	}
+	
+	/**
+	 * HTTP Interface for device position update.
+	 * @param udid
+	 * @param positionData
+	 * @return
+	 */
+	def update_position(/*String udid, PositionData positionData*/ String udid, String lat, String lon){
+		if(!udid || !lat || !lon){
+			render text:"Missing parameters: udid, lat, lon"
+			return;
+		}
+		PositionData pos = new PositionData();
+		pos.latitude = Long.parseLong(lat);
+		pos.longitude = Long.parseLong(lon);
+		pos.altitude = 0.0;
+		pos.speed = 0.0;
+		pos.course = 0.0;
+		pos.time = new Date();
+		pos.valid = true;
+		pos.extendedInfo['protocol'] = 'http_api';
+		trackerDataService.updateTrackerPosition(udid, pos);
+		
+		render text:'OK'
 	}
 }

@@ -1,5 +1,6 @@
 package mclub.tracker
 
+import grails.converters.JSON
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 
@@ -10,13 +11,13 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 class TrackerDataService {
 	GrailsApplication grailsApplication;
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
-	
+
 	/**
-	 * Get device db id by imei number or unique device id
+	 * Get device PK ID by unique device id（IMEI or callsign）
 	 * @param imei
 	 * @return
 	 */
-	public Long getIdByUniqueDeviceId(String imeiOrUdid){
+	public Long lookupDeviceId(String imeiOrUdid){
 		// first read from cache
 		// hope one day the cache blows up for too much devices ;)
 		Long id = idCache.get(imeiOrUdid);
@@ -30,6 +31,12 @@ class TrackerDataService {
 		return id;
 	}
 	
+	/**
+	 * 
+	 * @param position
+	 * @return
+	 * @throws Exception
+	 */
 	public Long addPosition(TrackerPosition position) throws Exception{
 		// save position
 		if(!position.save(flush:true)){
@@ -42,9 +49,47 @@ class TrackerDataService {
 		return position.id;
 	}
 	
+	/**
+	 * 
+	 * @param deviceId
+	 * @param positionId
+	 * @throws Exception
+	 */
 	public void updateLatestPosition(Long deviceId, Long positionId) throws Exception{
 		// direct associate the position id to the device
 		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid WHERE d.id=:did",[did:deviceId,pid:positionId]);
+	}
+	
+	/**
+	 * Update tracker position according to the received data object.
+	 * @param udid
+	 * @param positionData
+	 */
+	public void updateTrackerPosition(String udid, PositionData positionData){
+		Long devicePK = lookupDeviceId(udid);
+		if(devicePK == null){
+			log.warn("Unknown device - " + udid);
+			return;
+		}
+		
+		// Convert value object to position entity
+		TrackerPosition position = new TrackerPosition();
+		position.properties = positionData;
+		position.deviceId = devicePK;
+		if(!positionData.extendedInfo.isEmpty()){
+			def ext = positionData.extendedInfo as JSON
+			position.extendedInfo = ext;
+		}
+		
+		// Save to database
+		try {
+			Long id = addPosition(position);
+			if (id != null) {
+				updateLatestPosition(position.getDeviceId(), id);
+			}
+		} catch (Exception error) {
+			log.warn("update postion failed, " + error.getMessage());
+		}
 	}
 	
 	/**

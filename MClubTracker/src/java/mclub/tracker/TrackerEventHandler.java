@@ -46,14 +46,14 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
     	this.trackerDataService = trackerDataService;
     }
 
-    private void processSinglePosition(TrackerPosition position) {
+    private void processSinglePosition(PositionData position) {
         if (position == null) {
         	if(log.isInfoEnabled())
         		log.info("null message");
         } else {
         	if(log.isInfoEnabled()){
         		log.info(
-                    "deviceId: " + position.getDeviceId() +
+                    "udid: " + position.getUdid() +
                     ", valid: " + position.getValid() +
                     ", time: " + position.getTime() +
                     ", latitude: " + position.getLatitude() +
@@ -67,10 +67,8 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
         // Write position to database
         try {
-            Long id = trackerDataService.addPosition(position);
-            if (id != null) {
-            	trackerDataService.updateLatestPosition(position.getDeviceId(), id);
-            }
+        	String udid = position.getUdid();
+        	trackerDataService.updateTrackerPosition(udid, position);
         } catch (Exception error) {
             log.warn("save postion failed, " + error.getMessage());
         }
@@ -79,11 +77,11 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
     @Override
     @SuppressWarnings("unchecked")
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-        if (e.getMessage() instanceof TrackerPosition) {
-            processSinglePosition((TrackerPosition) e.getMessage());
+        if (e.getMessage() instanceof PositionData) {
+            processSinglePosition((PositionData) e.getMessage());
         } else if (e.getMessage() instanceof List) {
-            List<TrackerPosition> positions = (List<TrackerPosition>) e.getMessage();
-            for (TrackerPosition position : positions) {
+            List<PositionData> positions = (List<PositionData>) e.getMessage();
+            for (PositionData position : positions) {
                 processSinglePosition(position);
             }
         }
