@@ -222,7 +222,11 @@ class TrackerAPIController {
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
 			featureCollection['features'] = features; 
+			featureCollection['id'] = 'mclub_tracker_livepositions';
 		}
+		
+		response.setHeader('Access-Control-Allow-Origin',"*")
+		response.setHeader('X-Powered-By', "BG5HHP")
 		render featureCollection as JSON;
 	}
 	
@@ -255,6 +259,7 @@ class TrackerAPIController {
 			return null;
 		}
 		def feature_properties = [
+			'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
 			'description':"tracker demo",
 			'marker-color':"#00bcce",
@@ -271,7 +276,7 @@ class TrackerAPIController {
 			'type':"Feature",
 			'properties':feature_properties,
 			'geometry' : feature_geometry,
-			'id' : device.id
+			'id' : "${device.id}"
 			];
 		return feature;
 	}
