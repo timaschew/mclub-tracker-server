@@ -96,7 +96,7 @@ class TrackerAPIController {
 		def tracks = trackerService.listTracksBetweenDays(deviceUniqueId, begin, end);
 	
 		def results = tracks.collect{
-			return toTrackValues(deviceUniqueId, it);
+			return convertToTrackValues(deviceUniqueId, it);
 		}
 		render results as JSON;
 	}
@@ -150,12 +150,12 @@ class TrackerAPIController {
 		
 		def tracks = trackerService.listTracksBetweenDays(deviceUniqueId, begin,end);
 		def results = tracks.collect{
-			return toTrackValues(deviceUniqueId, it);
+			return convertToTrackValues(deviceUniqueId, it);
 		}
 		render results as JSON
 	}
 	
-	def toTrackValues(String deviceUniqueId, TrackerTrack t){
+	private Map<String,Object> convertToTrackValues(String deviceUniqueId, TrackerTrack t){
 		return [
 			//FIXME - use deviceId may cause XSS !!!
 			'deviceId':deviceUniqueId.encodeAsHTML(),
@@ -172,7 +172,7 @@ class TrackerAPIController {
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(/*String udid, PositionData positionData*/ String udid, String lat, String lon){
+	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/){
 		if(!udid || !lat || !lon){
 			render text:"Missing parameters: udid, lat, lon"
 			return;
@@ -181,8 +181,8 @@ class TrackerAPIController {
 		pos.latitude = Long.parseLong(lat);
 		pos.longitude = Long.parseLong(lon);
 		pos.altitude = 0.0;
-		pos.speed = 0.0;
-		pos.course = 0.0;
+		pos.speed = speed?Long.parseLong(speed):0.0;
+		pos.course = course?Long.parseLong(course):0.0;
 		pos.time = new Date();
 		pos.valid = true;
 		pos.extendedInfo['protocol'] = 'http_api';
@@ -327,11 +327,24 @@ class TrackerAPIController {
 		return values;
 	}
 	
+	private String getDeviceName(TrackerDevice device){
+		if(device.phoneNumber)
+			return device.phoneNumber;
+		if(device.udid){
+			String s = device.udid;
+			int len = s.length();
+			if(len > 4)
+				s = s.substring(len - 4 ,len);
+			return "tk-${s}"
+		}
+		return "tk-${device.id}"
+	}
+	
 	private Map<String,Object> buildDevicePositionValues(TrackerDevice device){
 		def values = [:]
 
 		values['udid'] = device.udid;
-		values['name'] = device.phoneNumber;
+		values['name'] = getDeviceName(device);
 		def positions = [];
 		values['positions'] = positions;
 		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
