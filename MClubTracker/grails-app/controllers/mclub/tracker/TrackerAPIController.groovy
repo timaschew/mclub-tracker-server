@@ -301,57 +301,15 @@ class TrackerAPIController {
 			// load all tracker's latest positions
 			def devices = TrackerDevice.list();
 			devices?.each{ dev->
-				allDevicePositions << buildDevicePositionValues(dev);
+				allDevicePositions << trackerService.buildDevicePositionValues(dev);
 			}
 		}else{
 			TrackerDevice dev = TrackerDevice.findByUdid(udid);
 			if(dev){
-				allDevicePositions << buildDevicePositionValues(dev);
+				allDevicePositions << trackerService.buildDevicePositionValues(dev);
 			}
 		}
 		
 		render allDevicePositions as JSON;
-	}
-	
-	private Map<String,Object> convertToPositionValues(TrackerDevice device, TrackerPosition pos){
-		def	values = [
-			//id:device.id,
-			//udid:device.udid,
-			latitude:pos.latitude,
-			longitude:pos.longitude,
-			altitude:pos.altitude,
-			speed:pos.speed,
-			course:pos.course,
-			time:pos.time
-		];
-		return values;
-	}
-	
-	private String getDeviceName(TrackerDevice device){
-		if(device.phoneNumber)
-			return device.phoneNumber;
-		if(device.udid){
-			String s = device.udid;
-			int len = s.length();
-			if(len > 4)
-				s = s.substring(len - 4 ,len);
-			return "tk-${s}"
-		}
-		return "tk-${device.id}"
-	}
-	
-	private Map<String,Object> buildDevicePositionValues(TrackerDevice device){
-		def values = [:]
-
-		values['udid'] = device.udid;
-		values['name'] = getDeviceName(device);
-		def positions = [];
-		values['positions'] = positions;
-		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
-		if(pos){
-			// check last update time
-			positions << convertToPositionValues(device,pos);
-		}
-		return values
 	}
 }

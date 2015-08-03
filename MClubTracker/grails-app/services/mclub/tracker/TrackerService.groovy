@@ -1,5 +1,7 @@
 package mclub.tracker
 
+import java.util.Map;
+
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -100,5 +102,53 @@ class TrackerService {
 		// List all tracks between that days
 		def tracksInThatDays = TrackerTrack.findAll("FROM TrackerTrack tt WHERE tt.deviceId = :dbd AND tt.beginDate >=:begin AND tt.beginDate <=:end",[dbd:dbid, begin:beginDay, end:endDay]);
 		return tracksInThatDays
+	}
+	
+	/**
+	 * 
+	 * @param udid
+	 * @return
+	 */
+	public Map<String,Object> buildDevicePositionValues(TrackerDevice device){
+		def values = [:]
+
+		values['udid'] = device.udid;
+		values['name'] = getDeviceName(device);
+		def positions = [];
+		values['positions'] = positions;
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
+		//TODO - load more positions
+		if(pos){
+			// check last update time
+			positions << convertToPositionValues(device,pos);
+		}
+		return values
+	}
+	
+	private Map<String,Object> convertToPositionValues(TrackerDevice device, TrackerPosition pos){
+		def	values = [
+			//id:device.id,
+			//udid:device.udid,
+			latitude:pos.latitude,
+			longitude:pos.longitude,
+			altitude:pos.altitude,
+			speed:pos.speed,
+			course:pos.course,
+			time:pos.time
+		];
+		return values;
+	}
+	
+	private String getDeviceName(TrackerDevice device){
+		if(device.phoneNumber)
+			return device.phoneNumber;
+		if(device.udid){
+			String s = device.udid;
+			int len = s.length();
+			if(len > 4)
+				s = s.substring(len - 4 ,len);
+			return "tk-${s}"
+		}
+		return "tk-${device.id}"
 	}
 }
