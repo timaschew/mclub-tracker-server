@@ -73,6 +73,8 @@ grails.project.dependency.resolution = {
 		
 		//compile 'org.geotools:gt-main:2.6.0'
 		//compile 'net.sf.json-lib:json-lib:2.4'
+		
+		build ('javax.websocket:javax.websocket-api:1.0') { export = false }
     }
 
 plugins {

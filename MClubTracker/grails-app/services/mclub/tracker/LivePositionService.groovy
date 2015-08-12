@@ -47,7 +47,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 
+
+
 /**
+ * The live position service that stores all live position data for each device
+ * 
  * @author shawn
  *
  */
@@ -56,7 +60,7 @@ class LivePositionService {
 	boolean lazyInit = false
 	boolean debug = true;
 
-	@PostConstruct
+	//@PostConstruct
 	public void start(){
 		// Start websocket server for realtime position push service
 		Config.Builder b = new Config.Builder();
@@ -80,7 +84,7 @@ class LivePositionService {
 		new Thread(r,"LivePosition Updater").start();
 	}
 
-	@PreDestroy
+	//@PreDestroy
 	public void stop(){
 		server.stop();
 		log.info("Live Position Service stopped");
@@ -194,6 +198,14 @@ class LivePositionService {
 		getAttribute(GrailsApplicationAttributes.APPLICATION_CONTEXT);
 		return context.getBean(LivePositionService.class);
 	}
+	
+	
+	////////////////////////////////////////////////////////////////////////
+	// Live position 
+	////////////////////////////////////////////////////////////////////////
+	// 1. each device has a cached of positions(in latest 300s, but not exceeding max 10 positions)
+	// 2. everytime received position update, it will publish the changes according to the pubsubservice 
+	
 }
 
 @WebSocketHandlerService(path="/live")
@@ -253,36 +265,36 @@ class LivePositionWebSocketHandler implements WebSocketHandler{
 	}
 }
 
-@ManagedService(path = "/live2")
-class LivePositionAtmosphereService{
-	//	private final ObjectMapper mapper = new ObjectMapper();
-	private final Logger logger = LoggerFactory.getLogger(LivePositionAtmosphereService.class);
-
-	@Get
-	public void onOpen(final AtmosphereResource r) {
-		r.addEventListener(new AtmosphereResourceEventListenerAdapter() {
-					@Override
-					public void onSuspend(AtmosphereResourceEvent event) {
-						logger.info("User {} connected.", r.uuid());
-					}
-
-					@Override
-					public void onDisconnect(AtmosphereResourceEvent event) {
-						if (event.isCancelled()) {
-							logger.info("User {} unexpectedly disconnected", r.uuid());
-						} else if (event.isClosedByClient()) {
-							logger.info("User {} closed the connection", r.uuid());
-						}
-					}
-				});
-	}
-
-	@Message
-	public String onMessage(String message) throws IOException {
-		//return mapper.writeValueAsString(mapper.readValue(message, Data.class));
-		logger.info("Received ${message}");
-		return "OK";
-	}
-
-}
+//@ManagedService(path = "/live2")
+//class LivePositionAtmosphereService{
+//	//	private final ObjectMapper mapper = new ObjectMapper();
+//	private final Logger logger = LoggerFactory.getLogger(LivePositionAtmosphereService.class);
+//
+//	@Get
+//	public void onOpen(final AtmosphereResource r) {
+//		r.addEventListener(new AtmosphereResourceEventListenerAdapter() {
+//					@Override
+//					public void onSuspend(AtmosphereResourceEvent event) {
+//						logger.info("User {} connected.", r.uuid());
+//					}
+//
+//					@Override
+//					public void onDisconnect(AtmosphereResourceEvent event) {
+//						if (event.isCancelled()) {
+//							logger.info("User {} unexpectedly disconnected", r.uuid());
+//						} else if (event.isClosedByClient()) {
+//							logger.info("User {} closed the connection", r.uuid());
+//						}
+//					}
+//				});
+//	}
+//
+//	@Message
+//	public String onMessage(String message) throws IOException {
+//		//return mapper.writeValueAsString(mapper.readValue(message, Data.class));
+//		logger.info("Received ${message}");
+//		return "OK";
+//	}
+//
+//}
 

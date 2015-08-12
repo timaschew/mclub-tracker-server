@@ -3,6 +3,9 @@ package mclub.tracker
 import grails.converters.JSON
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
 
 import mclub.util.DateUtils
 
@@ -86,6 +89,8 @@ class TrackerDataService {
 			Long id = addPosition(position);
 			if (id != null) {
 				updateLatestPosition(position.getDeviceId(), id);
+				// broadcast the position data change
+				notifyPositionChanges(positionData);
 			}
 		} catch (Exception error) {
 			log.warn("update postion failed, " + error.getMessage());
@@ -108,4 +113,52 @@ class TrackerDataService {
 	public Object getConfig(String key){
 		return grailsApplication.getFlatConfig().get(key);
 	}
+	
+	
+	/**
+	 * Data change event listeners
+	 */
+	Set<PositionChangeListener> changeListeners = new HashSet<PositionChangeListener>();
+	
+	public void addChangeListener(PositionChangeListener listener){
+		changeListeners.add(listener);
+	}
+	
+	public void removeChangeListener(PositionChangeListener listener){
+		changeListeners.remove(listener);
+	}
+	
+	/*
+	 * notify in another thread
+	 */
+	void notifyPositionChanges(final PositionData position){
+		notifyThread.execute(new Runnable(){
+			public void run(){
+				for(PositionChangeListener l : changeListeners){
+					l.onPositionChanged(position);
+				}
+			}
+		});
+	}
+
+	ExecutorService notifyThread;
+	@PostConstruct
+	public void start(){
+		notifyThread = java.util.concurrent.Executors.newFixedThreadPool(1);
+		log.info "TrackerDataSrvice initialized"
+	}
+	
+	@PreDestroy
+	public void stop(){
+		try{
+			notifyThread?.shutdown();
+		}catch(Exception e){
+		}
+		notifyThread = null;
+		log.info "TrackerDataSrvice destroyed"
+	}
+}
+
+public interface PositionChangeListener{
+	public void onPositionChanged(PositionData position);
 }

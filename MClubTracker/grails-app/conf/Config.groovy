@@ -110,14 +110,14 @@ tracker.gps103.enabled = true
 tracker.gps103.port = 5001
 
 // TK103 tracker setup
-tracker.tk103.enabled = true
+tracker.tk103.enabled = false
 tracker.tk103.port = 5002
 // Not used configurations
 //tracker.tk103.address = 'localhost' - not used
 //tracker.tk103.resetDelay = 0
 
 // T55 tracker setup
-tracker.t55.enabled = true
+tracker.t55.enabled = false
 tracker.t55.port = 5005
 
 // enables tracker log

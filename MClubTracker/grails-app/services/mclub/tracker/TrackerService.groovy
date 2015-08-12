@@ -105,6 +105,27 @@ class TrackerService {
 	}
 	
 	/**
+	 * build map data for json rendering from a position data
+	 * @param position
+	 * @return
+	 */
+	public Map<String,Object> buildDevicePositionValues(PositionData pos){
+		// TODO - optimize out the query
+		TrackerDevice device = TrackerDevice.findByUdid(pos.udid);
+		if(!device){
+			// no such device
+			return [:];
+		}
+		def values = [:]
+		values['udid'] = pos.udid;
+		values['name'] = getDeviceName(device);
+		def positions = [];
+		values['positions'] = positions;
+		positions << convertToPositionValues(device,pos);
+		return values;
+	}
+	
+	/**
 	 * 
 	 * @param udid
 	 * @return
@@ -123,6 +144,20 @@ class TrackerService {
 			positions << convertToPositionValues(device,pos);
 		}
 		return values
+	}
+	
+	private Map<String,Object> convertToPositionValues(TrackerDevice device, PositionData pos){
+		def	values = [
+			//id:device.id,
+			//udid:device.udid,
+			latitude:pos.latitude,
+			longitude:pos.longitude,
+			altitude:pos.altitude,
+			speed:pos.speed,
+			course:pos.course,
+			time:pos.time
+		];
+		return values;
 	}
 	
 	private Map<String,Object> convertToPositionValues(TrackerDevice device, TrackerPosition pos){

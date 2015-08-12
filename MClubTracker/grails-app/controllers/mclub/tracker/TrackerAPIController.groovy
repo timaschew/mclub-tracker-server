@@ -178,6 +178,7 @@ class TrackerAPIController {
 			return;
 		}
 		PositionData pos = new PositionData();
+		pos.udid = udid;
 		pos.latitude = Long.parseLong(lat);
 		pos.longitude = Long.parseLong(lon);
 		pos.altitude = 0.0;
@@ -194,7 +195,7 @@ class TrackerAPIController {
 	/**
 	 * Returns the geojson of device position
 	 * @param udid
-	 * @return
+	 * @return FeatureCollection in GeoJSON of the desired devices latest position.
 	 */
 	def geojson(String udid){
 		if(!udid){
@@ -225,6 +226,7 @@ class TrackerAPIController {
 			featureCollection['id'] = 'mclub_tracker_livepositions';
 		}
 		
+		// Allow browser XSS
 		response.setHeader('Access-Control-Allow-Origin',"*")
 		response.setHeader('X-Powered-By', "BG5HHP")
 		render featureCollection as JSON;
@@ -284,7 +286,7 @@ class TrackerAPIController {
 	/**
 	 * Returns an array of device positions.
 	 * @param udid
-	 * @return
+	 * @return an array of device positions
 	 */
 	def live_positions(String udid){
 		if(!udid){
