@@ -104,25 +104,84 @@ class TrackerService {
 		return tracksInThatDays
 	}
 	
+	/////////////////////////////////////////////////////////////////
+	// GEOJSON/JSON Data builder
+	/////////////////////////////////////////////////////////////////
 	/**
-	 * build map data for json rendering from a position data
-	 * @param position
+	 * 
+	 * @param pos
 	 * @return
 	 */
-	public Map<String,Object> buildDevicePositionValues(PositionData pos){
+	public Map<String,Object> buildDevicePositionGeojsonData(String udid){
 		// TODO - optimize out the query
-		TrackerDevice device = TrackerDevice.findByUdid(pos.udid);
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
 		if(!device){
 			// no such device
 			return [:];
 		}
-		def values = [:]
-		values['udid'] = pos.udid;
-		values['name'] = getDeviceName(device);
-		def positions = [];
-		values['positions'] = positions;
-		positions << convertToPositionValues(device,pos);
-		return values;
+		return buildDevicePositionGeojsonData(device);
+	}
+	
+	public Map<String,Object> buildDevicePositionGeojsonData(TrackerDevice device){
+		def featureCollection = [:];
+		def features = [];
+		features << buildDevicePositionGeojsonFeature(device);
+		
+		featureCollection['type'] = 'FeatureCollection';
+		featureCollection['features'] = features;
+		featureCollection['id'] = 'mclub_tracker_livepositions';
+		return featureCollection;
+	}
+	
+	/**
+	 * Build geojson data of the device
+	 * 
+	 * @TODO Use feature builder or feature template
+	 * 
+	 * @param device
+	 * @return
+	 */
+	public Map<String,Object> buildDevicePositionGeojsonFeature(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
+		if(!pos){
+			return null;
+		}
+		def feature_properties = [
+			'id':"fp_${device.id}",
+			'title':"tk-${device.udid}",
+			'description':"tracker demo",
+			'marker-color':"#00bcce",
+			'marker-size': "medium",
+			'marker-symbol': "airport",
+			"marker-zoom": ""
+			]
+		def feature_geometry = [
+			"type": "Point",
+			"coordinates": [pos.longitude, pos.latitude]
+			]
+		
+		def feature = [
+			'type':"Feature",
+			'properties':feature_properties,
+			'geometry' : feature_geometry,
+			'id' : "${device.id}"
+			];
+		return feature;
+	}
+	
+	/**
+	 * build map data for json rendering from a device udid
+	 * @param position
+	 * @return
+	 */
+	public Map<String,Object> buildDevicePositionJsonData(String udid){
+		// TODO - optimize out the query
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(!device){
+			// no such device
+			return [:];
+		}
+		return buildDevicePositionJsonData(device);
 	}
 	
 	/**
@@ -130,7 +189,7 @@ class TrackerService {
 	 * @param udid
 	 * @return
 	 */
-	public Map<String,Object> buildDevicePositionValues(TrackerDevice device){
+	public Map<String,Object> buildDevicePositionJsonData(TrackerDevice device){
 		def values = [:]
 
 		values['udid'] = device.udid;
@@ -144,20 +203,6 @@ class TrackerService {
 			positions << convertToPositionValues(device,pos);
 		}
 		return values
-	}
-	
-	private Map<String,Object> convertToPositionValues(TrackerDevice device, PositionData pos){
-		def	values = [
-			//id:device.id,
-			//udid:device.udid,
-			latitude:pos.latitude,
-			longitude:pos.longitude,
-			altitude:pos.altitude,
-			speed:pos.speed,
-			course:pos.course,
-			time:pos.time
-		];
-		return values;
 	}
 	
 	private Map<String,Object> convertToPositionValues(TrackerDevice device, TrackerPosition pos){

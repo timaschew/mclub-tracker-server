@@ -52,7 +52,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
 
-			if (Environment.current == Environment.DEVELOPMENT) {
+			if (true /*Environment.current == Environment.DEVELOPMENT*/) {
 				serverContainer.addEndpoint(LivePositionWebsocketServer)
 			}
 
@@ -134,7 +134,15 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		if(sessions.isEmpty()){
 			return;
 		}
-		def val = getTrackerService().buildDevicePositionValues(position);
+		
+		//def val = getTrackerService().buildDevicePositionValues(position);
+		def val;
+		
+		if(true/*geojson*/)
+			val = getTrackerService().buildDevicePositionGeojsonData(position.udid);
+		else
+			val = getTrackerService().buildDevicePositionJsonData(position);
+		
 		def txt = val as JSON;
 		for(Session session : sessions.values()){
 			try{
