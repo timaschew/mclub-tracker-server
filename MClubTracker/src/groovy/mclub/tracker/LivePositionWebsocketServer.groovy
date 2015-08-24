@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 @ServerEndpoint("/live0")
 public class LivePositionWebsocketServer implements ServletContextListener, PositionChangeListener{
 	private final Logger log = LoggerFactory.getLogger(getClass().name);
-	private GrailsApplication grailsApplication;
+	private static GrailsApplication grailsApplication;
 	
 	//FIXME - use session store instead of the static hash set
 	private static ConcurrentHashMap<String,Session> sessions = new ConcurrentHashMap<String,Session>();
@@ -86,6 +86,16 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	public void handleOpen(Session clientSession) {
 		sessions.put(clientSession.getId(), clientSession);
 		log.info "Session[${clientSession.id}] opened"
+		
+		// push all tracker nodes
+		def val = getTrackerService().buildAllDevicePositionGeojsonData();
+		def txt = val as JSON;
+		try{
+			clientSession.basicRemote.sendText(txt.toString());
+		}catch(Exception e){
+			// ignore
+			log.error(e);
+		}
 	}
 	
 	@OnMessage

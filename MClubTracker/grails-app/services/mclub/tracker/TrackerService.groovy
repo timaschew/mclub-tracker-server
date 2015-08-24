@@ -133,6 +133,22 @@ class TrackerService {
 		return featureCollection;
 	}
 	
+	public Map<String, Object> buildAllDevicePositionGeojsonData(){
+		def devices = TrackerDevice.list();
+		def featureCollection = [:];
+		def features = [];
+		devices?.each{ dev->
+			def feature = buildDevicePositionGeojsonFeature(dev);
+			if(feature) features.add(feature);
+		}
+		if(!features.isEmpty()){
+			featureCollection['type'] = 'FeatureCollection';
+			featureCollection['features'] = features;
+			featureCollection['id'] = 'mclub_tracker_livepositions';
+		}
+		return featureCollection;
+	}
+	
 	/**
 	 * Build geojson data of the device
 	 * 
@@ -146,6 +162,14 @@ class TrackerService {
 		if(!pos){
 			return null;
 		}
+		
+		/* - FIXME - what to do on positions that expired? 
+		if(pos.time.time - System.currentTimeMillis() > (24 * 3600 * 1000)){
+			// is expired position
+			return null;
+		}
+		*/
+		
 		def feature_properties = [
 			'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
