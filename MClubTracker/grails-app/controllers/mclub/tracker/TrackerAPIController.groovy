@@ -3,6 +3,7 @@ import java.util.Map;
 
 import grails.converters.JSON
 import mclub.util.DateUtils
+import user.UserService
 
 class TrackerAPIController {
 	TrackerService trackerService;
@@ -284,5 +285,27 @@ class TrackerAPIController {
 		}
 		
 		render allDevicePositions as JSON;
+	}
+	
+	UserService userService;
+	/**
+	 * User login API
+	 * @param name
+	 * @param password
+	 * @return
+	 */
+	def login(String username, String password){
+		def result = [:];
+		String token = userService.login(username, password);
+		if(token){
+			result['message'] = "Login success";
+			result['token'] = token;
+			result['result'] = 1;
+		}else{
+			result['message'] = "Login failed.";
+			result['token'] = "";
+			result['result'] = 0;
+		}
+		render result as JSON;
 	}
 }
