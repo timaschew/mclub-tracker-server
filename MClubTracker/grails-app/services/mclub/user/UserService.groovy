@@ -15,7 +15,8 @@ class UserService {
 	
 	ConcurrentHashMap<String,UserSession> sessions = new ConcurrentHashMap<String,UserSession>();
 	ExecutorService sessionCleanupThread;
-	private static final long SESSION_EXPIRE_TIME_SEC = 30 * 60; // session expires in 30 mins idle by defalt
+	private static final long SESSION_EXPIRE_TIME_SEC = 30 /** 60*/; // session expires in 30 mins idle by defalt
+	private static final long SESSION_CHECK_INTERVAL_MS = 3000; 
 	volatile boolean runFlag = false;
 	
 	@PostConstruct
@@ -43,14 +44,20 @@ class UserService {
 		sessionCleanupThread.execute(new Runnable(){
 			public void run(){
 				while(runFlag){
-					Set keys = new HashSet(sessions.keySet());
-					long t = System.currentTimeMillis();
-					for(String key : keys){
-						UserSession us = sessions.get(key);
-						if(us && ((t - us.timestamp) / 1000 > SESSION_EXPIRE_TIME_SEC)){
-							// session expired;
-							sessions.remove(key);
+					try{
+						Set keys = new HashSet(sessions.keySet());
+						long t = System.currentTimeMillis();
+						for(String key in keys){
+							UserSession us = sessions.get(key);
+							if(isSessionExpired(us,t)){
+								// session expired;
+								sessions.remove(key);
+								log.info("Session ${key} expired")
+							}
 						}
+						Thread.sleep(SESSION_CHECK_INTERVAL_MS);
+					}catch(Exception e){
+						// noop
 					}
 				}
 			}
@@ -138,13 +145,18 @@ class UserService {
 	 * @param sessionToken
 	 * @return true if authorize is granted.
 	 */
-	public boolean checkSessionToken(String sessionToken){
+	public UserSession checkSessionToken(String sessionToken){
 		UserSession us = sessions.get(sessionToken);
 		if(us){
-			us.timestamp = System.currentTimeMillis();
-			return true;
+			long t = System.currentTimeMillis();
+			if(isSessionExpired(us,t)){
+				sessions.remove(sessionToken);
+				return null;
+			}
+			us.timestamp = t;
+			return us.cloneone();
 		}
-		return false;
+		return null;
 	}
 	
 	/**
@@ -160,6 +172,9 @@ class UserService {
 		return usession;
 	}
 	
+	private boolean isSessionExpired(UserSession usession, long t){
+		return usession && ((t - usession.timestamp) / 1000 > SESSION_EXPIRE_TIME_SEC)
+	}
 	/**
 	 * User session entity
 	 * @author shawn
@@ -169,5 +184,10 @@ class UserService {
 		String username;
 		String token;
 		long timestamp = System.currentTimeMillis();
+		
+		public UserSession cloneone(){
+			return new UserSession(username:username, token:token, timestamp:timestamp);
+		}
 	}
+	
 }
