@@ -1,4 +1,4 @@
-package user
+package mclub.user
 
 import grails.test.mixin.TestFor
 import spock.lang.Specification

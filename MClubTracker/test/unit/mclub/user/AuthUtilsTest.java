@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import static mclub.user.AuthUtils.*;
 
-public class AuthUtilTest {
+public class AuthUtilsTest {
 	
 	@Test
 	public void test_generate_salt(){
