@@ -2,8 +2,8 @@ package mclub.tracker
 import java.util.Map;
 
 import grails.converters.JSON
+import mclub.user.UserService;
 import mclub.util.DateUtils
-import user.UserService
 
 class TrackerAPIController {
 	TrackerService trackerService;
