@@ -15,22 +15,20 @@ class UserService {
 	
 	ConcurrentHashMap<String,UserSession> sessions = new ConcurrentHashMap<String,UserSession>();
 	ExecutorService sessionCleanupThread;
-	private static final long SESSION_EXPIRE_TIME_SEC = 30 /** 60*/; // session expires in 30 mins idle by defalt
+	private static final long SESSION_EXPIRE_TIME_SEC = 30 * 60; // session expires in 30 mins idle by defalt
 	private static final long SESSION_CHECK_INTERVAL_MS = 3000; 
 	volatile boolean runFlag = false;
 	
 	@PostConstruct
 	public void start(){
 		// add test user
+		/*
 		User.withTransaction {
 			User.executeUpdate('delete from User')
 		}
+		*/
 		User.withTransaction {
 			if(User.count() == 0){
-//				User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(), passwordHash:'61b0c42c37319340f3ae4625bab292a4'/*secret*/, passwordSalt:'salt',sessionSalt:'salt',avatar:'',settings:'');
-//				if (!u.save(flush:true)){
-//					log.error(u.errors);	
-//				}
 				User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(),avatar:'',settings:'');
 				if(!this.createUserAccount(u, "secret")){
 					log.error(u.errors);
