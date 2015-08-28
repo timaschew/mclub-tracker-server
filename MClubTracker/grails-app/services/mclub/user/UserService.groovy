@@ -53,9 +53,8 @@ class UserService {
 								log.info("Session ${key} expired")
 							}
 						}
-						Thread.sleep(SESSION_CHECK_INTERVAL_MS);
-					}catch(Exception e){
-						// noop
+					}finally{
+						try{Thread.sleep(SESSION_CHECK_INTERVAL_MS);}catch(Exception e){}
 					}
 				}
 			}
