@@ -11,8 +11,11 @@ import java.util.Map;
  *
  */
 public class PositionData {
+	String username;
 	String udid;
-	String imei;
+	
+	Boolean aprs;
+	
 	Date time;
 	Boolean valid;
 	Double latitude;
@@ -33,12 +36,12 @@ public class PositionData {
 		this.udid = udid;
 	}
 
-	public String getImei() {
-		return imei;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setImei(String imei) {
-		this.imei = imei;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public Date getTime() {
@@ -121,4 +124,13 @@ public class PositionData {
 		this.extendedInfo = extendedInfo;
 	}
 
+	public Boolean getAprs() {
+		return aprs;
+	}
+
+	public void setAprs(Boolean aprs) {
+		this.aprs = aprs;
+	}
+
+	
 }

@@ -118,7 +118,6 @@ public class Gps103TrackerServer extends TrackerServer{
 
         // Get device by IMEI
         String imei = parser.group(index++);
-        position.setImei(imei);
         position.setUdid(imei);
 
         String alarm =  parser.group(index++);

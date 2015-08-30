@@ -3,11 +3,13 @@ import java.util.Map;
 
 import grails.converters.JSON
 import mclub.user.UserService;
+import mclub.user.UserService.UserSession
 import mclub.util.DateUtils
 
 class TrackerAPIController {
 	TrackerService trackerService;
 	TrackerDataService trackerDataService;
+	UserService userService;
 	
 	def index(){
 		render text:'Tracker API 0.1'
@@ -173,12 +175,38 @@ class TrackerAPIController {
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/){
-		if(!udid || !lat || !lon){
-			render text:"Missing parameters: udid, lat, lon"
+	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/,String token, String aprscall){
+		if(!lat || !lon){
+			render text:"Missing parameters: lat, lon"
 			return;
 		}
+		
+		// get user info
+		String username = null;
+		if(token){
+			UserSession usession = userService.checkSessionToken(token);
+			username = usession.username;
+		}
+		
+		// extract aprs if found
+		boolean isAprs = false;
+		if(!username && aprscall){
+			String[] aprs = mclub.user.AuthUtils.extractAPRSCall(aprscall);
+			if(aprs != null){
+				username = aprs[0];
+				udid = aprscall; // replace the udid with aprscall like "BG5HHP-12"
+				isAprs = true;
+				log.info("APRS position ${aprscall}");
+			}
+		}
+		if(!udid){
+			render text:"Missing parameters: udid"
+			return;
+		}
+		//token/call -> username -> device -> position
+		
 		PositionData pos = new PositionData();
+		pos.username = username;
 		pos.udid = udid;
 		pos.latitude = Long.parseLong(lat);
 		pos.longitude = Long.parseLong(lon);
@@ -188,7 +216,10 @@ class TrackerAPIController {
 		pos.time = new Date();
 		pos.valid = true;
 		pos.extendedInfo['protocol'] = 'http_api';
-		trackerDataService.updateTrackerPosition(udid, pos);
+		if(isAprs){
+			pos.aprs = true;
+		}
+		trackerDataService.updateTrackerPosition(pos);
 		
 		render text:'OK'
 	}
@@ -241,7 +272,7 @@ class TrackerAPIController {
 		
 		def features = [];
 		devices?.each{ dev->
-			features << trackerService.buildDevicePositionGeojsonFeature(dev);
+			features.addAll(trackerService.buildDevicePositionGeojsonFeatures(dev));
 		}
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
@@ -287,7 +318,6 @@ class TrackerAPIController {
 		render allDevicePositions as JSON;
 	}
 	
-	UserService userService;
 	/**
 	 * User login API
 	 * @param name

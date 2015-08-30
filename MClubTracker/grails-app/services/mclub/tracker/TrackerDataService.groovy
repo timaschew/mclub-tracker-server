@@ -68,14 +68,44 @@ class TrackerDataService {
 	 * @param udid
 	 * @param positionData
 	 */
-	public void updateTrackerPosition(String udid, PositionData positionData){
-		Long devicePK = lookupDeviceId(udid);
+	public void updateTrackerPosition(PositionData positionData){
+		String udid = positionData.udid;
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(!device){
+			log.warn("Unknown device - " + udid);
+			return;
+		}
+
+		// check user name
+		String username = positionData.username;
+		if(username){
+			if(!username.equals(device.username)){
+				// WARN - 根据当前逻辑，如果两个用户用同一个设备udid登录的话，会导致数据错乱！
+				// arbitrary update device with current username
+				//TrackerDevice.executeUpdate("UPDATE TrackerDevice as d SET d.username=:un)",[un:username]);
+				String oldUsername = device.username
+				device.username = username;
+				if(device.save(flush:true)){
+					log.warn("Device ${device.udid} username changed from ${oldUsername} to ${username}");
+				}else{
+					log.warn("Error updating device username, ${device.errors}");
+					return;
+				}
+			}
+		}else{
+			log.warn("PositionData contains NO username.");
+		}
+
+		/*
+		Long devicePK = lookupDeviceId(positionData.udid);
 		if(devicePK == null){
 			log.warn("Unknown device - " + udid);
 			return;
 		}
+		*/
 		
 		// Convert value object to position entity
+		Long devicePK = device.id;
 		TrackerPosition position = new TrackerPosition();
 		position.properties = positionData;
 		position.deviceId = devicePK;

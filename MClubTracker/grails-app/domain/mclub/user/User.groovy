@@ -11,6 +11,7 @@ class User {
 		avatar 		blank:true, nullable:true
 		settings 	blank:true, nullable:true
 		settings	type:'text'
+		name		unique: true
 	}
 	
 	static mapping = {

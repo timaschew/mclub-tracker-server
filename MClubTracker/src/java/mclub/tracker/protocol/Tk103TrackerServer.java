@@ -109,7 +109,6 @@ public class Tk103TrackerServer extends TrackerServer{
             // Get device by IMEI
             String imei = parser.group(index++);
             position.setUdid(imei);
-            position.setImei(imei);
             
             // Date
             Calendar time = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

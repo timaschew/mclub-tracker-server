@@ -67,8 +67,7 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
         // Write position to database
         try {
-        	String udid = position.getUdid();
-        	trackerDataService.updateTrackerPosition(udid, position);
+        	trackerDataService.updateTrackerPosition(position);
         } catch (Exception error) {
             log.warn("save postion failed, " + error.getMessage());
         }

@@ -23,29 +23,17 @@
 			<table>
 				<thead>
 					<tr>
-					
-						<g:sortableColumn property="phoneNumber" title="${message(code: 'trackerDevice.phoneNumber.label', default: 'Phone Number')}" />
-					
-						<g:sortableColumn property="imei" title="${message(code: 'trackerDevice.imei.label', default: 'Imei')}" />
-					
-						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
-					
 						<g:sortableColumn property="udid" title="${message(code: 'trackerDevice.udid.label', default: 'Unique Device Id')}" />
-					
+						<g:sortableColumn property="username" title="${message(code: 'trackerDevice.imei.label', default: 'User Name')}" />
+						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
 					</tr>
 				</thead>
 				<tbody>
 				<g:each in="${trackerDeviceInstanceList}" status="i" var="trackerDeviceInstance">
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
-					
-						<td><g:link action="show" id="${trackerDeviceInstance.id}">${fieldValue(bean: trackerDeviceInstance, field: "phoneNumber")}</g:link></td>
-					
-						<td>${fieldValue(bean: trackerDeviceInstance, field: "imei")}</td>
-					
+						<td><g:link action="show" id="${trackerDeviceInstance.id}">${fieldValue(bean: trackerDeviceInstance, field: "udid")}</g:link></td>
+						<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</td>
-					
-						<td>${fieldValue(bean: trackerDeviceInstance, field: "udid")}</td>
-					
 					</tr>
 				</g:each>
 				</tbody>

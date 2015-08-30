@@ -121,7 +121,6 @@ public class T55TrackerServer extends TrackerServer{
 
                     // Create new position
                     PositionData position = new PositionData();
-                    position.setImei(imei);
                     position.setUdid(imei);
 
                     Integer index = 1;

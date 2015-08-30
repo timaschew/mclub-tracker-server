@@ -2,6 +2,7 @@ package mclub.user
 
 import java.security.MessageDigest
 import java.util.Random;
+import java.util.regex.*;
 
 /**
  * A simple util for authentication credentials.
@@ -37,5 +38,36 @@ public class AuthUtils {
 			buf.append(CHAR_LIST.charAt(rnd.nextInt(CHAR_LIST.length())));
 		}
 		return buf.toString();
+	}
+	
+	private static final String APRS_CALL_REGEXP = '^([a-zA-Z0-9]+)\\-([0-9]+)$';
+	
+	/**
+	 * Extract APRS Call string
+	 * @param aprsCall
+	 * @return CALL and SSID in array or null if invalid aprs call met.
+	 */
+	public static String[] extractAPRSCall(String aprsCall){
+		//def reg = /^([a-zA-Z0-9]+)\-([0-9]+)$/
+		Pattern p = Pattern.compile(APRS_CALL_REGEXP);
+		Matcher m = p.matcher(aprsCall);
+		if(m.matches() && m.groupCount() == 2){
+			String[] ret = new String[2];
+			ret[0] = m.group(1);
+			ret[1] = m.group(2);  
+			return ret;	
+		}
+		
+		/*
+		def matcher = (aprsCall =~ /^([a-zA-Z0-9]+)\-([0-9]+)$/)
+		
+		if(matcher.getCount() >= 2){
+			String[] ret = new String[2];
+			ret[0] = matcher[0];
+			ret[1] = matcher[1];
+			return ret;
+		}
+		*/
+		return null;
 	}
 }

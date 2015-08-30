@@ -1,21 +1,19 @@
 <%@ page import="mclub.tracker.TrackerDevice" %>
 
-
-
-<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'phoneNumber', 'error')} ">
-	<label for="phoneNumber">
-		<g:message code="trackerDevice.phoneNumber.label" default="Phone Number" />
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'udid', 'error')} ">
+	<label for="udid">
+		<g:message code="trackerDevice.udid.label" default="UDID" />
 		
 	</label>
-	<g:textField name="phoneNumber" value="${trackerDeviceInstance?.phoneNumber}"/>
+	<g:textField name="udid" value="${trackerDeviceInstance?.udid}"/>
 </div>
 
-<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'imei', 'error')} ">
-	<label for="imei">
-		<g:message code="trackerDevice.imei.label" default="Imei" />
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'username', 'error')} ">
+	<label for="username">
+		<g:message code="trackerDevice.username.label" default="User Name" />
 		
 	</label>
-	<g:textField name="imei" value="${trackerDeviceInstance?.imei}"/>
+	<g:textField name="username" value="${trackerDeviceInstance?.username}"/>
 </div>
 
 <div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'latestPositionId', 'error')} ">
@@ -25,12 +23,3 @@
 	</label>
 	<g:field name="latestPositionId" type="number" value="${trackerDeviceInstance.latestPositionId}"/>
 </div>
-
-<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'udid', 'error')} ">
-	<label for="udid">
-		<g:message code="trackerDevice.udid.label" default="Device Id" />
-		
-	</label>
-	<g:textField name="udid" value="${trackerDeviceInstance?.udid}"/>
-</div>
-

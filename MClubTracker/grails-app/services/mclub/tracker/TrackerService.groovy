@@ -122,14 +122,22 @@ class TrackerService {
 		return buildDevicePositionGeojsonData(device);
 	}
 	
+	
+	/**
+	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
+	 * @param device
+	 * @return
+	 */
 	public Map<String,Object> buildDevicePositionGeojsonData(TrackerDevice device){
 		def featureCollection = [:];
-		def features = [];
-		features << buildDevicePositionGeojsonFeature(device);
 		
 		featureCollection['type'] = 'FeatureCollection';
-		featureCollection['features'] = features;
 		featureCollection['id'] = 'mclub_tracker_livepositions';
+		
+		def features = [];
+		features.addAll(buildDevicePositionGeojsonFeatures(device));
+		featureCollection['features'] = features;
+		
 		return featureCollection;
 	}
 	
@@ -138,8 +146,8 @@ class TrackerService {
 		def featureCollection = [:];
 		def features = [];
 		devices?.each{ dev->
-			def feature = buildDevicePositionGeojsonFeature(dev);
-			if(feature) features.add(feature);
+			def dfeatures = buildDevicePositionGeojsonFeatures(dev);
+			if(dfeatures) features.addAll(dfeatures);
 		}
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
@@ -157,7 +165,7 @@ class TrackerService {
 	 * @param device
 	 * @return
 	 */
-	public Map<String,Object> buildDevicePositionGeojsonFeature(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
+	public Collection buildDevicePositionGeojsonFeatures(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
 		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
 		if(!pos){
 			return null;
@@ -170,9 +178,14 @@ class TrackerService {
 		}
 		*/
 		
+		def deviceFeatures = [];
+		
 		def feature_properties = [
-			'id':"fp_${device.id}",
+			//'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
+			'udid':"${device.udid}",
+			'username':'testuser',
+			'phone':'12345678',
 			'description':"tracker demo",
 			'marker-color':"#00bcce",
 			'marker-size': "medium",
@@ -184,13 +197,18 @@ class TrackerService {
 			"coordinates": [pos.longitude, pos.latitude]
 			]
 		
-		def feature = [
+		def feature1 = [
 			'type':"Feature",
 			'properties':feature_properties,
 			'geometry' : feature_geometry,
-			'id' : "${device.id}"
+			//'id' : "${device.id}"
 			];
-		return feature;
+		
+		deviceFeatures.add(feature1)
+		
+		// TODO - Add line string feature
+		
+		return deviceFeatures;
 	}
 	
 	/**
