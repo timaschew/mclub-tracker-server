@@ -49,6 +49,10 @@ public class DateUtils {
 	// 00:00:00.000 ~ 23:59:59.999
 	public static final long TIME_OF_ONE_DAY = 24 * 3600 * 1000 -1; 
 	
+	public static final long TIME_OF_HALF_HOUR = 30 * 60 * 1000 -1;
+	
+	public static final long TIME_OF_AN_HOUR = 60 * 60 * 1000 -1;
+	
 	public static Calendar getCalendar(){
 		return Calendar.getInstance(TimeZone.getTimeZone("GMT+8"));
 	}
@@ -76,12 +80,12 @@ public class DateUtils {
 	    /* days */diff[0] = (diffInSeconds = (diffInSeconds / 24));
 	    StringBuilder sb = new StringBuilder();
 	    if(diff[0] > 0){
-	    	sb.append(String.format("%d天",diff[0]));
+	    	sb.append(String.format("%d���",diff[0]));
 	    }
 	    if(diff[1] > 0){
-	    	sb.append(String.format("%d小时",diff[1]));
+	    	sb.append(String.format("%d������",diff[1]));
 	    }
-	    sb.append(String.format("%d分钟",diff[2]));
+	    sb.append(String.format("%d������",diff[2]));
 	    return sb.toString();
 	}
 }
