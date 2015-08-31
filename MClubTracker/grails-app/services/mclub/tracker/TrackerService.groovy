@@ -135,7 +135,8 @@ class TrackerService {
 		featureCollection['id'] = 'mclub_tracker_livepositions';
 		
 		def features = [];
-		features.addAll(buildDevicePositionGeojsonFeatures(device));
+		def dfeatures = buildDevicePositionGeojsonFeatures(device);
+		if(dfeatures)features.addAll(dfeatures);
 		featureCollection['features'] = features;
 		
 		return featureCollection;
@@ -171,12 +172,12 @@ class TrackerService {
 			return null;
 		}
 		
-		/* - FIXME - what to do on positions that expired? 
-		if(pos.time.time - System.currentTimeMillis() > (24 * 3600 * 1000)){
+		// check whether position is expired
+		// TODO - make the expire time configurable 
+		if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
 			// is expired position
 			return null;
 		}
-		*/
 		
 		def deviceFeatures = [];
 		
@@ -206,8 +207,46 @@ class TrackerService {
 		
 		deviceFeatures.add(feature1)
 		
-		// TODO - Add line string feature
+		/*
+		 { "type": "Feature",
+           "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
+                ]
+              },
+             "properties": { 
+                "udid": "0001"
+             }
+           }
+		 */
 		
+		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
+		// Add line string feature
+		int MAX_LINE_POINTS = 15;
+		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_AN_HOUR);
+		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time>:lineTime ORDER BY p.time DESC",[dbId:device.id, lineTime:lineTime, max:MAX_LINE_POINTS]);
+		if(positions?.size() >=4){
+			
+			def lineCoordinates = [];
+			// build line string features if positions count >=4
+			for(TrackerPosition p in positions){
+				lineCoordinates.add([p.longitude,p.latitude]);
+			}
+			def line_feature_geometry = [
+				'type': 'LineString',
+				'coordinates': lineCoordinates
+			];
+			def line_feature_properties = [
+				'udid':"${device.udid}"
+			];
+			def lineFeature = [
+				'type':'Feature',
+				'geometry':line_feature_geometry,
+				'properties':line_feature_properties
+			];
+			deviceFeatures.add(lineFeature);
+		}
 		return deviceFeatures;
 	}
 	

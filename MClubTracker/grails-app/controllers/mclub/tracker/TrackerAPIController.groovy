@@ -208,11 +208,11 @@ class TrackerAPIController {
 		PositionData pos = new PositionData();
 		pos.username = username;
 		pos.udid = udid;
-		pos.latitude = Long.parseLong(lat);
-		pos.longitude = Long.parseLong(lon);
+		pos.latitude = Double.parseDouble(lat);
+		pos.longitude = Double.parseDouble(lon);
 		pos.altitude = 0.0;
-		pos.speed = speed?Long.parseLong(speed):0.0;
-		pos.course = course?Long.parseLong(course):0.0;
+		pos.speed = speed?Double.parseDouble(speed):0.0;
+		pos.course = course?Double.parseDouble(course):0.0;
 		pos.time = new Date();
 		pos.valid = true;
 		pos.extendedInfo['protocol'] = 'http_api';
@@ -272,7 +272,9 @@ class TrackerAPIController {
 		
 		def features = [];
 		devices?.each{ dev->
-			features.addAll(trackerService.buildDevicePositionGeojsonFeatures(dev));
+			def dfeatures = trackerService.buildDevicePositionGeojsonFeatures(dev);
+			if(dfeatures)
+				features.addAll(dfeatures);
 		}
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
