@@ -177,7 +177,7 @@ class TrackerAPIController {
 	 */
 	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/,String token, String aprscall){
 		if(!lat || !lon){
-			render text:"Missing parameters: lat, lon"
+			render new ApiResponse(message:"Missing parameters: lat, lon",result:1) as JSON
 			return;
 		}
 		
@@ -185,7 +185,11 @@ class TrackerAPIController {
 		String username = null;
 		if(token){
 			UserSession usession = userService.checkSessionToken(token);
-			username = usession.username;
+			if(!usession){
+				// no user session found, should reject
+			}else{
+				username = usession?.username;
+			}
 		}
 		
 		// extract aprs if found
@@ -200,7 +204,7 @@ class TrackerAPIController {
 			}
 		}
 		if(!udid){
-			render text:"Missing parameters: udid"
+			render new ApiResponse(message:"Missing parameters: udid",result:1) as JSON
 			return;
 		}
 		//token/call -> username -> device -> position
@@ -221,7 +225,7 @@ class TrackerAPIController {
 		}
 		trackerDataService.updateTrackerPosition(pos);
 		
-		render text:'OK'
+		render new ApiResponse(message:"OK",result:0) as JSON
 	}
 	
 	/*
@@ -327,6 +331,11 @@ class TrackerAPIController {
 	 * @return
 	 */
 	def login(String username, String password){
+		if(!username && !password){
+			// try to read from post body
+			username = request.JSON.username;
+			password = request.JSON.password
+		}
 		def result = [:];
 		String token = userService.login(username, password);
 		if(token){
@@ -340,4 +349,10 @@ class TrackerAPIController {
 		}
 		render result as JSON;
 	}
+	
+	public static class ApiResponse{
+		String message;
+		int result = 0;
+	}
+
 }
