@@ -86,14 +86,14 @@ class TrackerDataService {
 				String oldUsername = device.username
 				device.username = username;
 				if(device.save(flush:true)){
-					log.warn("Device ${device.udid} username changed from ${oldUsername} to ${username}");
+					log.warn("Re-associate device ${device.udid} from  ${oldUsername} to ${username}");
 				}else{
-					log.warn("Error updating device username, ${device.errors}");
+					log.warn("Failed to Re-associate device username, ${device.errors}");
 					return;
 				}
 			}
 		}else{
-			log.warn("PositionData contains NO username.");
+			log.warn("PositionData contains NO username, running for test ?");
 		}
 
 		/*

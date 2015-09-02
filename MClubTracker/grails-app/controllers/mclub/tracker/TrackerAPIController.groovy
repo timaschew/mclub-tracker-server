@@ -330,7 +330,7 @@ class TrackerAPIController {
 	 * @param password
 	 * @return
 	 */
-	def login(String username, String password){
+	def login(String username, String password, String udid){
 		if(!username && !password){
 			// try to read from post body
 			username = request.JSON.username;
@@ -341,6 +341,18 @@ class TrackerAPIController {
 		if(token){
 			result = APIResponse.SUCCESS("Login success");
 			result['token'] = token;
+			
+			// if udid is specified, save it and associate with current user.
+			TrackerDevice device = TrackerDevice.findByUdid(udid);
+			if(!device){
+				// create a new one
+				device = new TrackerDevice(udid:udid, username:username);
+				if(!device.save(flush:true)){
+					log.warn("Failed to save device, ${device.errors}");
+				}
+			}else{
+				// No need to to associate here, because later when data reported, it will associate automatically
+			}
 		}else{
 			result = APIResponse.FAIL("Login failed");
 		}
