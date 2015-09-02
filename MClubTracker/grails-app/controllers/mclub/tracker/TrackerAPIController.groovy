@@ -177,7 +177,7 @@ class TrackerAPIController {
 	 */
 	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/,String token, String aprscall){
 		if(!lat || !lon){
-			render new ApiResponse(message:"Missing parameters: lat, lon",result:1) as JSON
+			render APIResponse.FAIL("Missing parameters: lat, lon") as JSON
 			return;
 		}
 		
@@ -204,7 +204,7 @@ class TrackerAPIController {
 			}
 		}
 		if(!udid){
-			render new ApiResponse(message:"Missing parameters: udid",result:1) as JSON
+			render APIResponse.FAIL("Missing parameters: udid") as JSON
 			return;
 		}
 		//token/call -> username -> device -> position
@@ -225,7 +225,7 @@ class TrackerAPIController {
 		}
 		trackerDataService.updateTrackerPosition(pos);
 		
-		render new ApiResponse(message:"OK",result:0) as JSON
+		render APIResponse.OK() as JSON
 	}
 	
 	/*
@@ -336,23 +336,44 @@ class TrackerAPIController {
 			username = request.JSON.username;
 			password = request.JSON.password
 		}
-		def result = [:];
+		def result;
 		String token = userService.login(username, password);
 		if(token){
-			result['message'] = "Login success";
+			result = APIResponse.SUCCESS("Login success");
 			result['token'] = token;
-			result['result'] = 1;
 		}else{
-			result['message'] = "Login failed.";
-			result['token'] = "";
-			result['result'] = 0;
+			result = APIResponse.FAIL("Login failed");
 		}
 		render result as JSON;
 	}
 	
-	public static class ApiResponse{
-		String message;
-		int result = 0;
-	}
+	
+	/**
+	 * API Response wrapper
+	 * @author shawn
+	 *
+	 */
+	public static class APIResponse{
+		public static Map<String,Object> OK(){
+			Map<String,Object> resp = ['code':0, 'message':'OK'];
+			return resp;
+		}
+		
+		public static Map<String,Object> SUCCESS(String message){
+			Map<String,Object> resp = ['code':0, 'message':message];
+			return resp;
+		}
 
+		
+		public static Map<String,Object> FAIL(String message){
+			Map<String,Object> resp = ['code':1, 'message':message];
+			return resp;
+		}
+		
+		public static Map<String,Object> ERROR(int code, String message){
+			Map<String,Object> resp = ['code':code, 'message':message];
+			return resp;
+		}
+		
+	}
 }
