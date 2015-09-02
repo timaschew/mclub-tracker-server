@@ -25,7 +25,7 @@
 			
 				<g:if test="${trackerDeviceInstance?.udid}">
 				<li class="fieldcontain">
-					<span id="udid-label" class="property-label"><g:message code="trackerDevice.udid.label" default="Device Id" /></span>
+					<span id="udid-label" class="property-label"><g:message code="trackerDevice.udid.label" default="UDID" /></span>
 					<span class="property-value" aria-labelledby="udid-label"><g:fieldValue bean="${trackerDeviceInstance}" field="udid"/></span>
 				</li>
 				</g:if>
@@ -33,16 +33,14 @@
 				<g:if test="${trackerDeviceInstance?.username}">
 				<li class="fieldcontain">
 					<span id="username-label" class="property-label"><g:message code="trackerDevice.username.label" default="User Name" /></span>
-					<span class="property-value" aria-labelledby="imei-label"><g:fieldValue bean="${trackerDeviceInstance}" field="imei"/></span>
+					<span class="property-value" aria-labelledby="username-label"><g:fieldValue bean="${trackerDeviceInstance}" field="username"/></span>
 				</li>
 				</g:if>
 				
-				<g:if test="${trackerDeviceInstance?.status}">
 				<li class="fieldcontain">
 					<span id="status-label" class="property-label"><g:message code="trackerDevice.status.label" default="Status" /></span>
 					<span class="property-value" aria-labelledby="status-label"><g:fieldValue bean="${trackerDeviceInstance}" field="status"/></span>
 				</li>
-				</g:if>
 			
 				<g:if test="${trackerDeviceInstance?.latestPositionId}">
 				<li class="fieldcontain">

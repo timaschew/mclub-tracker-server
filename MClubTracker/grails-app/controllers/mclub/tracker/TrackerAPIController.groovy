@@ -339,20 +339,23 @@ class TrackerAPIController {
 		def result;
 		String token = userService.login(username, password);
 		if(token){
+			// if udid is specified, save it and associate with current user.
+			if(udid){
+				TrackerDevice device = TrackerDevice.findByUdid(udid);
+				if(!device){
+					// create a new one
+					device = new TrackerDevice(udid:udid, username:username, status:0);
+					if(device.save(flush:true)){
+						log.info("New device ${udid} registered by logged in user ${username}")
+					}else{
+						log.warn("Failed to save device, ${device.errors}");
+					}
+				}else{
+					// No need to to associate here, because later when data reported, it will associate automatically
+				}
+			}
 			result = APIResponse.SUCCESS("Login success");
 			result['token'] = token;
-			
-			// if udid is specified, save it and associate with current user.
-			TrackerDevice device = TrackerDevice.findByUdid(udid);
-			if(!device){
-				// create a new one
-				device = new TrackerDevice(udid:udid, username:username);
-				if(!device.save(flush:true)){
-					log.warn("Failed to save device, ${device.errors}");
-				}
-			}else{
-				// No need to to associate here, because later when data reported, it will associate automatically
-			}
 		}else{
 			result = APIResponse.FAIL("Login failed");
 		}
