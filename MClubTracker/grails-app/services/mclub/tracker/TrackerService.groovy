@@ -20,7 +20,7 @@ class TrackerService {
 		if(TrackerDevice.count() == 0){
 			TrackerDevice.withTransaction {
 				// load initial data
-				new TrackerDevice(udid:'353451048729261').save(flush:true);
+				new TrackerDevice(udid:'353451048729261',status:1).save(flush:true);
 			}
 			//30.28022, 120.11774
 			// mock device position

@@ -23,39 +23,31 @@
 			</g:if>
 			<ol class="property-list trackerDevice">
 			
-				<g:if test="${trackerDeviceInstance?.phoneNumber}">
+				<g:if test="${trackerDeviceInstance?.udid}">
 				<li class="fieldcontain">
-					<span id="phoneNumber-label" class="property-label"><g:message code="trackerDevice.phoneNumber.label" default="Phone Number" /></span>
-					
-						<span class="property-value" aria-labelledby="phoneNumber-label"><g:fieldValue bean="${trackerDeviceInstance}" field="phoneNumber"/></span>
-					
+					<span id="udid-label" class="property-label"><g:message code="trackerDevice.udid.label" default="Device Id" /></span>
+					<span class="property-value" aria-labelledby="udid-label"><g:fieldValue bean="${trackerDeviceInstance}" field="udid"/></span>
 				</li>
 				</g:if>
-			
-				<g:if test="${trackerDeviceInstance?.imei}">
+				
+				<g:if test="${trackerDeviceInstance?.username}">
 				<li class="fieldcontain">
-					<span id="imei-label" class="property-label"><g:message code="trackerDevice.imei.label" default="Imei" /></span>
-					
-						<span class="property-value" aria-labelledby="imei-label"><g:fieldValue bean="${trackerDeviceInstance}" field="imei"/></span>
-					
+					<span id="username-label" class="property-label"><g:message code="trackerDevice.username.label" default="User Name" /></span>
+					<span class="property-value" aria-labelledby="imei-label"><g:fieldValue bean="${trackerDeviceInstance}" field="imei"/></span>
+				</li>
+				</g:if>
+				
+				<g:if test="${trackerDeviceInstance?.status}">
+				<li class="fieldcontain">
+					<span id="status-label" class="property-label"><g:message code="trackerDevice.status.label" default="Status" /></span>
+					<span class="property-value" aria-labelledby="status-label"><g:fieldValue bean="${trackerDeviceInstance}" field="status"/></span>
 				</li>
 				</g:if>
 			
 				<g:if test="${trackerDeviceInstance?.latestPositionId}">
 				<li class="fieldcontain">
 					<span id="latestPositionId-label" class="property-label"><g:message code="trackerDevice.latestPositionId.label" default="Latest Position Id" /></span>
-					
-						<span class="property-value" aria-labelledby="latestPositionId-label"><g:fieldValue bean="${trackerDeviceInstance}" field="latestPositionId"/></span>
-					
-				</li>
-				</g:if>
-			
-				<g:if test="${trackerDeviceInstance?.udid}">
-				<li class="fieldcontain">
-					<span id="udid-label" class="property-label"><g:message code="trackerDevice.udid.label" default="Device Id" /></span>
-					
-						<span class="property-value" aria-labelledby="udid-label"><g:fieldValue bean="${trackerDeviceInstance}" field="udid"/></span>
-					
+					<span class="property-value" aria-labelledby="latestPositionId-label"><g:fieldValue bean="${trackerDeviceInstance}" field="latestPositionId"/></span>
 				</li>
 				</g:if>
 			

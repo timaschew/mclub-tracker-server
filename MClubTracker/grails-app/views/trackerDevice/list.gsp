@@ -24,7 +24,8 @@
 				<thead>
 					<tr>
 						<g:sortableColumn property="udid" title="${message(code: 'trackerDevice.udid.label', default: 'Unique Device Id')}" />
-						<g:sortableColumn property="username" title="${message(code: 'trackerDevice.imei.label', default: 'User Name')}" />
+						<g:sortableColumn property="username" title="${message(code: 'trackerDevice.username.label', default: 'User Name')}" />
+						<g:sortableColumn property="status" title="${message(code: 'trackerDevice.status.label', default: 'Status')}" />
 						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
 					</tr>
 				</thead>
@@ -33,6 +34,7 @@
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
 						<td><g:link action="show" id="${trackerDeviceInstance.id}">${fieldValue(bean: trackerDeviceInstance, field: "udid")}</g:link></td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td>
+						<td>${fieldValue(bean: trackerDeviceInstance, field: "status")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</td>
 					</tr>
 				</g:each>

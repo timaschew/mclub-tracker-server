@@ -23,3 +23,11 @@
 	</label>
 	<g:field name="latestPositionId" type="number" value="${trackerDeviceInstance.latestPositionId}"/>
 </div>
+
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'status', 'error')} ">
+	<label for="status">
+		<g:message code="trackerDevice.status.label" default="Status" />
+		
+	</label>
+	<g:field name="status" type="number" value="${trackerDeviceInstance.status}"/>
+</div>
