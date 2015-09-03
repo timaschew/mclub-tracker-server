@@ -19,7 +19,6 @@ import javax.websocket.Session
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
 
-import org.atmosphere.websocket.WebSocket;
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
