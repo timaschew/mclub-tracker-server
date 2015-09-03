@@ -63,14 +63,36 @@ class TrackerDataService {
 		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid WHERE d.id=:did",[did:deviceId,pid:positionId]);
 	}
 	
+	
+	private TrackerDevice loadDeviceForAprsPosition(PositionData positionData){
+		// FIXME - Quick and dirty solution for create user and device for aprs calls.
+		TrackerDevice device = TrackerDevice.findByUdid(positionData.udid);
+		if(!device){
+			device = new TrackerDevice(udid:positionData.udid, username:positionData.username, status:2);
+			if(!device.save(flush:true)){
+				log.warn("Error register APRS device ${positionData.udid}, ${device.errors}");
+				return null;
+			}else{
+				log.info("Registered new APRS device ${positionData.udid}");
+			}
+		}
+		return device;
+	}
+	
 	/**
 	 * Update tracker position according to the received data object.
 	 * @param udid
 	 * @param positionData
 	 */
 	public void updateTrackerPosition(PositionData positionData){
+		TrackerDevice device = null;
 		String udid = positionData.udid;
-		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(positionData.getAprs()){
+			device = loadDeviceForAprsPosition(positionData);
+		}else{
+			device = TrackerDevice.findByUdid(udid);
+		}
+		
 		if(!device){
 			log.warn("Unknown device - " + udid);
 			return;

@@ -8,6 +8,7 @@ package mclub.tracker
 class TrackerDevice {
 	public static final int DEVICE_TYPE_DEACTIVE = 0;
 	public static final int DEVICE_TYPE_ACTIVE = 1;
+	public static final int DEVICE_TYPE_APRS = 2;
 	
     static constraints = {
 		latestPositionId blank:true,nullable:true

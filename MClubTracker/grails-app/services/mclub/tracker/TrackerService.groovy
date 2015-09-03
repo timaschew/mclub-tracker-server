@@ -5,6 +5,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
+import mclub.util.MapShiftUtils;
+
 /**
  * The tracker service that saves data from tracker
  * @author shawn
@@ -13,6 +15,8 @@ import javax.annotation.PreDestroy
 class TrackerService {
 	def trackerDataService;
 
+	boolean mapShiftEnabled = true;
+	
 	@PostConstruct
 	public void start(){
 		// load initial data
@@ -185,24 +189,33 @@ class TrackerService {
 			//'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
 			'udid':"${device.udid}",
-			'username':'testuser',
-			'phone':'12345678',
 			'description':"tracker demo",
 			'marker-color':"#00bcce",
 			'marker-size': "medium",
 			'marker-symbol': "airport",
 			"marker-zoom": ""
 			]
+		
+		feature_properties['username'] = device.username?device.username:"unknow";
+		feature_properties['phone'] = "12345678"; //FIXME
+		
+		// perform address shift!
+		def coordinate;
+		if(mapShiftEnabled){
+			coordinate = MapShiftUtils.WGSToGCJ(pos.longitude,pos.latitude);
+		}else{
+			coordinate = [pos.longitude, pos.latitude];
+		}
+
 		def feature_geometry = [
 			"type": "Point",
-			"coordinates": [pos.longitude, pos.latitude]
+			"coordinates": coordinate
 			]
 		
 		def feature1 = [
 			'type':"Feature",
 			'properties':feature_properties,
 			'geometry' : feature_geometry,
-			//'id' : "${device.id}"
 			];
 		
 		deviceFeatures.add(feature1)
@@ -222,16 +235,22 @@ class TrackerService {
 		 */
 		
 		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
-		// Add line string feature
-		int MAX_LINE_POINTS = 15;
-		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_AN_HOUR);
+		// Add line string feature, load points that in 30mins ago and not exceeding 50 in total.
+		int MAX_LINE_POINTS = 50;
+		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR);
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time>:lineTime ORDER BY p.time DESC",[dbId:device.id, lineTime:lineTime, max:MAX_LINE_POINTS]);
 		if(positions?.size() >=4){
 			
 			def lineCoordinates = [];
 			// build line string features if positions count >=4
 			for(TrackerPosition p in positions){
-				lineCoordinates.add([p.longitude,p.latitude]);
+				def c;
+				if(mapShiftEnabled){
+					c = MapShiftUtils.WGSToGCJ(p.longitude,p.latitude);
+				}else{
+					c = [p.longitude, p.latitude];
+				}
+				lineCoordinates.add(c);
 			}
 			def line_feature_geometry = [
 				'type': 'LineString',
