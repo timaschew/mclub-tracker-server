@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html>
+    
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>
+            mClub Trackerx
+        </title>
+        <style type="text/css">
+            body{ margin:0; height:100%; width:100%; position:absolute; } 
+            body *{padding: none; margin: none;} 
+            #mapContainer{ position: absolute; top:0; left: 0; bottom:0; width:100%; } 
+            /*
+            #toolBox{ position: absolute; top:20px; right:0; bottom:0; width:20%; } 
+            #submit{ position: absolute; top:0; right:0; width:20%; height: 22px;}
+            */
+            .amap-marker-label {
+                padding: 0.75px;
+                border: 1px solid #666666;
+                color: #666666;
+                font: bold 12px arial,sans-serif;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div id="mapContainer">
+        </div>
+        <!--
+        <button id="submit">
+            提交
+        </button>
+        <textarea id="toolBox">
+            { 
+                "type": "FeatureCollection",
+                "features": [
+                  { "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [102.0, 0.0]},
+                    "properties": {
+                      "username": "foobar",
+                      "phone": "123456789",
+                      "udid": "0001"
+                    }
+                  },
+                  { "type": "Feature",
+                    "geometry": {
+                      "type": "LineString",
+                      "coordinates": [
+                        [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
+                        ]
+                      },
+                     "properties": { 
+                        "udid": "0001"
+                     }
+                   }
+                 ]
+            } 
+        </textarea>
+       -->
+        <script type="text/javascript" src="js/jquery-2.1.4.min.js">
+        </script>
+        <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee">
+        </script>
+        <script type="text/javascript">
+            $(function() {
+                // http://bolt1.mclub.to:20880/mtracker/api/update_position?udid=0001&lat=39&lon=116
+
+                var map = new AMap.Map('mapContainer', {
+                    resizeEnable: true,
+                    center: [120.20, 30.24],
+                    zoom: 11
+                });
+
+                // Add map toolbar controller
+                map.plugin( ["AMap.ToolBar"], function() {
+                    toolBar = new AMap.ToolBar();
+                    map.addControl(toolBar);
+                });
+                
+                // Map type switcher
+                map.plugin(["AMap.MapType"], function () {
+                  var mapType = new AMap.MapType({
+                	// by defult will be 2D
+                	// 1: sat map
+                    defaultType: 0,
+                    // add road layer
+                    showRoad: true
+                  });
+                  map.addControl(mapType);
+                });
+                
+             	// Map scale meters
+                map.plugin(["AMap.Scale"], function () {
+                  scale = new AMap.Scale();
+                  map.addControl(scale);
+                });
+
+                var MultiPointRender = {
+                    pointsMap: {},
+                    render: function(points, tag) {
+                        if (points.length == 0) {
+                            return;
+                        };
+                        var marker;
+                        for (var i = 0; i < points.length; ++i) {
+                            point = points[i],
+                            marker = new AMap.Marker({
+                                icon: "http://webapi.amap.com/images/marker_sprite.png",
+                                position: new AMap.LngLat(point[0], point[1])
+                            });
+                            marker.setMap(map);
+                        }
+                        //map.setFitView();
+                        return marker;
+                    },
+                };
+
+                var PointRender = {
+                    pointsMap: {},
+                    render: function(point, tag) {
+                        if (!point) {
+                            return;
+                        };
+                        var marker;
+                        if (typeof tag == "undefined" || typeof this.pointsMap[tag] == "undefined") {
+                            marker = new AMap.Marker({
+                                icon: "http://webapi.amap.com/images/marker_sprite.png",
+                                topWhenClick:true,
+                            });
+                            marker.setPosition(point);
+                            marker.setMap(map);
+                            if (tag) {
+                                this.pointsMap[tag] = marker;
+                            }
+                        } else {
+                            marker = this.pointsMap[tag];
+                            marker && marker.setPosition(point);
+                        }
+                        //map.setFitView();
+                        return marker;
+                    },
+                };
+
+                var LineStringRender = {
+                    lineStringsMap: {},
+                    render: function(points, tag) {
+                        if (points.length == 0) {
+                            return;
+                        };
+                        var polyline;
+                        var polylineoptions = {
+                            path: points,          
+                            strokeColor: "#3366FF", 
+                            strokeOpacity: 1,       
+                            strokeWeight: 5,        
+                            strokeStyle: "solid",   
+                            strokeDasharray: [10, 5] 
+                        };
+                        if (typeof tag == "undefined" || typeof this.lineStringsMap[tag] == "undefined") {
+                            polyline = new AMap.Polyline(polylineoptions);
+                            polyline.setMap(map);
+                            if (tag) {
+                                this.lineStringsMap[tag] = polyline;
+                            };
+                            
+                        } else {
+                            polyline = this.lineStringsMap[tag];
+                            polyline && polyline.setOptions(polylineoptions);
+                        }
+                        //map.setFitView();
+                        return polyline;
+                    },
+                }
+
+                var parseGEOJSON = function(geojson) {
+                    if ("FeatureCollection" === geojson["type"]) {
+                        for (var i = 0; i < geojson.features.length; i++) {
+                            var feature = geojson.features[i];
+                            var tag = feature['properties']['udid'];
+                            if ("MultiPoint" === feature['geometry']['type']) {
+                                MultiPointRender.render(feature['geometry']['coordinates'], tag);
+                            } else if ("Point" === feature['geometry']['type']) {
+                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
+                                marker.setLabel({
+                                    offset:new AMap.Pixel(12,25),
+                                    content: "<div>" + feature['properties']['udid'] + "</div>"
+                                });
+                                
+                                // read aprs comment as marker title if exists
+                                var aprs = feature['properties']['aprs'];
+                                if(typeof aprs != "undefined" ){
+                                	var comment = aprs['comment'];
+                                	if(typeof comment != "undefined"){
+                                		marker.setTitle(comment);		
+                                	}
+                                }
+                                
+                            } else if ("LineString" === feature['geometry']['type']) {
+                                LineStringRender.render(feature['geometry']['coordinates'], tag);
+                            }
+                        };
+                    };
+                }
+
+                $("#submit").on("click", function() {
+                    parseGEOJSON($.parseJSON($("#toolBox").val()));
+                });
+
+                // return;
+
+                (function () { 
+                    var wsUri = "ws://aprs2.mclub.to:20880/mtracker/live0";
+                    //var wsUri = "ws://localhost:8080/mclub/live0";
+                    websocket = new WebSocket(wsUri);
+                    websocket.onopen = function(e) {
+                        // alert("CONNECTED")
+                    };
+                    websocket.onclose = function(e) {
+                        // alert("DISCONNECTED"); 
+                    };
+                    websocket.onmessage = function(e) { 
+                        var udid = ($.parseJSON(e.data))["udid"];
+                        parseGEOJSON($.parseJSON(e.data));
+                        //websocket.close(); 
+                    };
+                    websocket.onerror = function(e) { 
+                        
+                    };
+
+                    function doSend(message) { 
+                        websocket.send(message); 
+                    }  
+                })();
+
+            });
+        </script>
+    </body>
+
+</html>

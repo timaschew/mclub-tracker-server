@@ -1,10 +1,12 @@
 package mclub.tracker
 
 import java.util.Map;
+import grails.converters.JSON;
 
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
+import mclub.user.User
 import mclub.util.MapShiftUtils;
 
 /**
@@ -21,6 +23,12 @@ class TrackerService {
 	public void start(){
 		// load initial data
 		// add test devices
+//		if(TrackerPosition.count() > 0){
+//			TrackerPosition.withTransaction {
+//				TrackerPosition.deleteAll();
+//			}
+//		}
+
 		if(TrackerDevice.count() == 0){
 			TrackerDevice.withTransaction {
 				// load initial data
@@ -196,10 +204,31 @@ class TrackerService {
 			"marker-zoom": ""
 			]
 		
+		// Load user name and mobile phone
 		feature_properties['username'] = device.username?device.username:"unknow";
-		feature_properties['phone'] = "12345678"; //FIXME
+		//TODO optimization of loading user's phone number.
+		if(device.username){
+			feature_properties['username'] = device.username;
+			User user = User.findByName(device.username);
+			if(user && user.phone){
+				feature_properties['phone'] = user.phone;
+			}
+		}else{
+			feature_properties['username'] = "unknown";
+		}
+
+		// Add extended info
+		if(pos.getExtendedInfo()){
+			def extendedInfo = JSON.parse(pos.getExtendedInfo());
+			if(extendedInfo instanceof Map){
+				feature_properties.putAll(extendedInfo);
+				if(extendedInfo['aprs'] && extendedInfo['aprs']['comment']){
+					feature_properties['description'] = extendedInfo['aprs']['comment'];
+				}
+			}
+		}
 		
-		// perform address shift!
+		// Shifting coordinates for chinese map!
 		def coordinate;
 		if(mapShiftEnabled){
 			coordinate = MapShiftUtils.WGSToGCJ(pos.longitude,pos.latitude);

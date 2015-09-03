@@ -85,7 +85,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	@OnOpen
 	public void handleOpen(Session clientSession) {
 		sessions.put(clientSession.getId(), clientSession);
-		log.info "Session[${clientSession.id}] opened"
+		log.debug "websocket session[${clientSession.id}] opened"
 		
 		// push all tracker nodes
 		def val = getTrackerService().buildAllDevicePositionGeojsonData();
@@ -100,7 +100,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	
 	@OnMessage
 	public String handleMessage(String message,Session clientSession) throws IOException {
-		log.info "Received: " + message
+		log.debug "Received: " + message
 		return "echo [" + clientSession.getId() + "]"  + message;
 		/*
 		def myMsg=[:]
@@ -123,7 +123,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	@OnClose
 	public void handeClose(Session clientSession, CloseReason reason) {
 		sessions.remove(clientSession.getId());
-		log.info "Session[${clientSession.id}] closed"
+		log.debug "websocket session[${clientSession.id}] closed"
 	}
 	
 	@OnError
@@ -159,7 +159,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 				session.basicRemote.sendText(txt.toString());
 			}catch(Exception e){
 				// ignore
-				log.error(e);
+				log.error("Error pushing position changes",e);
 			}
 		}
 	}

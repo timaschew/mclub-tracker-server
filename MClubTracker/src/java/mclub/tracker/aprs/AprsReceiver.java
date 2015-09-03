@@ -12,7 +12,9 @@ import mclub.tracker.TrackerDataService;
 import mclub.tracker.aprs.parser.APRSPacket;
 import mclub.tracker.aprs.parser.CourseAndSpeedExtension;
 import mclub.tracker.aprs.parser.DataExtension;
+import mclub.tracker.aprs.parser.Digipeater;
 import mclub.tracker.aprs.parser.InformationField;
+import mclub.tracker.aprs.parser.PHGExtension;
 import mclub.tracker.aprs.parser.Parser;
 import mclub.tracker.aprs.parser.Position;
 import mclub.tracker.aprs.parser.PositionPacket;
@@ -225,6 +227,29 @@ public class AprsReceiver {
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////
+	// See http://wa8lmf.net/aprs/APRS_symbols.htm
+	////////////////////////////////////////////////////////////////////
+	private static final String symbolIndexes =  
+			"!\"#$%'()*+,-./0" + 
+			"123456789:;<=>?@" + 
+			"ABCDEFGHIJKLMNOP" +
+			"QRSTUVWXYZ[\\]^_`" +
+			"abcdefghijklmnop" +
+			"qrstuvwxyz{|}~";
+	private static String decodeSymbolIndex(char symbolTable, char symbolIndex){
+		for(int i = 0;i < symbolIndexes.length();i++){
+			char c = symbolIndexes.charAt(i);
+			if(c == i){
+				if(symbolTable == '/'){
+					return Integer.toString(i);
+				}else{
+					return Integer.toString(i + 96 /*the index in second symbol table, Each table contains 96 icons*/);
+				}
+			}
+		}
+		return null;
+	}
 	/**
 	 * The aprs receiver client handler
 	 * @author shawn
@@ -245,7 +270,7 @@ public class AprsReceiver {
 			//FIXME - use proper decoder
 			PositionData positionData = parseAPRSPacket(e.getMessage().toString());
 			if(positionData != null){
-				// TODO broadcast
+				// update the device position
 				AprsReceiver.this.getTrackerDataService().updateTrackerPosition(positionData);
 			}
 		}
@@ -285,7 +310,29 @@ public class AprsReceiver {
 						positionData.setSpeed(new Double(0));
 					}
 					
-					positionData.setTime(new Date());
+					AprsData aprsData = new AprsData();
+					// digi peater path
+					StringBuilder sb = new StringBuilder();
+					for(Digipeater digiPeater : pack.getDigipeaters()) {
+						sb.append(digiPeater.toString()).append(',');
+					}
+					sb.deleteCharAt(sb.length()-1);
+					aprsData.setPath(sb.toString());
+					// comment
+					aprsData.setComment(info.getComment());
+					// index of symbol
+					aprsData.setSymbol(decodeSymbolIndex(pos.getSymbolTable(),pos.getSymbolCode()));
+					
+					// PHG info
+					if(ext instanceof PHGExtension){
+						PHGExtension phg = (PHGExtension)ext;
+						aprsData.setHeight(new Integer(phg.getHeight()));
+						aprsData.setGain(new Integer(phg.getGain()));
+						aprsData.setPower(new Integer(phg.getPower()));
+						aprsData.setDirectivity(new Integer(phg.getDirectivity()));
+					}
+					positionData.addExtendedInfo("aprs",aprsData);
+					positionData.setTime(pos.getTimestamp());
 					positionData.setValid(true);
 					positionData.setAprs(true);
 					

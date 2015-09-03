@@ -123,6 +123,10 @@ public class PositionData {
 	public void setExtendedInfo(Map<String, Object> extendedInfo) {
 		this.extendedInfo = extendedInfo;
 	}
+	
+	public void addExtendedInfo(String key, Object info){
+		this.extendedInfo.put(key, info);
+	}
 
 	public Boolean getAprs() {
 		return aprs;

@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 import mclub.util.DateUtils
+import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
 
@@ -15,6 +16,12 @@ class TrackerDataService {
 	GrailsApplication grailsApplication;
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
 
+	static {
+		grails.converters.JSON.registerObjectMarshaller(AprsData) {
+		return it.properties.findAll {k,v -> k != 'class' && v != null}
+		}
+	}
+	
 	/**
 	 * Get device PK ID by unique device id（IMEI or callsign）
 	 * @param imei
