@@ -218,8 +218,6 @@ class TrackerService {
 			'geometry' : feature_geometry,
 			];
 		
-		deviceFeatures.add(feature1)
-		
 		/*
 		 { "type": "Feature",
            "geometry": {
@@ -235,12 +233,18 @@ class TrackerService {
 		 */
 		
 		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
-		// Add line string feature, load points that in 30mins ago and not exceeding 50 in total.
+		// Add line string feature, load points that in 45 mins ago and not exceeding 50 in total.
 		int MAX_LINE_POINTS = 50;
-		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR);
+		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR + (15 * 60 * 1000));
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time>:lineTime ORDER BY p.time DESC",[dbId:device.id, lineTime:lineTime, max:MAX_LINE_POINTS]);
-		if(positions?.size() >=4){
-			
+		int positionCount = positions?.size();
+		 
+		// Display site only when it contains points
+		if(positionCount > 0){
+			deviceFeatures.add(feature1);
+		}
+		
+		if(positionCount >=4){
 			def lineCoordinates = [];
 			// build line string features if positions count >=4
 			for(TrackerPosition p in positions){
