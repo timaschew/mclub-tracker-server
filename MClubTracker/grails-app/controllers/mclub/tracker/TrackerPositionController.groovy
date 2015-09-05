@@ -10,11 +10,23 @@ class TrackerPositionController {
         redirect(action: "list", params: params)
     }
 
-    def list(Integer max) {
+    def list(Integer max,String udid) {
         params.max = Math.min(max ?: 10, 100)
-        [trackerPositionInstanceList: TrackerPosition.list(params), trackerPositionInstanceTotal: TrackerPosition.count()]
+		def positions = [];
+		int positionCount = 0;
+		if(udid){
+			TrackerDevice device = TrackerDevice.findByUdid(udid);
+			if(device){
+				positions = TrackerPosition.findAllByDeviceId(device.id);
+				positionCount = positions?.size();
+			}
+		}else{
+			positions = TrackerPosition.list(params);
+			positionCount = TrackerPosition.count();
+		}
+        [trackerPositionInstanceList: positions, trackerPositionInstanceTotal: positionCount]
     }
-
+	
     def create() {
         [trackerPositionInstance: new TrackerPosition(params)]
     }
