@@ -34,4 +34,6 @@ package mclub.tracker.aprs.parser;
  */
 public abstract class DataExtension {
 	public abstract String toSAEString();
+	protected int length;
+	public int length(){return length;}
 }

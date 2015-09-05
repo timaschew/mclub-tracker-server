@@ -80,7 +80,7 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 					position = PositionParser.parseCompressed(msgBody, cursor);
 					this.extension = PositionParser.parseCompressedExtension(msgBody, cursor);
 					positionSource = "Compressed";
-					cursor += 13;
+					cursor += 13; //FIXME take compressed string length in account
 				} else if ('0' <= posChar && posChar <= '9') {
 					// normal uncompressed position
 					position = PositionParser.parseUncompressed(msgBody);
@@ -90,10 +90,12 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 						this.extension = null;
 					}
 					positionSource = "Uncompressed";
-					cursor += 19;
+					cursor += (19 + this.extension.length()); // position(19) + extention length(7) 
 				} else {
 					hasFault = true;
 				}
+				
+				//FIXME - SHOULD CHECK ALTITUDE IN COMMENTS: "/A=000052"
 				break;
 			}
 		case '$':

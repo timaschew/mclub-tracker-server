@@ -145,10 +145,13 @@ public class PositionParser {
                 phg.setGain(Integer.parseInt(new String(msgBody, 24 + cursor, 1)));
                 phg.setDirectivity(Integer.parseInt(new String(msgBody, 25 + cursor, 1)));
                 de = phg;
+                phg.length = 7; // PHG5132
+                
             } catch (NumberFormatException nfe) {
                 de = null;
             }
         } else if ((char) msgBody[22 + cursor] == '/' && (char) msgBody[18 + cursor] != '_') {
+        	System.out.println(new String(msgBody, cursor, msgBody.length - cursor, "UTF-8"));
             CourseAndSpeedExtension cse = new CourseAndSpeedExtension();
 
             String courseString = new String(msgBody, cursor + 19, 3);
@@ -166,6 +169,7 @@ public class PositionParser {
             }
             cse.setCourse(course);
             cse.setSpeed(speed);
+            cse.length = 7; // 088/036 
             de = cse;
         }
         return de;
