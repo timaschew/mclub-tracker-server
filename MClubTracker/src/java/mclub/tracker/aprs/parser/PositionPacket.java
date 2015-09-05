@@ -90,7 +90,10 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 						this.extension = null;
 					}
 					positionSource = "Uncompressed";
-					cursor += (19 + this.extension.length()); // position(19) + extention length(7) 
+					cursor += 19; // position(19)
+					if(this.extension != null){
+						cursor += this.extension.length(); //extention length(7)
+					}
 				} else {
 					hasFault = true;
 				}
