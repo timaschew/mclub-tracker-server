@@ -336,6 +336,10 @@ class TrackerAPIController {
 			username = request.JSON.username;
 			password = request.JSON.password
 		}
+		if(!udid){
+			udid = request.JSON.udid;
+		}
+		
 		def result;
 		String token = userService.login(username, password);
 		if(token){
