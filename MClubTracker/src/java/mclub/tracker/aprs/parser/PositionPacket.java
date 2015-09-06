@@ -80,7 +80,7 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 					position = PositionParser.parseCompressed(msgBody, cursor);
 					this.extension = PositionParser.parseCompressedExtension(msgBody, cursor);
 					positionSource = "Compressed";
-					cursor += 13; //FIXME take compressed string length in account
+					cursor += 13; //TODO take compressed string length in account ?
 				} else if ('0' <= posChar && posChar <= '9') {
 					// normal uncompressed position
 					position = PositionParser.parseUncompressed(msgBody);
@@ -94,11 +94,38 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 					if(this.extension != null){
 						cursor += this.extension.length(); //extention length(7)
 					}
+					
+					// check altitude in comments "/A=000052"
+					// According to APRS101, /A= could be exist in any position of the comment field.
+					for(int i = cursor; i <msgBody.length;i++){
+						if((msgBody[i] == '/') && (i + 9 <= msgBody.length) && (msgBody[i+1] == 'A') && (msgBody[i+2] == '=')){
+							// found "/A=001234"
+							try{
+								float altInFeet = Float.parseFloat(new String(msgBody,i + 3,6,"UTF-8"));
+								// 1ft = 0.3048m
+								int altitude = Math.round(altInFeet * 0.3048f);
+								// convert from feet to meter
+								position.setAltitude(altitude);
+								// remove the /A= from comment
+								StringBuilder sb = new StringBuilder();
+								if(i > cursor){
+									sb.append(new String(msgBody,cursor,i-cursor,"UTF-8"));
+								}
+								if(msgBody.length >= i+9){
+									sb.append(new String(msgBody,i+9,msgBody.length - i - 9,"UTF-8"));
+								}
+								if(sb.length() > 0){
+									comment = sb.toString();
+								}
+								cursor = msgBody.length; // that hack sucks.
+							}catch(Exception e){
+								// parse error, do nothing;
+							}
+						}
+					}
 				} else {
 					hasFault = true;
 				}
-				
-				//FIXME - SHOULD CHECK ALTITUDE IN COMMENTS: "/A=000052"
 				break;
 			}
 		case '$':
@@ -113,6 +140,7 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 
 		}
 		if (cursor > 0 && cursor < msgBody.length) {
+			// no comment is set yet.
 			comment = new String(msgBody, cursor, msgBody.length - cursor, "UTF-8");
 		}
 	}
