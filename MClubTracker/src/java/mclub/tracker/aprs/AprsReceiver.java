@@ -278,12 +278,18 @@ public class AprsReceiver {
 		private PositionData parseAPRSPacket(String aprsMessage){
 			PositionData positionData = null;
 			if(aprsMessage.startsWith("#")){
-				log.debug("RECV: " + aprsMessage);
+				log.debug("RECV CMD: " + aprsMessage);
 				return null;
 			}
-//			log.info("RECV: " + aprsMessage);
+			log.debug("RECV DATA: " + aprsMessage);
 			try{
 				APRSPacket pack = Parser.parse(aprsMessage);
+				if(pack == null || !pack.isAprs()){
+					// Invalid aprs packet
+					log.warn("Invalid APRS packet: " + (pack == null?"null":pack.getOriginalString()));
+					return null;
+				}
+				
 				InformationField info = pack.getAprsInformation();
 				if(info instanceof PositionPacket){
 					positionData = new PositionData();

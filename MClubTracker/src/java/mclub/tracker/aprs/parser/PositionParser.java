@@ -26,12 +26,17 @@ package mclub.tracker.aprs.parser;
 
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class with decode any of the Position formats specified in the APRS spec, including compressed, uncompressed,
  * and MicE encoded positions
  */
 
 public class PositionParser {
+	private static Logger log = LoggerFactory.getLogger(PositionParser.class);
+	
     private static Pattern commaSplit = Pattern.compile(",");
 
     public static Position parseUncompressed(byte[] msgBody, int cursor) throws Exception {
@@ -151,7 +156,7 @@ public class PositionParser {
                 de = null;
             }
         } else if ((char) msgBody[22 + cursor] == '/' && (char) msgBody[18 + cursor] != '_') {
-        	System.out.println(new String(msgBody, cursor, msgBody.length - cursor, "UTF-8"));
+        	log.debug("Speed Course Extension: " + new String(msgBody, cursor, msgBody.length - cursor, "UTF-8"));
             CourseAndSpeedExtension cse = new CourseAndSpeedExtension();
 
             String courseString = new String(msgBody, cursor + 19, 3);
