@@ -77,6 +77,12 @@ log4j = {
     //appenders {
     //    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
     //}
+	appenders {
+		rollingFile name: 'aprsAppender',
+					maxFileSize: 10240,
+					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
+					file: '/tmp/aprs.log'
+	}
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
            'org.codehaus.groovy.grails.web.pages',          // GSP
@@ -89,13 +95,18 @@ log4j = {
            'org.springframework',
            'org.hibernate',
            'net.sf.ehcache.hibernate'
-			
+	
+	trace  aprsAppender: 'aprs.log',
+		   additivity:false
+		  
 	environments {
 		development {
 			info   'grails.app',
 				   'mclub.tracker',
 				   'mclub.datamining'
 //			debug  'org.hibernate.SQL'
+			debug  'mclub.user',
+					'mclub.tracker.aprs'
 		}
 		production {
 			info   'grails.app',
@@ -123,6 +134,14 @@ tracker.t55.port = 5005
 // enables tracker log
 tracker.logger.enabled = true
 tracker.geocode.enabled = false
+
+// enable APRS receiver
+tracker.aprs.enabled = true
+tracker.aprs.address = 'rotate.aprs2.net'
+tracker.aprs.port = 14580
+tracker.aprs.call = 'foo'
+tracker.aprs.pass = 'bar'
+tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM  
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 
