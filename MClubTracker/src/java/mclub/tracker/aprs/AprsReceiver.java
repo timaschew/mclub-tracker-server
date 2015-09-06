@@ -273,7 +273,11 @@ public class AprsReceiver {
 			PositionData positionData = parseAPRSPacket(e.getMessage().toString());
 			if(positionData != null){
 				// update the device position
-				AprsReceiver.this.getTrackerDataService().updateTrackerPosition(positionData);
+				try{
+					AprsReceiver.this.getTrackerDataService().updateTrackerPosition(positionData);
+				}catch(Exception ex){
+					log.error("Error update track position", ex);
+				}
 			}
 		}
 		

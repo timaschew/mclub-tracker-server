@@ -81,7 +81,7 @@ log4j = {
 		rollingFile name: 'aprsAppender',
 					maxFileSize: 10240,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-					file: '/tmp/aprs.log'
+					file: '/var/log/aprs.log'
 	}
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
@@ -141,7 +141,8 @@ tracker.aprs.address = 'rotate.aprs2.net'
 tracker.aprs.port = 14580
 tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
-tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM  
+//tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
+tracker.aprs.filter = 'p/B' //range in Hangzhou 100KM
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 
