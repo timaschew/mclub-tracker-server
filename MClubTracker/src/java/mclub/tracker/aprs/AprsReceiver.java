@@ -44,6 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AprsReceiver {
+	private Logger aprsLog = LoggerFactory.getLogger("aprs.log");
+	
 	private Logger log = LoggerFactory.getLogger(getClass());
 	
     /********************************************************************************/
@@ -281,12 +283,13 @@ public class AprsReceiver {
 				log.debug("RECV CMD: " + aprsMessage);
 				return null;
 			}
-			log.debug("RECV DATA: " + aprsMessage);
+			// log aprs message
+			aprsLog.trace(aprsMessage);
 			try{
 				APRSPacket pack = Parser.parse(aprsMessage);
 				if(pack == null || !pack.isAprs()){
 					// Invalid aprs packet
-					log.warn("Invalid APRS packet: " + (pack == null?"null":pack.getOriginalString()));
+					log.info("Invalid APRS packet: " + (pack == null?"null":pack.getOriginalString()));
 					return null;
 				}
 				
