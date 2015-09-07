@@ -1,9 +1,12 @@
 package mclub.tracker
 
 import grails.converters.JSON
+import grails.transaction.Transactional;
+
 import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
@@ -12,8 +15,10 @@ import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
 
+@Transactional
 class TrackerDataService {
 	GrailsApplication grailsApplication;
+	TrackerCacheService trackerCacheService;
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
 
 	static {
@@ -122,7 +127,7 @@ class TrackerDataService {
 				}
 			}
 		}else{
-			log.warn("PositionData contains NO username, running for test ?");
+			log.warn("PositionData contains NO username, running for test ? " + positionData.toString());
 		}
 
 		/*
@@ -133,8 +138,8 @@ class TrackerDataService {
 		}
 		*/
 		
-		// Convert value object to position entity
 		Long devicePK = device.id;
+		// Convert value object to position entity
 		TrackerPosition position = new TrackerPosition();
 		position.properties = positionData;
 		position.deviceId = devicePK;
@@ -148,6 +153,10 @@ class TrackerDataService {
 			Long id = addPosition(position);
 			if (id != null) {
 				updateLatestPosition(position.getDeviceId(), id);
+				
+				// clear the position cache
+				trackerCacheService.removeDeviceFeature(device.udid);
+				
 				// broadcast the position data change
 				notifyPositionChanges(positionData);
 			}

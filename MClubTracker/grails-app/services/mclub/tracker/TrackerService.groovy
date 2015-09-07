@@ -1,6 +1,7 @@
 package mclub.tracker
 
 import java.util.Map;
+
 import grails.converters.JSON;
 
 import javax.annotation.PostConstruct
@@ -16,7 +17,8 @@ import mclub.util.MapShiftUtils;
  */
 class TrackerService {
 	def trackerDataService;
-
+	TrackerCacheService trackerCacheService;
+	
 	boolean mapShiftEnabled = true;
 	
 	@PostConstruct
@@ -171,26 +173,11 @@ class TrackerService {
 	}
 	
 	/**
-	 * Build geojson data of the device
-	 * 
-	 * @TODO Use feature builder or feature template
-	 * 
+	 * Load device features from db
 	 * @param device
 	 * @return
 	 */
-	public Collection buildDevicePositionGeojsonFeatures(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
-		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
-		if(!pos){
-			return null;
-		}
-		
-		// check whether position is expired
-		// TODO - make the expire time configurable 
-		if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
-			// is expired position
-			return null;
-		}
-		
+	private Collection<Object> loadDeviceFeatures(TrackerDevice device, TrackerPosition pos){
 		def deviceFeatures = [];
 		
 		def feature_properties = [
@@ -249,16 +236,16 @@ class TrackerService {
 		
 		/*
 		 { "type": "Feature",
-           "geometry": {
-              "type": "LineString",
-              "coordinates": [
-                [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
-                ]
-              },
-             "properties": { 
-                "udid": "0001"
-             }
-           }
+		   "geometry": {
+			  "type": "LineString",
+			  "coordinates": [
+				[102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
+				]
+			  },
+			 "properties": {
+				"udid": "0001"
+			 }
+		   }
 		 */
 		
 		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
@@ -300,6 +287,40 @@ class TrackerService {
 			deviceFeatures.add(lineFeature);
 		}
 		return deviceFeatures;
+	}
+	
+	/**
+	 * Build geojson data of the device
+	 * 
+	 * @TODO Use feature builder or feature template
+	 * 
+	 * @param device
+	 * @return
+	 */
+	public Collection buildDevicePositionGeojsonFeatures(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
+		if(!pos){
+			return null;
+		}
+		
+		// check whether position is expired
+		// TODO - make the expire time configurable 
+		if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
+			// is expired position
+			return null;
+		}
+		
+		//load from cache first
+		Collection<Object> features = trackerCacheService.getDeviceFeature(device.udid);
+		if(!features){
+			Collection<Object> f = loadDeviceFeatures(device,pos);
+			if(f){
+				// the cache returns the true features, see implementations inside.
+				features = trackerCacheService.cacheDeviceFeature(device.udid, f);
+			}
+		}
+		
+		return features;
 	}
 	
 	/**
@@ -353,8 +374,8 @@ class TrackerService {
 	}
 	
 	private String getDeviceName(TrackerDevice device){
-		if(device.phoneNumber)
-			return device.phoneNumber;
+		if(device.username)
+			return device.username;
 		if(device.udid){
 			String s = device.udid;
 			int len = s.length();
