@@ -97,16 +97,15 @@ class UserService {
 	
 	//////////////////////////////////////////////////////////////////////////////
 	// Authentication Part
-	
 	/**
-	 * Login user with phone/password pair
+	 * Login user with username/password pair
 	 * @return session token if auth succeed
 	 */
-	public String login(String phone, String password){
+	public String login(String username, String password){
 		// search user by phone
 		// compare passwordHash with md5(password*hash)
 		// if success, generate session credential with md5(phone*hash)
-		User user = User.findByPhone(phone);
+		User user = User.findByName(username);
 		if(user){
 			String hash1 = hashPassword(password,user.passwordSalt);
 			String hash2 = user.passwordHash;
@@ -114,7 +113,7 @@ class UserService {
 				// login success
 				// remove previous session
 				for(UserSession us in sessions.values()){
-					if(us.username.equals(phone)){
+					if(us.username.equals(username)){
 						// found existing session
 						sessions.remove(us.token);
 						log.debug("remove existing session token: ${us.token}")
@@ -128,12 +127,29 @@ class UserService {
 				log.debug("generated session token: ${usession.token}")
 				return usession.token;
 			}else{
-				log.info("User ${phone} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
+				log.info("User ${username} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
 			}
 		}else{
-			log.info("User ${phone} not found");
+			log.info("User ${username} not found");
 		}
 		return "";
+	}
+
+	
+	/**
+	 * Login user with username/password pair
+	 * @return session token if auth succeed
+	 */
+	public String loginWithPhone(String phone, String password){
+		// search user by phone
+		User user = User.findByPhone(phone);
+		if(user){
+			String username = user.name;
+			return login(username,password);
+		}else{
+			// no user found
+			return "";
+		}
 	}
 
 	/**
@@ -164,8 +180,8 @@ class UserService {
 	 */
 	private UserSession generateUserSession(User user){
 		UserSession usession = new UserSession();
-		usession.username = user.phone;
-		usession.token = hashSessionToken(user.phone, usession.timestamp,user.sessionSalt);
+		usession.username = user.name;
+		usession.token = hashSessionToken(user.name, usession.timestamp,user.sessionSalt);
 		return usession;
 	}
 	

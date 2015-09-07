@@ -138,7 +138,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 
 	@Override
 	public void onPositionChanged(PositionData position) {
-		log.debug("onPositionChange called, sessions: ${sessions}");
+		log.trace("onPositionChange called, sessions: ${sessions}");
 		// TODO filter out sessions according to the subscription record
 		if(sessions.isEmpty()){
 			return;

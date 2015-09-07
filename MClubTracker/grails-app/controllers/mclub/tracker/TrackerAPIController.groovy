@@ -181,16 +181,18 @@ class TrackerAPIController {
 			return;
 		}
 		
-		// get user info
-		String username = null;
+		// Check user session
+		UserSession usession = null;
 		if(token){
-			UserSession usession = userService.checkSessionToken(token);
-			if(!usession){
-				// no user session found, should reject
-			}else{
-				username = usession?.username;
-			}
+			usession = userService.checkSessionToken(token);
 		}
+		if(!usession){
+			log.debug("update_position rejected due to session expired");
+			render APIResponse.FAIL("Session expired") as JSON
+			return;
+		}
+		
+		String username = usession.username;
 		
 		// extract aprs if found
 		boolean isAprs = false;
@@ -360,6 +362,7 @@ class TrackerAPIController {
 			}
 			result = APIResponse.SUCCESS("Login success");
 			result['token'] = token;
+			log.info("User " + username + " login ok");
 		}else{
 			result = APIResponse.FAIL("Login failed");
 		}
