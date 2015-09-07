@@ -40,7 +40,7 @@ public class AuthUtils {
 		return buf.toString();
 	}
 	
-	private static final String APRS_CALL_REGEXP = '^([a-zA-Z0-9]+)\\-([0-9]+)$';
+	private static final String APRS_CALL_REGEXP = '^([a-zA-Z0-9]+)\\-([a-zA-Z0-9]+)$';
 	
 	/**
 	 * Extract APRS Call string
@@ -58,6 +58,12 @@ public class AuthUtils {
 			return ret;	
 		}
 		
+		if((aprsCall.length() == 5 || aprsCall.length() == 6) && (aprsCall.indexOf('-') == -1)){
+			String[] ret = new String[2];
+			ret[0] = aprsCall
+			ret[1] = '0'; // char 0
+			return ret;
+		}
 		/*
 		def matcher = (aprsCall =~ /^([a-zA-Z0-9]+)\-([0-9]+)$/)
 		

@@ -156,9 +156,10 @@ public class PositionParser {
                 de = null;
             }
         } else if ((char) msgBody[22 + cursor] == '/' && (char) msgBody[18 + cursor] != '_') {
-        	log.debug("Speed Course Extension: " + new String(msgBody, cursor, msgBody.length - cursor, "UTF-8"));
-            CourseAndSpeedExtension cse = new CourseAndSpeedExtension();
+        	if(log.isDebugEnabled())
+        		log.debug("Speed Course Extension: " + new String(msgBody, cursor, msgBody.length - cursor, "UTF-8"));
 
+            CourseAndSpeedExtension cse = new CourseAndSpeedExtension();
             String courseString = new String(msgBody, cursor + 19, 3);
             String speedString = new String(msgBody, cursor + 23, 3);
             int course = 0;

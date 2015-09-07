@@ -136,5 +136,13 @@ public class PositionData {
 		this.aprs = aprs;
 	}
 
-	
+	@Override
+	public String toString() {
+		return "PositionData [username=" + username + ", udid=" + udid
+				+ ", aprs=" + aprs + ", time=" + time + ", valid=" + valid
+				+ ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", altitude=" + altitude + ", speed=" + speed + ", course="
+				+ course + ", power=" + power + ", address=" + address
+				+ ", extendedInfo=" + extendedInfo + "]";
+	}
 }

@@ -306,6 +306,8 @@ public class AprsReceiver {
 					String[] name_id = AuthUtils.extractAPRSCall(pack.getSourceCall());
 					if(name_id != null){
 						positionData.setUsername(name_id[0]);	
+					}else{
+						log.warn("Invalid APRS source call " + pack.getSourceCall() + " Raw: " + aprsMessage);
 					}
 					
 					Position pos = ((PositionPacket)info).getPosition();
@@ -353,7 +355,7 @@ public class AprsReceiver {
 					return positionData;
 				}
 			}catch(Exception e){
-				log.info("Invalid aprs message, " + e.getMessage());
+				log.info("Invalid aprs message, " + e.getMessage() + ". Raw: " + aprsMessage);
 			}
 			
 			return null;
