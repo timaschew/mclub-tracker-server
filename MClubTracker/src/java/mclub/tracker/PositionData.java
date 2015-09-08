@@ -128,7 +128,7 @@ public class PositionData {
 		this.extendedInfo.put(key, info);
 	}
 
-	public Boolean getAprs() {
+	public Boolean isAprs() {
 		return aprs;
 	}
 

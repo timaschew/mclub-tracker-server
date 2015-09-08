@@ -180,37 +180,49 @@ class TrackerService {
 	private Collection<Object> loadDeviceFeatures(TrackerDevice device, TrackerPosition pos){
 		def deviceFeatures = [];
 		
-		def feature_properties = [
+		def markerFeatureProperties = [
 			//'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
 			'udid':"${device.udid}",
-			'description':"tracker demo",
+			'description':"",
 			'marker-color':"#00bcce",
 			'marker-size': "medium",
-			'marker-symbol': "airport",
+			'marker-symbol': "circle",
 			"marker-zoom": ""
 			]
 		
 		// Load user name and mobile phone
-		feature_properties['username'] = device.username?device.username:"unknow";
+		markerFeatureProperties['username'] = device.username?device.username:"unknow";
 		//TODO optimization of loading user's phone number.
 		if(device.username){
-			feature_properties['username'] = device.username;
+			markerFeatureProperties['username'] = device.username;
 			User user = User.findByName(device.username);
 			if(user && user.phone){
-				feature_properties['phone'] = user.phone;
+				markerFeatureProperties['phone'] = user.phone;
 			}
 		}else{
-			feature_properties['username'] = "unknown";
+			markerFeatureProperties['username'] = "unknown";
 		}
 
+		// Load marker symbol
+		if(device.icon){
+			if(device.status == TrackerDevice.DEVICE_TYPE_APRS){
+				// prefix with APRS symbol
+				markerFeatureProperties['marker-symbol'] = "aprs_${device.icon}";
+				//markerFeatureProperties['icon'] = "aprs_${device.icon}"
+			}else{
+				markerFeatureProperties['marker-symbol'] = device.icon;
+				//markerFeatureProperties['icon'] = device.icon;
+			}
+		}
+		
 		// Add extended info
 		if(pos.getExtendedInfo()){
 			def extendedInfo = JSON.parse(pos.getExtendedInfo());
 			if(extendedInfo instanceof Map){
-				feature_properties.putAll(extendedInfo);
+				markerFeatureProperties.putAll(extendedInfo);
 				if(extendedInfo['aprs'] && extendedInfo['aprs']['comment']){
-					feature_properties['description'] = extendedInfo['aprs']['comment'];
+					markerFeatureProperties['description'] = extendedInfo['aprs']['comment'];
 				}
 			}
 		}
@@ -223,15 +235,15 @@ class TrackerService {
 			coordinate = [pos.longitude, pos.latitude];
 		}
 
-		def feature_geometry = [
+		def markerFeatureGeometry = [
 			"type": "Point",
 			"coordinates": coordinate
 			]
 		
-		def feature1 = [
+		def markerFeature = [
 			'type':"Feature",
-			'properties':feature_properties,
-			'geometry' : feature_geometry,
+			'properties':markerFeatureProperties,
+			'geometry' : markerFeatureGeometry,
 			];
 		
 		/*
@@ -255,11 +267,12 @@ class TrackerService {
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time>:lineTime ORDER BY p.time DESC",[dbId:device.id, lineTime:lineTime, max:MAX_LINE_POINTS]);
 		int positionCount = positions?.size();
 		 
-		// Display site only when it contains points
+		// Add marker only when it contains valid positions
 		if(positionCount > 0){
-			deviceFeatures.add(feature1);
+			deviceFeatures.add(markerFeature);
 		}
 		
+		// Add line only when positions count >=4
 		if(positionCount >=4){
 			def lineCoordinates = [];
 			// build line string features if positions count >=4
@@ -272,17 +285,17 @@ class TrackerService {
 				}
 				lineCoordinates.add(c);
 			}
-			def line_feature_geometry = [
+			def lineFeatureGeometry = [
 				'type': 'LineString',
 				'coordinates': lineCoordinates
 			];
-			def line_feature_properties = [
+			def lineFeatureProperties = [
 				'udid':"${device.udid}"
 			];
 			def lineFeature = [
 				'type':'Feature',
-				'geometry':line_feature_geometry,
-				'properties':line_feature_properties
+				'geometry':lineFeatureGeometry,
+				'properties':lineFeatureProperties
 			];
 			deviceFeatures.add(lineFeature);
 		}

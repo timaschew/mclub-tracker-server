@@ -75,12 +75,15 @@ class TrackerDataService {
 		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid WHERE d.id=:did",[did:deviceId,pid:positionId]);
 	}
 	
-	
+	/**
+	 * Quick and dirty solution for create user and device for APRS calls.
+	 */
 	private TrackerDevice loadDeviceForAprsPosition(PositionData positionData){
-		// FIXME - Quick and dirty solution for create user and device for aprs calls.
 		TrackerDevice device = TrackerDevice.findByUdid(positionData.udid);
 		if(!device){
-			device = new TrackerDevice(udid:positionData.udid, username:positionData.username, status:2);
+			device = new TrackerDevice(udid:positionData.udid, username:positionData.username, status:TrackerDevice.DEVICE_TYPE_APRS);
+			// load device icon from APRS symbol field
+			device.icon = positionData.extendedInfo['aprs']?.symbol; // see AprsData::symbol
 			if(!device.save(flush:true)){
 				log.warn("Error register APRS device ${positionData.udid}, ${device.errors}");
 				return null;
@@ -97,16 +100,17 @@ class TrackerDataService {
 	 * @param positionData
 	 */
 	public void updateTrackerPosition(PositionData positionData){
+		// Load device
 		TrackerDevice device = null;
 		String udid = positionData.udid;
-		if(positionData.getAprs()){
+		if(positionData.isAprs()){
 			device = loadDeviceForAprsPosition(positionData);
 		}else{
 			device = TrackerDevice.findByUdid(udid);
 		}
 		
 		if(!device){
-			log.warn("Unknown device - " + udid);
+			log.warn("Update position error, unknown device: " + udid);
 			return;
 		}
 
@@ -129,14 +133,6 @@ class TrackerDataService {
 		}else{
 			log.warn("PositionData contains NO username, running for test ? " + positionData.toString());
 		}
-
-		/*
-		Long devicePK = lookupDeviceId(positionData.udid);
-		if(devicePK == null){
-			log.warn("Unknown device - " + udid);
-			return;
-		}
-		*/
 		
 		Long devicePK = device.id;
 		// Convert value object to position entity
@@ -144,24 +140,22 @@ class TrackerDataService {
 		position.properties = positionData;
 		position.deviceId = devicePK;
 		if(!positionData.extendedInfo.isEmpty()){
-			def ext = positionData.extendedInfo as JSON
-			position.extendedInfo = ext;
+			def extJson = positionData.extendedInfo as JSON // store extended info in JSON format.
+			position.extendedInfo = extJson;
 		}
 		
-		// Save to database
+		// Flush to database
 		try {
 			Long id = addPosition(position);
 			if (id != null) {
 				updateLatestPosition(position.getDeviceId(), id);
-				
 				// clear the position cache
 				trackerCacheService.removeDeviceFeature(device.udid);
-				
 				// broadcast the position data change
 				notifyPositionChanges(positionData);
 			}
 		} catch (Exception error) {
-			log.warn("update postion failed, " + error.getMessage());
+			log.warn("update postion error, " + error.getMessage());
 		}
 	}
 	

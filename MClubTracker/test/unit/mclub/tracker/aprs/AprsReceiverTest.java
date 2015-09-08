@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mclub.tracker.PositionData;
 import mclub.tracker.aprs.parser.APRSPacket;
 import mclub.tracker.aprs.parser.CourseAndSpeedExtension;
 import mclub.tracker.aprs.parser.DataExtension;
@@ -150,5 +151,32 @@ public class AprsReceiverTest {
 		assertEquals(16,pos.getAltitude());
 		assertEquals("HelloWorld",info.getComment());
 	}
+	
+	private static String convertSymbolCharToFileName(char table, char index){
+		if(table == '/'){
+			return "1_" + String.format("%02d", index - '!');	
+		}else if(table == '\\'){
+			return "2_" + String.format("%02d", index - '!');
+		}else{
+			return "1_29"; // '>', Car
+		}
+	}
+	@Test
+	public void testConvertSymbolFileName(){
+		assertEquals("1_00",convertSymbolCharToFileName('/','!'));
+		assertEquals("2_00",convertSymbolCharToFileName('\\','!'));
+	}
+	
+	
+	@Test 
+	public void testReceiverParseAPRSPacket(){
+		String s = "BG5EEK-9>APOTC1,BR5HB-2*,WIDE1*,WIDE2-1,qAS,BG5HLN-10:/040236z3027.58N/12021.99E>356/019/A=000052HelloWorld";
+		PositionData pd = new AprsReceiver().new AprsReceiverClientHandler().parseAPRSPacket(s);
+		assertNotNull(pd);
+		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
+		assertNotNull(aprsData);
+		assertEquals("1_29",aprsData.getSymbol());
+	}
+
 
 }

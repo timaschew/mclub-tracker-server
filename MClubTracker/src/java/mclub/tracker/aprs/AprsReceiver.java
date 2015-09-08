@@ -229,29 +229,24 @@ public class AprsReceiver {
 		}
 	}
 	
-	////////////////////////////////////////////////////////////////////
-	// See http://wa8lmf.net/aprs/APRS_symbols.htm
-	////////////////////////////////////////////////////////////////////
-	private static final String symbolIndexes =  
-			"!\"#$%'()*+,-./0" + 
-			"123456789:;<=>?@" + 
-			"ABCDEFGHIJKLMNOP" +
-			"QRSTUVWXYZ[\\]^_`" +
-			"abcdefghijklmnop" +
-			"qrstuvwxyz{|}~";
-	private static String decodeSymbolIndex(char symbolTable, char symbolIndex){
-		for(int i = 0;i < symbolIndexes.length();i++){
-			char c = symbolIndexes.charAt(i);
-			if(c == i){
-				if(symbolTable == '/'){
-					return Integer.toString(i);
-				}else{
-					return Integer.toString(i + 96 /*the index in second symbol table, Each table contains 96 icons*/);
-				}
-			}
+	/**
+	 * Convert symbol char to file name
+	 * see http://www.aprs.net/vm/DOS/SYMBOLS.HTM
+	 *     http://wa8lmf.net/aprs/APRS_symbols.htm
+	 * @param table
+	 * @param index
+	 * @return
+	 */
+	private static String convertSymbolCharToFileName(char table, char index){
+		if(table == '/'){
+			return "1_" + String.format("%02d", index - '!');	
+		}else if(table == '\\'){
+			return "2_" + String.format("%02d", index - '!');
+		}else{
+			return "1_29"; // '>', Car
 		}
-		return null;
 	}
+	
 	/**
 	 * The aprs receiver client handler
 	 * @author shawn
@@ -281,7 +276,7 @@ public class AprsReceiver {
 			}
 		}
 		
-		private PositionData parseAPRSPacket(String aprsMessage){
+		protected PositionData parseAPRSPacket(String aprsMessage){
 			PositionData positionData = null;
 			if(aprsMessage.startsWith("#")){
 				log.debug("RECV CMD: " + aprsMessage);
@@ -336,7 +331,7 @@ public class AprsReceiver {
 					// comment
 					aprsData.setComment(info.getComment());
 					// index of symbol
-					aprsData.setSymbol(decodeSymbolIndex(pos.getSymbolTable(),pos.getSymbolCode()));
+					aprsData.setSymbol(convertSymbolCharToFileName(pos.getSymbolTable(),pos.getSymbolCode()));
 					
 					// PHG info
 					if(ext instanceof PHGExtension){
@@ -346,16 +341,17 @@ public class AprsReceiver {
 						aprsData.setPower(new Integer(phg.getPower()));
 						aprsData.setDirectivity(new Integer(phg.getDirectivity()));
 					}
-					positionData.addExtendedInfo("aprs",aprsData);
 					positionData.setTime(pos.getTimestamp());
 					positionData.setValid(true);
 					positionData.setAprs(true);
+					positionData.addExtendedInfo("aprs",aprsData);					
+					positionData.addExtendedInfo("protocol", "APRS");
 					
 					log.debug("ACCEPT: " + aprsMessage);				
 					return positionData;
 				}
 			}catch(Exception e){
-				log.info("Invalid aprs message, " + e.getMessage() + ". Raw: " + aprsMessage);
+				log.info("Error parse APRS message, " + e.getMessage() + ". Raw: " + aprsMessage);
 			}
 			
 			return null;
@@ -363,10 +359,11 @@ public class AprsReceiver {
 
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-			log.warn("Unexpected exception from APRS server downstream.", e.getCause());
+			log.warn("Exception from APRS server downstream.", e.getCause());
 			e.getChannel().close();
 		}
 	}
+	
     
 //	public static void main(String[] args) throws Exception {
 //		// Print usage if no argument is specified.
