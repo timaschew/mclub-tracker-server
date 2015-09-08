@@ -71,6 +71,10 @@
                     zoom: 11
                 });
 
+                var infoWindow = new AMap.InfoWindow({
+                    // isCustom: true
+                });
+
                 // Add map toolbar controller
                 map.plugin( ["AMap.ToolBar"], function() {
                     toolBar = new AMap.ToolBar();
@@ -172,6 +176,32 @@
                     },
                 }
 
+                var setupCustomMarker = function(marker, feature) {
+                    marker.setLabel({
+                        offset:new AMap.Pixel(12,25),
+                        content: "<div>" + feature['properties']['udid'] + "</div>"
+                    });
+                    marker.on("click",function(e) {
+                        infoWindow.setContent("");
+                        infoWindow.setContent("<div> 名称：" + feature['properties']['username'] + "</div> <div> 描述：" + feature['properties']['description'] + "</div>");
+                        infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
+                    });
+
+                    // read aprs comment as marker title if exists
+                    var aprs = feature['properties']['aprs'];
+                    if(typeof aprs != "undefined" ){
+                        var comment = aprs['comment'];
+                        if(typeof comment != "undefined"){
+                            marker.setTitle(comment);       
+                        }
+
+                        var symbol = aprs['symbol'];
+                        var markerIcon = new AMap.Icon({
+                            image : "http://webapi.amap.com/images/marker_sprite.png"
+                        });
+                    }
+                };
+
                 var parseGEOJSON = function(geojson) {
                     if ("FeatureCollection" === geojson["type"]) {
                         for (var i = 0; i < geojson.features.length; i++) {
@@ -181,20 +211,7 @@
                                 MultiPointRender.render(feature['geometry']['coordinates'], tag);
                             } else if ("Point" === feature['geometry']['type']) {
                                 var marker = PointRender.render(feature['geometry']['coordinates'], tag);
-                                marker.setLabel({
-                                    offset:new AMap.Pixel(12,25),
-                                    content: "<div>" + feature['properties']['udid'] + "</div>"
-                                });
-                                
-                                // read aprs comment as marker title if exists
-                                var aprs = feature['properties']['aprs'];
-                                if(typeof aprs != "undefined" ){
-                                	var comment = aprs['comment'];
-                                	if(typeof comment != "undefined"){
-                                		marker.setTitle(comment);		
-                                	}
-                                }
-                                
+                                setupCustomMarker(marker, feature);
                             } else if ("LineString" === feature['geometry']['type']) {
                                 LineStringRender.render(feature['geometry']['coordinates'], tag);
                             }
