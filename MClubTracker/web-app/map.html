@@ -177,29 +177,55 @@
                 }
 
                 var setupCustomMarker = function(marker, feature) {
-                    marker.setLabel({
-                        offset:new AMap.Pixel(12,25),
-                        content: "<div>" + feature['properties']['udid'] + "</div>"
-                    });
-                    marker.on("click",function(e) {
-                        infoWindow.setContent("");
-                        infoWindow.setContent("<div> 名称：" + feature['properties']['username'] + "</div> <div> 描述：" + feature['properties']['description'] + "</div>");
-                        infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
-                    });
-
-                    // read aprs comment as marker title if exists
-                    var aprs = feature['properties']['aprs'];
-                    if(typeof aprs != "undefined" ){
-                        var comment = aprs['comment'];
-                        if(typeof comment != "undefined"){
-                            marker.setTitle(comment);       
-                        }
-
+                	var aprs = feature['properties']['aprs'];
+                	if(typeof aprs != "undefined"){
+                		// For APRS marker, use UDID as label
+                        marker.setLabel({
+                            offset:new AMap.Pixel(12,25),
+                            content: "<div>" + feature['properties']['udid'] + "</div>"
+                        });
+                		
+                		// Setup Info Content View
+                		// TODO - display power, gain,height
+                		// TODO - display speed and course
+                        marker.on("click",function(e) {
+                            infoWindow.setContent("");
+                            s = "<div> 设备：" + feature['properties']['udid'] + "</div>";
+                           	s = s.concat("<div> 路径：",aprs['path'],"</div>");
+                            s = s.concat("<div> 备注：",aprs['comment'],"</div>");
+                            infoWindow.setContent(s);
+                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
+                        });
+                		
+                		// Nasty code for Icons
+                        var symbol = aprs['symbol'].split('_');
+                		var symbolIndex = parseInt(symbol[1]);
+                		var x = ((symbolIndex % 16) * (-21));
+                		var y = (Math.floor(symbolIndex / 16) * (-21)); 
+                        var markerIcon = new AMap.Icon({
+                        	size: [22,22],
+                        	imageOffset: new AMap.Pixel(x,y),
+                        	image: "images/aprs/sym" + symbol[0] + ".png"
+                        });
+                        marker.setIcon(markerIcon);
+                	}else{
+                		// For others, use username as label
+                        marker.setLabel({
+                            offset:new AMap.Pixel(12,25),
+                            content: "<div>" + feature['properties']['username'] + "</div>"
+                        });
+                		
+                        marker.on("click",function(e) {
+                            infoWindow.setContent("");
+                            infoWindow.setContent("<div> 设备：" + feature['properties']['udid'] + "</div> <div> 电话：" + feature['properties']['phone'] + "</div>");
+                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
+                        });
+                        
                         var symbol = aprs['symbol'];
                         var markerIcon = new AMap.Icon({
                             image : "http://webapi.amap.com/images/marker_sprite.png"
                         });
-                    }
+                	}
                 };
 
                 var parseGEOJSON = function(geojson) {
@@ -217,13 +243,7 @@
                             }
                         };
                     };
-                }
-
-                $("#submit").on("click", function() {
-                    parseGEOJSON($.parseJSON($("#toolBox").val()));
-                });
-
-                // return;
+                };
 
                 (function () { 
                     var wsUri = "ws://aprs2.mclub.to:20880/mtracker/live0";
