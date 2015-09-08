@@ -177,7 +177,7 @@ class TrackerAPIController {
 	 */
 	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/,String token, String aprscall){
 		if(!lat || !lon){
-			render APIResponse.FAIL("Missing parameters: lat, lon") as JSON
+			render APIResponse.ERROR("Missing parameters: lat, lon") as JSON
 			return;
 		}
 		
@@ -188,7 +188,7 @@ class TrackerAPIController {
 		}
 		if(!usession){
 			log.debug("update_position rejected due to session expired");
-			render APIResponse.FAIL("Session expired") as JSON
+			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
 			return;
 		}
 		
@@ -206,7 +206,7 @@ class TrackerAPIController {
 			}
 		}
 		if(!udid){
-			render APIResponse.FAIL("Missing parameters: udid") as JSON
+			render APIResponse.ERROR("Missing parameters: udid") as JSON
 			return;
 		}
 		//token/call -> username -> device -> position
@@ -364,7 +364,7 @@ class TrackerAPIController {
 			result['token'] = token;
 			log.info("User " + username + " login ok");
 		}else{
-			result = APIResponse.FAIL("Login failed");
+			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed");
 		}
 		render result as JSON;
 	}
@@ -376,19 +376,24 @@ class TrackerAPIController {
 	 *
 	 */
 	public static class APIResponse{
+		public static final int NO_ERROR = 0
+		public static final int OPERATION_FAIL_ERROR = 1;
+		public static final int SESSION_EXPIRED_ERROR = 2;
+		public static final int AUTH_DENIED_ERROR = 3;
+		
 		public static Map<String,Object> OK(){
-			Map<String,Object> resp = ['code':0, 'message':'OK'];
+			Map<String,Object> resp = ['code':NO_ERROR, 'message':'OK'];
 			return resp;
 		}
 		
 		public static Map<String,Object> SUCCESS(String message){
-			Map<String,Object> resp = ['code':0, 'message':message];
+			Map<String,Object> resp = ['code':NO_ERROR, 'message':message];
 			return resp;
 		}
 
 		
-		public static Map<String,Object> FAIL(String message){
-			Map<String,Object> resp = ['code':1, 'message':message];
+		public static Map<String,Object> ERROR(String message){
+			Map<String,Object> resp = ['code':OPERATION_FAIL_ERROR, 'message':message];
 			return resp;
 		}
 		
