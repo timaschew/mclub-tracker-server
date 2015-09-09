@@ -1,5 +1,6 @@
 package mclub.tracker
 
+import java.text.SimpleDateFormat
 import java.util.Map;
 
 import grails.converters.JSON;
@@ -191,17 +192,26 @@ class TrackerService {
 			"marker-zoom": ""
 			]
 		
-		// Load user name and mobile phone
-		markerFeatureProperties['username'] = device.username?device.username:"unknow";
-		//TODO optimization of loading user's phone number.
+		// Load user name and mobile phone TODO optimization of loading user's phone number.
 		if(device.username){
-			markerFeatureProperties['username'] = device.username;
 			User user = User.findByName(device.username);
-			if(user && user.phone){
-				markerFeatureProperties['phone'] = user.phone;
+			if(user){
+				markerFeatureProperties['username'] = user.displayName?user.displayName:user.name;
+				if(user.phone){
+					markerFeatureProperties['phone'] = user.phone;
+				}
+			}else{
+				markerFeatureProperties['username'] = device.username; // no such user record, so just use the device field info
+			}
+			
+			if(device.status == TrackerDevice.DEVICE_TYPE_APRS){
+				// for APRS device, the marker feature title is the CALL-ID(device.udid)
+				markerFeatureProperties['title'] = device.udid;
+			}else{
+				markerFeatureProperties['title'] = markerFeatureProperties['username'];
 			}
 		}else{
-			markerFeatureProperties['username'] = "unknown";
+			markerFeatureProperties['username'] = "unknown"; // no user associated ?
 		}
 
 		// Load marker symbol
@@ -226,6 +236,10 @@ class TrackerService {
 				}
 			}
 		}
+		
+		// Timestamp is formatted in Chinese style with GMT+8. 
+		String sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(pos.time);
+		markerFeatureProperties['timestamp'] = sTime;
 		
 		// Shifting coordinates for chinese map!
 		def coordinate;
