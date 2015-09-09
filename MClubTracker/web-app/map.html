@@ -15,10 +15,14 @@
             #submit{ position: absolute; top:0; right:0; width:20%; height: 22px;}
             */
             .amap-marker-label {
-                padding: 0.75px;
-                border: 1px solid #666666;
-                color: #666666;
+                padding: 0px 2px;
+                border: 0px solid #666666;
+                color: #222222;
                 font: bold 12px arial,sans-serif;
+            }
+            .marker-info{
+				padding:0px 0px 0px 0px;
+				font: 10px arial,sans-serif;      
             }
         </style>
     </head>
@@ -181,7 +185,7 @@
                 	if(typeof aprs != "undefined"){
                 		// For APRS marker, use UDID as label
                         marker.setLabel({
-                            offset:new AMap.Pixel(12,25),
+                            offset:new AMap.Pixel(20,20),
                             content: "<div>" + feature['properties']['udid'] + "</div>"
                         });
                 		
@@ -190,9 +194,12 @@
                 		// TODO - display speed and course
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
-                            s = "<div> 设备：" + feature['properties']['udid'] + "</div>";
-                           	s = s.concat("<div> 路径：",aprs['path'],"</div>");
-                            s = s.concat("<div> 备注：",aprs['comment'],"</div>");
+                            
+                            var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
+                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+                            s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
+                            s = s.concat("<div>[",aprs['path'],"]</div>");	// path
+                            s = s.concat("</div>");
                             infoWindow.setContent(s);
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
@@ -203,8 +210,8 @@
                 		var x = ((symbolIndex % 16) * (-21));
                 		var y = (Math.floor(symbolIndex / 16) * (-21)); 
                         var markerIcon = new AMap.Icon({
-                        	size: [22,22],
-                        	imageOffset: new AMap.Pixel(x,y),
+                        	size: [20,20],
+                        	imageOffset: new AMap.Pixel(x - 1,y - 1),
                         	image: "images/aprs/sym" + symbol[0] + ".png"
                         });
                         marker.setIcon(markerIcon);
@@ -217,7 +224,9 @@
                 		
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
-                            infoWindow.setContent("<div> 设备：" + feature['properties']['udid'] + "</div> <div> 电话：" + feature['properties']['phone'] + "</div>");
+                            var s = "<div class=\"marker-info\"> <div> 设备:" + feature['properties']['udid'] + "</div>";
+                            s = s.concat("<div> 电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div></div>");
+                            infoWindow.setContent(s);
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
                         
@@ -246,8 +255,8 @@
                 };
 
                 (function () { 
-                    var wsUri = "ws://aprs2.mclub.to:20880/mtracker/live0";
-                    //var wsUri = "ws://localhost:8080/mclub/live0";
+                    //var wsUri = "ws://aprs2.mclub.to:20880/mtracker/live0";
+                    var wsUri = "ws://localhost:8080/mclub/live0";
                     websocket = new WebSocket(wsUri);
                     websocket.onopen = function(e) {
                         // alert("CONNECTED")
