@@ -316,8 +316,8 @@ public class AprsReceiver {
 						positionData.setSpeed(new Double(csext.getSpeed()));
 						positionData.setCourse(new Double(csext.getCourse()));
 					}else{
-						positionData.setCourse(new Double(0));
-						positionData.setSpeed(new Double(0));
+						positionData.setCourse(new Double(-1));
+						positionData.setSpeed(new Double(-1));
 					}
 					
 					AprsData aprsData = new AprsData();

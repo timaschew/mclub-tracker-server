@@ -153,7 +153,7 @@ public class T55TrackerServer extends TrackerServer{
                     if (speed != null) {
                         position.setSpeed(Double.valueOf(speed));
                     } else {
-                        position.setSpeed(0.0);
+                        position.setSpeed(new Double(-1));
                     }
 
                     // Course

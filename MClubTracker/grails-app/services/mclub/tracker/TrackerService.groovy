@@ -231,8 +231,17 @@ class TrackerService {
 			def extendedInfo = JSON.parse(pos.getExtendedInfo());
 			if(extendedInfo instanceof Map){
 				markerFeatureProperties.putAll(extendedInfo);
-				if(extendedInfo['aprs'] && extendedInfo['aprs']['comment']){
-					markerFeatureProperties['description'] = extendedInfo['aprs']['comment'];
+				def aprs = extendedInfo['aprs'];
+				if(aprs){
+					if(aprs['comment']){
+						markerFeatureProperties['description'] = aprs['comment'];
+					}
+					if(pos.speed >=0){
+						aprs['speed'] = pos.speed;
+					}
+					if(pos.course >=0){
+						aprs['course'] = pos.course;
+					}
 				}
 			}
 		}
