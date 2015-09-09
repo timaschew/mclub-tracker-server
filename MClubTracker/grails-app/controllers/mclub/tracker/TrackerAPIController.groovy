@@ -2,6 +2,7 @@ package mclub.tracker
 import java.util.Map;
 
 import grails.converters.JSON
+import mclub.user.User
 import mclub.user.UserService;
 import mclub.user.UserService.UserSession
 import mclub.util.DateUtils
@@ -325,6 +326,91 @@ class TrackerAPIController {
 		
 		render allDevicePositions as JSON;
 	}
+	
+	
+	/**
+	 * Device registration API
+	 * @param udid
+	 * @param phone
+	 * @param password
+	 * @param display_name
+	 * @return
+	 */
+	def register(String udid, String phone, String password, String display_name){
+		def result;
+		
+		if(!udid){
+			udid = request.JSON.udid;
+		}
+		if(!phone){
+			phone = request.JSON.phone;
+		}
+		if(!password){
+			password = request.JSON.password;
+		}
+		if(!display_name){
+			display_name = request.JSON.display_name;
+		}
+		if(udid?.length() < 4 || phone?.length() < 11 || !password || !display_name){
+			result = APIResponse.ERROR("Missing or invalid parameters");
+			render result as JSON;
+			return;
+		}
+		
+		// check whether device exists
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(device){
+			// device exists, bail out
+			result = APIResponse.ERROR("Device already registered");
+			render result as JSON
+			return;
+		}
+		
+		// generate user name uXXXXYYYY, where XXXX is last 4 digi of udid and YYYY is last 4 digi of phone
+		String username = "u" + udid.substring(udid.length() - 4) + phone.substring(phone.length() - 4);
+		
+		// check whether user exists
+		User user = User.findByName(username);
+		if(user){
+			// user exists, bail out
+			result = APIResponse.ERROR("User already exists");
+			render result as JSON;
+			return;
+		}
+		
+		// create user and device
+		User u = new User(name:username, displayName:display_name, phone:phone, type:User.USER_TYPE_USER, creationDate:new java.util.Date(),avatar:'',settings:'');
+		if(!userService.createUserAccount(u, password)){
+			log.warn("Error creating user account" + u.errors);
+			result = APIResponse.ERROR("Error creating user account");
+			render result as JSON;
+			return;
+		}
+		
+		// device is created but disabled by default.
+		device = new TrackerDevice(udid:udid,username:username, status:TrackerDevice.DEVICE_TYPE_DEACTIVED);
+		if(!device.save(flush:true)){
+			log.warn("Error creating device" + u.errors);
+			result = APIResponse.ERROR("Error creating device");
+			render result as JSON;
+			return;
+		}
+		
+		//  now performing login
+		String token = userService.login(username, password);
+		if(token){
+			result = APIResponse.SUCCESS("Device registreed and login success");
+			result['token'] = token;
+			result['username'] = username;
+			log.info("Device ${udid}/${phone} registered and login as ${username} OK");
+		}else{
+			// must be something wrong!
+			log.error("Error login user with automatically created user account, username:${username}, phone:${phone}, udid:${udid}");
+			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed");
+		}
+		render result as JSON;
+	}
+	
 	
 	/**
 	 * User login API

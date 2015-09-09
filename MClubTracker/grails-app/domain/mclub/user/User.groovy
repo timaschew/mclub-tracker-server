@@ -12,6 +12,7 @@ class User {
 		settings 	blank:true, nullable:true
 		settings	type:'text'
 		name		unique: true
+		displayName 		blank:true, nullable:true
 	}
 	
 	static mapping = {
@@ -27,6 +28,8 @@ class User {
 	
 	String avatar; 		// index or path of user avatar file, could be null
 	String settings; 	// JSON string of user settings.
+	
+	String displayName; // user display name
 	
 	Date creationDate;
 

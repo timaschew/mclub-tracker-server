@@ -151,6 +151,10 @@ class TrackerDataService {
 				updateLatestPosition(position.getDeviceId(), id);
 				// clear the position cache
 				trackerCacheService.removeDeviceFeature(device.udid);
+				
+				if(log.isDebugEnabled()){
+					log.debug("Device ${device.udid} position changed");
+				}
 				// broadcast the position data change
 				notifyPositionChanges(positionData);
 			}
