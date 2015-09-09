@@ -198,6 +198,14 @@
                             var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
                             s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
                             s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
+                            // spped and course
+                            if((typeof aprs['speed'] != "undefined")){
+                            	s = s.concat("<div><b>",aprs['speed']," km/h ");
+                            	if((typeof aprs['course'] != "undefined")){
+                            		s = s.concat(aprs['course'],"°");
+                            	}
+                            	s = s.concat("</b></div>");
+                            }
                             s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
                             s = s.concat("<div>[",aprs['path'],"]</div>");	// path
                             s = s.concat("</div>");
