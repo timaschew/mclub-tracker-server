@@ -86,14 +86,18 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		sessions.put(clientSession.getId(), clientSession);
 		log.debug "websocket session[${clientSession.id}] opened"
 		
-		// push all tracker nodes
-		def val = getTrackerService().buildAllDevicePositionGeojsonData();
-		def txt = val as JSON;
-		try{
-			clientSession.basicRemote.sendText(txt.toString());
-		}catch(Exception e){
-			// ignore
-			log.error(e);
+		//TODO read parameters from client
+		boolean pushAllDataOnConnected = false;
+		if(pushAllDataOnConnected){
+			// push all tracker nodes
+			def val = getTrackerService().buildAllDevicePositionGeojsonData();
+			def txt = val as JSON;
+			try{
+				clientSession.basicRemote.sendText(txt.toString());
+			}catch(Exception e){
+				// ignore
+				log.error(e);
+			}
 		}
 	}
 	
