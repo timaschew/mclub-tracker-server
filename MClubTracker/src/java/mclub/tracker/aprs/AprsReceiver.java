@@ -18,6 +18,7 @@ import mclub.tracker.aprs.parser.PHGExtension;
 import mclub.tracker.aprs.parser.Parser;
 import mclub.tracker.aprs.parser.Position;
 import mclub.tracker.aprs.parser.PositionPacket;
+import mclub.tracker.aprs.parser.Utilities;
 import mclub.user.AuthUtils;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -313,7 +314,7 @@ public class AprsReceiver {
 					DataExtension ext = info.getExtension();
 					if(ext instanceof CourseAndSpeedExtension){
 						CourseAndSpeedExtension csext = (CourseAndSpeedExtension)ext;
-						positionData.setSpeed(new Double(csext.getSpeed()));
+						positionData.setSpeed(new Double(Utilities.kntsToKmh(csext.getSpeed()))); // speed in km/h
 						positionData.setCourse(new Double(csext.getCourse()));
 					}else{
 						positionData.setCourse(new Double(-1));
