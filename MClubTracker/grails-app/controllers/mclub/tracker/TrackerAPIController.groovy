@@ -48,7 +48,6 @@ class TrackerAPIController {
 				'address':p.address,
 				'altitude':p.altitude,
 				'course':p.course,
-				//'deviceId':p.deviceId,
 				'extendedInfo':p.extendedInfo,
 				'latitude':p.latitude,
 				'longitude':p.longitude,
@@ -326,6 +325,11 @@ class TrackerAPIController {
 		}
 		
 		render allDevicePositions as JSON;
+	}
+	
+	def test(){
+		def r = [result:trackerDataService.deleteAprsPosition(0)];
+		render r as JSON;
 	}
 	
 	

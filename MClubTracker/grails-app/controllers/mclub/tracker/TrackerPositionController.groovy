@@ -17,7 +17,7 @@ class TrackerPositionController {
 		if(udid){
 			TrackerDevice device = TrackerDevice.findByUdid(udid);
 			if(device){
-				positions = TrackerPosition.findAllByDeviceId(device.id);
+				positions = TrackerPosition.findAllByDevice(device);
 				positionCount = positions?.size();
 			}
 		}else{

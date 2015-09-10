@@ -53,7 +53,7 @@ class IdleRule extends AbstractRule{
 			// no such device, bail out
 			return 0;
 		}
-		TrackerPosition pos = TrackerPosition.findByDeviceIdAndTimeGreaterThan(dev.id,DateUtils.today());
+		TrackerPosition pos = TrackerPosition.findByDeviceAndTimeGreaterThan(dev,DateUtils.today());
 		if(!pos){
 			// if time is > 14:00
 			if(System.currentTimeMillis() - DateUtils.today().getTime() > (14 * 3600 * 1000)){

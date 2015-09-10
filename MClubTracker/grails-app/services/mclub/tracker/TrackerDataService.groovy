@@ -134,11 +134,10 @@ class TrackerDataService {
 			log.warn("PositionData contains NO username, running for test ? " + positionData.toString());
 		}
 		
-		Long devicePK = device.id;
 		// Convert value object to position entity
 		TrackerPosition position = new TrackerPosition();
 		position.properties = positionData;
-		position.deviceId = devicePK;
+		position.device = device;
 		if(!positionData.extendedInfo.isEmpty()){
 			def extJson = positionData.extendedInfo as JSON // store extended info in JSON format.
 			position.extendedInfo = extJson;
@@ -148,7 +147,7 @@ class TrackerDataService {
 		try {
 			Long id = addPosition(position);
 			if (id != null) {
-				updateLatestPosition(position.getDeviceId(), id);
+				updateLatestPosition(device.id, id);
 				// clear the position cache
 				trackerCacheService.removeDeviceFeature(device.udid);
 				
@@ -161,6 +160,16 @@ class TrackerDataService {
 		} catch (Exception error) {
 			log.warn("update postion error, " + error.getMessage());
 		}
+	}
+	
+	/**
+	 * 
+	 */
+	public int deleteAprsPosition(int daysOfDataToSave){
+		//TrackerPosition.executeUpdate("DELETE FROM TrackerPosition tp WHERE tp.type==2 AND");
+		//def list = TrackerPosition.executeQuery("FROM TrackerPosition tp JOIN TrackerDevice td ON tp.device_id = td.id");
+		def list = TrackerPosition.executeQuery("SELECT (tp.id) FROM TrackerPosition tp WHERE tp.device.status=1");
+		return list.size();
 	}
 	
 	/**

@@ -61,7 +61,7 @@ class AutoTrackerGenerateRule extends AbstractRule{
 		if(activeTrack){
 			startTime = activeTrack.endDate;
 		}else{
-			TrackerTrack latestTrack = TrackerTrack.find("FROM TrackerTrack tt WHERE tt.deviceId=:did ORDER BY endDate DESC",[did:dev.id]);
+			TrackerTrack latestTrack = TrackerTrack.find("FROM TrackerTrack tt WHERE tt.deviceId=:dev ORDER BY endDate DESC",[dev:dev.id]);
 			if(latestTrack){
 				startTime = latestTrack.endDate;
 			}else{
@@ -69,7 +69,7 @@ class AutoTrackerGenerateRule extends AbstractRule{
 			}
 		}
 		// count all 'un-tracked' positions
-		def untrackedPositionCount = TrackerPosition.countByDeviceIdAndTimeGreaterThan(dev.id,startTime);
+		def untrackedPositionCount = TrackerPosition.countByDeviceAndTimeGreaterThan(dev,startTime);
 		
 		// we have untracked positions!
 		if(untrackedPositionCount > 0){
@@ -82,9 +82,9 @@ class AutoTrackerGenerateRule extends AbstractRule{
 			// create or update the active track
 			TrackerPosition p1,p2;
 			// load first/last positions
-			def query = "FROM TrackerPosition tp WHERE tp.deviceId=:did AND tp.time>:startTime ORDER BY tp.time"
-			p1 = TrackerPosition.find(query,[did:dev.id,startTime:startTime]);
-			p2 = TrackerPosition.find(query + " DESC",[did:dev.id,startTime:startTime]);
+			def query = "FROM TrackerPosition tp WHERE tp.device=:dev AND tp.time>:startTime ORDER BY tp.time"
+			p1 = TrackerPosition.find(query,[dev:dev,startTime:startTime]);
+			p2 = TrackerPosition.find(query + " DESC",[dev:dev,startTime:startTime]);
 			
 			log.info("${p1} - ${p2}");
 			if(!activeTrack){
@@ -119,7 +119,7 @@ class AutoTrackerGenerateRule extends AbstractRule{
 			// ==========================================================
 			// prepare the weibo message
 			// load all positions for that track
-			def all = TrackerPosition.findAllByDeviceIdAndTimeBetween(dev.id,activeTrack.beginDate,activeTrack.endDate);
+			def all = TrackerPosition.findAllByDeviceAndTimeBetween(dev,activeTrack.beginDate,activeTrack.endDate);
 			double totalDistance;
 			double maxSpeed;
 			TrackerPosition lastP = null;

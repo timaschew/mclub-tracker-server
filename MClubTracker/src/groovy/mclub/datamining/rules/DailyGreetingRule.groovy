@@ -53,7 +53,7 @@ public class DailyGreetingRule extends AbstractRule{
 			return 0;
 		}
 		
-		TrackerPosition pos = TrackerPosition.findByDeviceIdAndTimeGreaterThan(dev.id,DateUtils.today());
+		TrackerPosition pos = TrackerPosition.findByDeviceAndTimeGreaterThan(dev,DateUtils.today());
 		if(pos){
 			String addr = null; //addressResolver.getAddress(pos.latitude, pos.longitude);
 			String msg = "嘀嘀嘀,开始工作啦！引擎转速/水温/油量 一切正常. 主人要安全驾驶哦.";

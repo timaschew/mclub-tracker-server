@@ -33,25 +33,29 @@ class TrackerService {
 //		}
 
 		if(TrackerDevice.count() == 0){
+			def device;
 			TrackerDevice.withTransaction {
 				// load initial data
-				new TrackerDevice(udid:'353451048729261',status:1).save(flush:true);
+				device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
+				device.save(flush:true);
 			}
 			//30.28022, 120.11774
 			// mock device position
 			trackerDataService.addPosition(new TrackerPosition(
-					deviceId:1,
+					//deviceId:1,
+					device:device,
 					time:new Date(),
 					valid:true,
 					latitude:30.28022,
 					longitude:120.11774,
 					altitude:0,
 					speed:28,
-					course:180
+					course:180,
 					));
 
 			trackerDataService.addPosition(new TrackerPosition(
-					deviceId:1,
+					//deviceId:1,
+					device:device,
 					time:new Date(),
 					valid:true,
 					latitude:30.28122,
@@ -61,7 +65,8 @@ class TrackerService {
 					course:181
 					));
 			trackerDataService.addPosition(new TrackerPosition(
-					deviceId:1,
+					//deviceId:1,
+					device:device,
 					time:new Date(),
 					valid:true,
 					latitude:30.28222,
@@ -85,16 +90,16 @@ class TrackerService {
 	 * @param date
 	 * @return
 	 */
-	public List<TrackerPosition> listDevicePositionOfDay(String deviceUniqueId, Date date){
-		def dbId = trackerDataService.lookupDeviceId(deviceUniqueId);
-		if(dbId){
+	public List<TrackerPosition> listDevicePositionOfDay(String udid, Date date){
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(device){
 			Date startTime = date;
 			Date endTime = new Date(date.getTime() + mclub.util.DateUtils.TIME_OF_ONE_DAY);
 			// query db for the date
-			def results = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time >=:startTime AND p.time <= :endTime",[dbId:dbId, startTime:startTime, endTime:endTime, max:1500]);
+			def results = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time >=:startTime AND p.time <= :endTime",[dev:device, startTime:startTime, endTime:endTime, max:1500]);
 			return results
 		}else{
-			log.info("Unknow device: ${deviceUniqueId}");
+			log.info("Unknow device: ${udid}");
 		}
 		return [];
 	}
@@ -107,15 +112,14 @@ class TrackerService {
 	 * @param endDay
 	 * @return
 	 */
-	public List<TrackerTrack> listTracksBetweenDays(String deviceUniqueId, Date beginDay, Date endDay){
-		Long dbid = trackerDataService.lookupDeviceId(deviceUniqueId);
-		if(!dbid){
-			// device not found
+	public List<TrackerTrack> listTracksBetweenDays(String udid, Date beginDay, Date endDay){
+		def device = TrackerDevice.findByUdid(udid);
+		if(!device){
 			return [];
 		}
 
 		// List all tracks between that days
-		def tracksInThatDays = TrackerTrack.findAll("FROM TrackerTrack tt WHERE tt.deviceId = :dbd AND tt.beginDate >=:begin AND tt.beginDate <=:end",[dbd:dbid, begin:beginDay, end:endDay]);
+		def tracksInThatDays = TrackerTrack.findAll("FROM TrackerTrack tt WHERE tt.deviceId = :dev AND tt.beginDate >=:begin AND tt.beginDate <=:end",[dev:device.id, begin:beginDay, end:endDay]);
 		return tracksInThatDays
 	}
 	
@@ -290,7 +294,7 @@ class TrackerService {
 		// Add line string feature, load points that in 45 mins ago and not exceeding 50 in total.
 		int MAX_LINE_POINTS = 50;
 		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR + (15 * 60 * 1000));
-		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.deviceId=:dbId AND p.time>:lineTime ORDER BY p.time DESC",[dbId:device.id, lineTime:lineTime, max:MAX_LINE_POINTS]);
+		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:MAX_LINE_POINTS]);
 		int positionCount = positions?.size();
 		 
 		// Add marker only when it contains valid positions

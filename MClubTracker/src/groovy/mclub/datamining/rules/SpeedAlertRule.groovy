@@ -56,7 +56,7 @@ class SpeedAlertRule extends AbstractRule{
 		}
 		
 		// find max 10 positions in time desc order
-		def points = TrackerPosition.findAll("FROM TrackerPosition tp WHERE tp.deviceId=:did ORDER BY tp.time DESC",[did:dev.id,max:10]);
+		def points = TrackerPosition.findAll("FROM TrackerPosition tp WHERE tp.device=:dev ORDER BY tp.time DESC",[dev:dev,max:10]);
 		if(points?.size() < 10){
 			log.info("not enough points to check the speed");
 			return 0;
