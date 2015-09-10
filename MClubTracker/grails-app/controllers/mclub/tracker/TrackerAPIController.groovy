@@ -268,11 +268,12 @@ class TrackerAPIController {
 		}
 		
 		def devices = [];
-		if(udid.equals("*")){
+		if(udid.equals("all")){
 			devices  = TrackerDevice.list();
 		}else{
-			def dev = TrackerDevice.findByUdid(udid);
-			if(dev) devices << dev; 
+			//def dev = TrackerDevice.findByUdid(udid);
+			def devs = TrackerDevice.findAllByUdidLike("${udid}%");
+			if(devs?.size() > 0) devices.addAll(devs); 
 		}
 		
 		def featureCollection = [:];

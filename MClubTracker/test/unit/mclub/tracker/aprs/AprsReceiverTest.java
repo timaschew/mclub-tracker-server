@@ -179,4 +179,14 @@ public class AprsReceiverTest {
 	}
 
 
+	@Test
+	public void testCalcualteXY(){
+		int i = 2;
+		System.out.println("x=" + (i % 16));
+		System.out.println("y=" + (i / 16));
+		
+		Double d = new Double(0.12345678f);
+		System.out.println("Formatted double: " + String.format("%.6f",d));
+		
+	}
 }

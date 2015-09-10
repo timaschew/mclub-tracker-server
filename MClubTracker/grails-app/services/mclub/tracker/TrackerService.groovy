@@ -257,6 +257,9 @@ class TrackerService {
 		}else{
 			coordinate = [pos.longitude, pos.latitude];
 		}
+		// round to xx.yyyyyy
+		coordinate[0] = Math.round(coordinate[0] * 1000000)/1000000.0
+		coordinate[1] = Math.round(coordinate[1] * 1000000)/1000000.0
 
 		def markerFeatureGeometry = [
 			"type": "Point",
@@ -306,6 +309,9 @@ class TrackerService {
 				}else{
 					c = [p.longitude, p.latitude];
 				}
+				// round to xx.yyyyyy
+				c[0] = Math.round(c[0] * 1000000)/1000000.0
+				c[1] = Math.round(c[1] * 1000000)/1000000.0
 				lineCoordinates.add(c);
 			}
 			def lineFeatureGeometry = [
