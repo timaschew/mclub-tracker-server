@@ -295,6 +295,7 @@ class TrackerService {
 		int MAX_LINE_POINTS = 50;
 		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR + (15 * 60 * 1000));
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:MAX_LINE_POINTS]);
+		positions = shrinkTrackPositions(positions);
 		int positionCount = positions?.size();
 		 
 		// Add marker only when it contains valid positions
@@ -333,6 +334,35 @@ class TrackerService {
 			deviceFeatures.add(lineFeature);
 		}
 		return deviceFeatures;
+	}
+	
+	private static double[] roundCoordinate(double x, double y){
+		double[] coord = new double[2];
+		coord[0] = Math.round(x * 1000000)/1000000.0;
+		coord[1] = Math.round(y * 1000000)/1000000.0;
+		return coord;
+	}
+	
+	/**
+	 * Shrink a list of positions by removing duplicated(same lat/lon) in slibing positions
+	 * @param positions
+	 * @return
+	 */
+	private Collection<TrackerPosition> shrinkTrackPositions(Collection<TrackerPosition> positions){
+		def shrinked = [];
+		TrackerPosition prev = null;
+		if(positions){
+			for(TrackerPosition pos in positions){
+				if(prev != null){
+					if(prev.latitude == pos.latitude && prev.longitude == pos.longitude){
+						continue;
+					}
+				}
+				shrinked.add(pos);
+				prev = pos;
+			}
+		}
+		return shrinked;
 	}
 	
 	/**
