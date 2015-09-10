@@ -69,11 +69,15 @@
             $(function() {
 
                 var debug = false;
-
-                var baseURL = 'aprs2.mclub.to:20880/mtracker/';
-                if (debug) {
-                    baseURL = 'localhost:8080/';
-                };
+                
+                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/all";
+                var serviceURL = "ws://aprs2.mclub.to:20880/mtracker/live0";
+                
+                if(debug){
+                    var dataURL = "http://localhost:8080/mclub/api/geojson/all";
+                    var serviceURL = "ws://localhost:8080/mclub/live0";
+                }
+                
                 // http://bolt1.mclub.to:20880/mtracker/api/update_position?udid=0001&lat=39&lon=116
 
                 var map = new AMap.Map('mapContainer', {
@@ -270,33 +274,37 @@
                     };
                 };
 
-                (function() {
-                    $.get('http://' + baseURL + 'api/geojson/all',function(data) {
+                var connectService = function(){
+                    var wsUri = serviceURL;
+                    websocket = new WebSocket(wsUri);
+                    websocket.onopen = function(e) {
+                        // alert("CONNECTED")
+                    };
+                    websocket.onclose = function(e) {
+                        // alert("DISCONNECTED"); 
+                    };
+                    websocket.onmessage = function(e) { 
+                        var udid = ($.parseJSON(e.data))["udid"];
+                        parseGEOJSON($.parseJSON(e.data));
+                        //websocket.close(); 
+                    };
+                    websocket.onerror = function(e) { 
+                        
+                    };
 
-                        parseGEOJSON(data);
-
-                        var wsUri = 'ws://' + baseURL + 'live0';
-                        websocket = new WebSocket(wsUri);
-                        websocket.onopen = function(e) {
-                            // alert("CONNECTED")
-                        };
-                        websocket.onclose = function(e) {
-                            // alert("DISCONNECTED"); 
-                        };
-                        websocket.onmessage = function(e) { 
-                            var udid = ($.parseJSON(e.data))["udid"];
-                            parseGEOJSON($.parseJSON(e.data));
-                            //websocket.close(); 
-                        };
-                        websocket.onerror = function(e) { 
-                            
-                        };
-
-                        function doSend(message) { 
-                            websocket.send(message); 
-                        } 
-                    });
-                })();
+                    function doSend(message) { 
+                        websocket.send(message); 
+                    }; 
+                };
+                
+                var loadGeojson = function(){
+                	$.get(dataURL,function(data) {
+                		parseGEOJSON(data);
+                		connectService();
+                	});                	
+                };
+                loadGeojson();
+                
             });
         </script>
     </body>
