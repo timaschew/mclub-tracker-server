@@ -168,8 +168,10 @@ class TrackerDataService {
 	public int deleteAprsPosition(int daysOfDataToSave){
 		//TrackerPosition.executeUpdate("DELETE FROM TrackerPosition tp WHERE tp.type==2 AND");
 		//def list = TrackerPosition.executeQuery("FROM TrackerPosition tp JOIN TrackerDevice td ON tp.device_id = td.id");
-		def list = TrackerPosition.executeQuery("SELECT (tp.id) FROM TrackerPosition tp WHERE tp.device.status=1");
-		return list.size();
+		Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000)); 
+		//def count = TrackerPosition.executeQuery("SELECT count(*) FROM TrackerPosition tp WHERE tp.device.status=2 AND tp.time < :time",[time:timeToDelete]);
+		def count = TrackerPosition.executeUpdate("DELETE TrackerPosition tp WHERE tp.id IN (SELECT p.id FROM TrackerPosition p WHERE p.device.status=2 AND p.time < :time)",[time:timeToDelete]);
+		return count;
 	}
 	
 	/**

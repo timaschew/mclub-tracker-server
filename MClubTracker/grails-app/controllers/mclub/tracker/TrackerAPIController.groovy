@@ -327,11 +327,10 @@ class TrackerAPIController {
 		render allDevicePositions as JSON;
 	}
 	
-	def test(){
-		def r = [result:trackerDataService.deleteAprsPosition(0)];
+	def clean_aprs_data(){
+		def r = [result:trackerDataService.deleteAprsPosition(7)];
 		render r as JSON;
 	}
-	
 	
 	/**
 	 * Device registration API
