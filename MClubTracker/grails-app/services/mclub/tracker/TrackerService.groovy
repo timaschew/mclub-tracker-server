@@ -229,10 +229,10 @@ class TrackerService {
 				//markerFeatureProperties['icon'] = device.icon;
 			}
 		}
-		if(pos.speed >=0){
+		if(pos.speed && pos.speed >=0){
 			markerFeatureProperties['speed'] = pos.speed;
 		}
-		if(pos.course >=0){
+		if(pos.course && pos.course >=0){
 			markerFeatureProperties['course'] = pos.course;
 		}
 
