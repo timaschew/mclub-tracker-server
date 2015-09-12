@@ -175,7 +175,7 @@ class TrackerAPIController {
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(String udid, String lat, String lon,String speed, String course /*PositionData positionData*/,String token, String aprscall){
+	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String aprscall){
 		if(!lat || !lon){
 			render APIResponse.ERROR("Missing parameters: lat, lon") as JSON
 			return;
@@ -225,6 +225,7 @@ class TrackerAPIController {
 		if(isAprs){
 			pos.aprs = true;
 		}
+		pos.coordinateType = coordinateType;
 		trackerDataService.updateTrackerPosition(pos);
 		
 		render APIResponse.OK() as JSON
@@ -270,7 +271,6 @@ class TrackerAPIController {
 		if(udid.equals("all")){
 			devices  = TrackerDevice.list();
 		}else{
-			//def dev = TrackerDevice.findByUdid(udid);
 			def devs = TrackerDevice.findAllByUdidLike("${udid}%");
 			if(devs?.size() > 0) devices.addAll(devs); 
 		}

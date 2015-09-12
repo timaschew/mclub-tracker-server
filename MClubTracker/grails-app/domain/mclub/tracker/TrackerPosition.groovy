@@ -1,18 +1,21 @@
 package mclub.tracker
 
 class TrackerPosition {
-
+	public static final int COORDINATE_TYPE_WGS84 = 0;
+	public static final int COORDINATE_TYPE_GCJ02 = 1;
+	public static final int COORDINATE_TYPE_BD09 = 2;
+	
 	static belongsTo = TrackerDevice;
 	
     static constraints = {
 		power blank:true, nullable:true
 		address blank:true,nullable:true
 		extendedInfo blank:true, nullable:true
+		coordinateType blank:true,nullable:true
     }
 	
 	static mapping = {
 		device		index:'idx_trackerposition_device'
-		//deviceId	index:'idx_trackerposition_deviceid_time'
 		time		index:'idx_trackerposition_time'
 		extendedInfo	type:'text' 
 		version false
@@ -30,6 +33,7 @@ class TrackerPosition {
 	Double power;
 	String address;
 	String extendedInfo;
+	Integer coordinateType; // The coordinate system, 0 = WGS84, 1 = GCJ02, 2 = BD09
 	
 	TrackerDevice device;
 }

@@ -20,7 +20,7 @@ class TrackerService {
 	def trackerDataService;
 	TrackerCacheService trackerCacheService;
 	
-	boolean mapShiftEnabled = true;
+	int mapCoordType = TrackerPosition.COORDINATE_TYPE_GCJ02;
 	
 	@PostConstruct
 	public void start(){
@@ -256,11 +256,20 @@ class TrackerService {
 		
 		// Shifting coordinates for chinese map!
 		def coordinate;
-		if(mapShiftEnabled){
-			coordinate = MapShiftUtils.WGSToGCJ(pos.longitude,pos.latitude);
-		}else{
-			coordinate = [pos.longitude, pos.latitude];
+		switch(mapCoordType){
+			case TrackerPosition.COORDINATE_TYPE_GCJ02:
+				if(pos.coordinateType == null || pos.coordinateType == 0){
+					coordinate = MapShiftUtils.WGSToGCJ(pos.longitude,pos.latitude);
+				}else{
+					coordinate = [pos.longitude, pos.latitude];
+				}
+				break;
+			case TrackerPosition.COORDINATE_TYPE_BD09:
+			default:
+				coordinate = [pos.longitude, pos.latitude];
+				break;
 		}
+				
 		// round to xx.yyyyyy
 		coordinate[0] = Math.round(coordinate[0] * 1000000)/1000000.0
 		coordinate[1] = Math.round(coordinate[1] * 1000000)/1000000.0
@@ -309,7 +318,7 @@ class TrackerService {
 			// build line string features if positions count >=4
 			for(TrackerPosition p in positions){
 				def c;
-				if(mapShiftEnabled){
+				if(mapCoordType){
 					c = MapShiftUtils.WGSToGCJ(p.longitude,p.latitude);
 				}else{
 					c = [p.longitude, p.latitude];
@@ -381,9 +390,12 @@ class TrackerService {
 		
 		// check whether position is expired
 		// TODO - make the expire time configurable 
-		if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
-			// is expired position
-			return null;
+		boolean forceLoad = false;
+		if(!forceLoad){
+			if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
+				// is expired position
+				return null;
+			}
 		}
 		
 		//load from cache first

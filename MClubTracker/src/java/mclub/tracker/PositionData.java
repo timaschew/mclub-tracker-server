@@ -26,6 +26,8 @@ public class PositionData {
 
 	Double power;
 	String address;
+	Integer coordinateType;
+	
 	Map<String, Object> extendedInfo = new HashMap<String,Object>();
 
 	public String getUdid() {
@@ -134,6 +136,14 @@ public class PositionData {
 
 	public void setAprs(Boolean aprs) {
 		this.aprs = aprs;
+	}
+	
+	public Integer getCoordinateType() {
+		return coordinateType;
+	}
+
+	public void setCoordinateType(Integer coordinateType) {
+		this.coordinateType = coordinateType;
 	}
 
 	@Override
