@@ -192,6 +192,8 @@
                 }
 
                 var setupCustomMarker = function(marker, feature) {
+                	var speed = feature['properties']['speed'];
+                	var course = feature['properties']['course'];
                 	var aprs = feature['properties']['aprs'];
                 	if(typeof aprs != "undefined"){
                 		// For APRS marker, use UDID as label
@@ -210,10 +212,10 @@
                             s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
                             s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
                             // spped and course
-                            if((typeof aprs['speed'] != "undefined")){
-                            	s = s.concat("<div><b>",aprs['speed']," km/h ");
-                            	if((typeof aprs['course'] != "undefined")){
-                            		s = s.concat(aprs['course'],"°");
+                            if((typeof speed != "undefined")){
+                            	s = s.concat("<div><b>",speed," km/h ");
+                            	if((typeof course != "undefined")){
+                            		s = s.concat(course,"°");
                             	}
                             	s = s.concat("</b></div>");
                             }
@@ -245,7 +247,17 @@
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
                             var s = "<div class=\"marker-info\"> <div> 设备:" + feature['properties']['udid'] + "</div>";
-                            s = s.concat("<div> 电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div></div>");
+                            s = s.concat("<div> 电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div>");
+                            
+                            if((typeof speed != "undefined")){
+                            	s = s.concat("<div>速度:",speed," km/h ");
+                            	if((typeof course != "undefined")){
+                            		s = s.concat(course,"°");
+                            	}
+                            	s = s.concat("</div>");
+                            }
+                            s = s.concat("</div>")
+                            
                             infoWindow.setContent(s);
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });

@@ -229,7 +229,13 @@ class TrackerService {
 				//markerFeatureProperties['icon'] = device.icon;
 			}
 		}
-		
+		if(pos.speed >=0){
+			markerFeatureProperties['speed'] = pos.speed;
+		}
+		if(pos.course >=0){
+			markerFeatureProperties['course'] = pos.course;
+		}
+
 		// Add extended info
 		if(pos.getExtendedInfo()){
 			def extendedInfo = JSON.parse(pos.getExtendedInfo());
@@ -240,12 +246,14 @@ class TrackerService {
 					if(aprs['comment']){
 						markerFeatureProperties['description'] = aprs['comment'];
 					}
+					/* we have speed/course in feature properties. so dont need here.
 					if(pos.speed >=0){
 						aprs['speed'] = pos.speed;
 					}
 					if(pos.course >=0){
 						aprs['course'] = pos.course;
 					}
+					*/
 				}
 			}
 		}
