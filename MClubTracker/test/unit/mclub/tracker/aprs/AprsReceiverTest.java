@@ -180,6 +180,18 @@ public class AprsReceiverTest {
 
 
 	@Test
+	public void testDecodeMICEPacket(){
+		String s = "BG5HSC-9>SPQRQ5,WIDE1-1,qAR,BG5HSC-10:`0*Nm!kv/]\"4<}=";
+		PositionData pd = new AprsReceiver().new AprsReceiverClientHandler().parseAPRSPacket(s);
+		assertNotNull(pd);
+		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
+		assertNotNull(aprsData);
+		assertEquals("1_85",aprsData.getSymbol());
+		System.out.println(aprsData.getComment());
+	}
+	
+	
+	@Test
 	public void testCalcualteXY(){
 		int i = 2;
 		System.out.println("x=" + (i % 16));

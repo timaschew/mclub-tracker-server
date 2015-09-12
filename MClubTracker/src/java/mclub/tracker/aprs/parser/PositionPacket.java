@@ -139,11 +139,30 @@ public class PositionPacket extends InformationField implements java.io.Serializ
 			break;
 
 		}
-		if (cursor > 0 && cursor < msgBody.length) {
+		if("MICe".equals(positionSource)){
+			// Decode the MICe Message, see Chapter 10, P45 of APRS101.
+			int i1 = destinationField.charAt(0);
+			int i2 = destinationField.charAt(1);
+			int i3 = destinationField.charAt(2);
+			int i = ((((i1 >> 6) & 1) << 2) | (((i2 >> 6) & 1) << 1) | (((i3 >> 6) & 1)));
+			comment = micencodingMessageTypes[i];
+		}else if (cursor > 0 && cursor < msgBody.length){
 			// no comment is set yet.
 			comment = new String(msgBody, cursor, msgBody.length - cursor, "UTF-8");
 		}
 	}
+	
+	private static final String[] micencodingMessageTypes = new String[]{
+		"Emergency",
+		"Priority",
+		"Special",
+		"Committed",
+		"Returning",
+		"In Service",
+		"En Route",
+		"Off Duty"
+	};
+	
 	public PositionPacket(Position position, String comment) {
 		this.position = position;
 		this.type = APRSTypes.T_POSITION;
