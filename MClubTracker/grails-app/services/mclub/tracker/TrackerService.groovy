@@ -398,12 +398,10 @@ class TrackerService {
 		
 		// check whether position is expired
 		// TODO - make the expire time configurable 
-		boolean forceLoad = false;
-		if(!forceLoad){
-			if(pos.time.time - System.currentTimeMillis() > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
-				// is expired position
-				return null;
-			}
+		if((System.currentTimeMillis() - pos.time.time) > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
+			// evict expired device features from cache and returns null;
+			trackerCacheService.removeDeviceFeature(device.udid);
+			return null;
 		}
 		
 		//load from cache first
