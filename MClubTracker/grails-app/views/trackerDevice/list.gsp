@@ -27,6 +27,7 @@
 						<g:sortableColumn property="username" title="${message(code: 'trackerDevice.username.label', default: 'User Name')}" />
 						<g:sortableColumn property="status" title="${message(code: 'trackerDevice.status.label', default: 'Status')}" />
 						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
+						<g:sortableColumn property="latestPositionTime" title="${message(code: 'trackerDevice.latestPositionTime.label', default: 'Latest Position Time')}" />
 					</tr>
 				</thead>
 				<tbody>
@@ -36,6 +37,7 @@
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "status")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</td>
+						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionTime")}</td>
 					</tr>
 				</g:each>
 				</tbody>

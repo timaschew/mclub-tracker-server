@@ -12,6 +12,8 @@ class TrackerDevice {
 	
     static constraints = {
 		latestPositionId blank:true,nullable:true
+		latestPositionTime blank:true,nullable:true
+		
 		username blank:true,nullable:true
 		status blank:true,nullable:true
 		icon blank:true,nullable:true
@@ -28,5 +30,6 @@ class TrackerDevice {
 	Integer status;			// status of tracker device, 0 means disabled.
 	
 	Long latestPositionId; 	// for association with the position
+	Date latestPositionTime
 	String icon;			// name of the device icon, eg: APRS site symbol
 }

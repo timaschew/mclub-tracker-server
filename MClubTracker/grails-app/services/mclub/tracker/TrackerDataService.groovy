@@ -20,7 +20,7 @@ class TrackerDataService {
 	GrailsApplication grailsApplication;
 	TrackerCacheService trackerCacheService;
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
-
+	
 	static {
 		grails.converters.JSON.registerObjectMarshaller(AprsData) {
 		return it.properties.findAll {k,v -> k != 'class' && v != null}
@@ -70,9 +70,9 @@ class TrackerDataService {
 	 * @param positionId
 	 * @throws Exception
 	 */
-	public void updateLatestPosition(Long deviceId, Long positionId) throws Exception{
+	public void updateLatestPosition(Long deviceId, Long positionId, Date timestamp) throws Exception{
 		// direct associate the position id to the device
-		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid WHERE d.id=:did",[did:deviceId,pid:positionId]);
+		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid, d.latestPositionTime=:time WHERE d.id=:did",[did:deviceId,pid:positionId,time:timestamp]);
 	}
 	
 	/**
@@ -113,6 +113,14 @@ class TrackerDataService {
 			log.warn("Update position error, unknown device: " + udid);
 			return;
 		}
+		
+		// Update frequency check 
+		// TODO - timeInterval = (Integer)getConfig("tracker.dataService.updateInterval");
+		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < 5000L)){
+			// update too frequently.
+			log.warn("Device ${device.udid} update location too frequently, ignore that");
+			return;
+		}
 
 		// check user name
 		String username = positionData.username;
@@ -147,7 +155,7 @@ class TrackerDataService {
 		try {
 			Long id = addPosition(position);
 			if (id != null) {
-				updateLatestPosition(device.id, id);
+				updateLatestPosition(device.id, id,position.time);
 				// clear the position cache
 				trackerCacheService.removeDeviceFeature(device.udid);
 				
@@ -189,8 +197,7 @@ class TrackerDataService {
 	 */
 	public Object getConfig(String key){
 		return grailsApplication.getFlatConfig().get(key);
-	}
-	
+	}	
 	
 	/**
 	 * Data change event listeners
