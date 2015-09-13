@@ -309,7 +309,7 @@ class TrackerService {
 		
 		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
 		// Add line string feature, load points that in 45 mins ago and not exceeding 50 in total.
-		int MAX_LINE_POINTS = 50;
+		int MAX_LINE_POINTS = 360; // 30 * 60 / 5
 		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR + (15 * 60 * 1000));
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:MAX_LINE_POINTS]);
 		positions = shrinkTrackPositions(positions);
