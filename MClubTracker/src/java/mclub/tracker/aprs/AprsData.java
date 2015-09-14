@@ -9,6 +9,7 @@ import groovy.transform.ToString;
  */
 @ToString(includeNames = true, includeFields = true, excludes = "metaClass,class")
 public class AprsData {
+	private String destination;
 	private String path;
 	private String comment;
 	
@@ -69,4 +70,12 @@ public class AprsData {
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
 	}
+	public String getDestination() {
+		return destination;
+	}
+	public void setDestination(String destination) {
+		this.destination = destination;
+	}
+	
+	
 }

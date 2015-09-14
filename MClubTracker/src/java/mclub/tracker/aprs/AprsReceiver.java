@@ -333,7 +333,7 @@ public class AprsReceiver {
 					aprsData.setComment(info.getComment());
 					// index of symbol
 					aprsData.setSymbol(convertSymbolCharToFileName(pos.getSymbolTable(),pos.getSymbolCode()));
-					
+					aprsData.setDestination(pack.getDestinationCall());
 					// PHG info
 					if(ext instanceof PHGExtension){
 						PHGExtension phg = (PHGExtension)ext;

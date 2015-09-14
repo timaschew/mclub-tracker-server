@@ -220,7 +220,7 @@
                             	s = s.concat("</b></div>");
                             }
                             s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
-                            s = s.concat("<div>[",aprs['path'],"]</div>");	// path
+                            s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
                             s = s.concat("</div>");
                             infoWindow.setContent(s);
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
