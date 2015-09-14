@@ -2,6 +2,7 @@ package mclub.datamining
 
 import mclub.datamining.rules.*
 import mclub.social.WeiboService
+import mclub.tracker.TrackerDataService
 import mclub.tracker.TrackerService
 import mclub.tracker.geocode.GoogleReverseGeocoder
 
@@ -9,6 +10,7 @@ class RuleService {
 	List<Rule> rules = [];
 	WeiboService weiboService;
 	TrackerService trackerService;
+	TrackerDataService trackerDataService;
 	
 	//FIXME - handle device ids
 	String deviceId = '353451048729261';
@@ -31,11 +33,11 @@ class RuleService {
 	 */
 	private def loadRules(){
 		// Rule that detects the wake up
-		rules << new DailyGreetingRule();
-		rules << new IdleRule();
-//		rules << new JamAlertRule();
-		rules << new SpeedAlertRule();
-		rules << new AutoTrackerGenerateRule();
+//		rules << new DailyGreetingRule();
+//		rules << new IdleRule();
+////		rules << new JamAlertRule();
+//		rules << new SpeedAlertRule();
+//		rules << new AutoTrackerGenerateRule();
 	}
 
 	// Run the rules, which is triggered by a timer
@@ -45,7 +47,8 @@ class RuleService {
 			weiboService:weiboService,
 			addressResolver:addressResolver,
 			trackerService:trackerService,
-			deviceId:deviceId
+			deviceId:deviceId,
+			trackerDataService:trackerDataService
 		];
 	
 		for(Rule rule in rules){
