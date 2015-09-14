@@ -147,6 +147,7 @@ class TrackerDataService {
 		TrackerPosition position = new TrackerPosition();
 		position.properties = positionData;
 		position.message = positionData.message;
+		position.messageType = positionData.messageType;
 		position.device = device;
 		if(!positionData.extendedInfo.isEmpty()){
 			def extJson = positionData.extendedInfo as JSON // store extended info in JSON format.

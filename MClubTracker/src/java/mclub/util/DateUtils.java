@@ -51,6 +51,8 @@ public class DateUtils {
 	
 	public static final long TIME_OF_HALF_HOUR = 30 * 60 * 1000 ;
 	
+	public static final long TIME_OF_QUARTER_OF_AN_HOUR = 15 * 60 * 1000 ;
+	
 	public static final long TIME_OF_AN_HOUR = 60 * 60 * 1000 ;
 	
 	public static Calendar getCalendar(){

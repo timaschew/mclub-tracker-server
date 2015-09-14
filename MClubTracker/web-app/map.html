@@ -192,6 +192,8 @@
                 }
 
                 var setupCustomMarker = function(marker, feature) {
+                	var message = feature['properties']['message'];
+                	var symbol = feature['properties']['marker-symbol'];
                 	var speed = feature['properties']['speed'];
                 	var course = feature['properties']['course'];
                 	var aprs = feature['properties']['aprs'];
@@ -256,15 +258,24 @@
                             	}
                             	s = s.concat("</div>");
                             }
+                            
+                            if(typeof message != "undefined"){
+                            	s = s.concat("<div>信息:",message,"</div>");
+                            }
                             s = s.concat("</div>")
                             
                             infoWindow.setContent(s);
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
                         
-                        var markerIcon = new AMap.Icon({
-                            image : "http://webapi.amap.com/images/marker_sprite.png"
-                        });
+                        if(typeof symbol != "undefined"){
+                            var markerIcon = new AMap.Icon({
+                                //image : "http://webapi.amap.com/images/marker_sprite.png"
+                                size: [48,48],
+                            	image : "images/marker_" + feature['properties']['marker-symbol'] + ".png"
+                            });
+                            marker.setIcon(markerIcon);                        	
+                        }
                 	}
                 };
 

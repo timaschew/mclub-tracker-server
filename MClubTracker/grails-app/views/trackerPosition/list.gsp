@@ -24,17 +24,25 @@
 				<thead>
 					<tr>
 					
-						<g:sortableColumn property="extendedInfo" title="${message(code: 'trackerPosition.extendedInfo.label', default: 'Extended Info')}" />
+						
 					
-						<g:sortableColumn property="address" title="${message(code: 'trackerPosition.address.label', default: 'Address')}" />
+						
 					
-						<g:sortableColumn property="altitude" title="${message(code: 'trackerPosition.altitude.label', default: 'Altitude')}" />
+						
 					
-						<g:sortableColumn property="course" title="${message(code: 'trackerPosition.course.label', default: 'Course')}" />
+						
 					
 						<g:sortableColumn property="deviceId" title="${message(code: 'trackerPosition.deviceId.label', default: 'Device Id')}" />
 					
 						<g:sortableColumn property="latitude" title="${message(code: 'trackerPosition.latitude.label', default: 'Latitude')}" />
+						<g:sortableColumn property="longitude" title="${message(code: 'trackerPosition.longitude.label', default: 'Longitude')}" />
+						<g:sortableColumn property="altitude" title="${message(code: 'trackerPosition.altitude.label', default: 'Altitude')}" />
+						<g:sortableColumn property="course" title="${message(code: 'trackerPosition.course.label', default: 'Course')}" />
+						<g:sortableColumn property="address" title="${message(code: 'trackerPosition.address.label', default: 'Address')}" />
+						
+						<g:sortableColumn property="message" title="${message(code: 'trackerPosition.message.label', default: 'Message')}" />
+						
+						<g:sortableColumn property="extendedInfo" title="${message(code: 'trackerPosition.extendedInfo.label', default: 'Extended Info')}" />
 					
 					</tr>
 				</thead>
@@ -42,17 +50,17 @@
 				<g:each in="${trackerPositionInstanceList}" status="i" var="trackerPositionInstance">
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
 					
-						<td><g:link action="show" id="${trackerPositionInstance.id}">${fieldValue(bean: trackerPositionInstance, field: "extendedInfo")}</g:link></td>
-					
-						<td>${fieldValue(bean: trackerPositionInstance, field: "address")}</td>
-					
-						<td>${fieldValue(bean: trackerPositionInstance, field: "altitude")}</td>
-					
-						<td>${fieldValue(bean: trackerPositionInstance, field: "course")}</td>
-					
-						<td>${fieldValue(bean: trackerPositionInstance, field: "deviceId")}</td>
+						<td><g:link action="show" id="${trackerPositionInstance.id}">${fieldValue(bean: trackerPositionInstance, field: "deviceId")}</g:link></td>
 					
 						<td>${fieldValue(bean: trackerPositionInstance, field: "latitude")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "longitude")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "altitude")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "course")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "address")}</td>
+						
+						<td>${fieldValue(bean: trackerPositionInstance, field: "message")}</td>
+						
+						<td>${fieldValue(bean: trackerPositionInstance, field: "extendedInfo")}</td>
 					
 					</tr>
 				</g:each>
