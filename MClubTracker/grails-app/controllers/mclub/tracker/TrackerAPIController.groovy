@@ -175,7 +175,7 @@ class TrackerAPIController {
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String aprscall){
+	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String aprscall, String message, Integer messageType){
 		if(!lat || !lon){
 			render APIResponse.ERROR("Missing parameters: lat, lon") as JSON
 			return;
@@ -220,6 +220,21 @@ class TrackerAPIController {
 		pos.speed = speed?Double.parseDouble(speed):0.0;
 		pos.course = course?Double.parseDouble(course):0.0;
 		pos.time = new Date();
+		
+		pos.message = message; // position may contains messages
+		pos.messageType = messageType;
+		if(pos.message && !pos.messageType){
+			String m = pos.message.toLowerCase();
+			if(m.indexOf("emergency") >= 0) 
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_EMERGENCY;
+			else if(m.indexOf("alert") >=0)
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_ALERT;
+			else
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_NORMAL;
+		}
+		if(pos.message && pos.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
+			log.warn("${pos.username} sends ALERT/EMERGENCY message: ${pos.message}");
+		}
 		pos.valid = true;
 		pos.extendedInfo['protocol'] = 'http_api';
 		if(isAprs){

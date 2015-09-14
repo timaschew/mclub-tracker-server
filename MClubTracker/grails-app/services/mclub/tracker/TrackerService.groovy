@@ -223,10 +223,16 @@ class TrackerService {
 			if(device.status == TrackerDevice.DEVICE_TYPE_APRS){
 				// prefix with APRS symbol
 				markerFeatureProperties['marker-symbol'] = "aprs_${device.icon}";
-				//markerFeatureProperties['icon'] = "aprs_${device.icon}"
 			}else{
 				markerFeatureProperties['marker-symbol'] = device.icon;
-				//markerFeatureProperties['icon'] = device.icon;
+			}
+		}else{
+			// check if device contains emergency messages
+			def t = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_QUARTER_OF_AN_HOUR);
+			def r = TrackerPosition.executeQuery("SELECT COUNT(*) FROM TrackerPosition tp WHERE tp.device=:dev AND tp.time<:time AND tp.messageType=:msgType",[dev:device,time:t,msgType:TrackerPosition.MESSAGE_TYPE_EMERGENCY]);
+			if(r[0] > 0){
+				// we have emergency messages in last 30 minutes, mark the logo
+				markerFeatureProperties['marker-symbol'] = "sos1.png";
 			}
 		}
 		
@@ -250,6 +256,11 @@ class TrackerService {
 					}
 				}
 			}
+		}
+		
+		// Description for non APRS devices
+		if(pos.message){
+			markerFeatureProperties['message'] = pos.message;
 		}
 		
 		// Timestamp is formatted in Chinese style with GMT+8. 

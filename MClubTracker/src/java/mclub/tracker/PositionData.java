@@ -28,6 +28,9 @@ public class PositionData {
 	String address;
 	Integer coordinateType;
 	
+	String message;
+	Integer messageType;
+	
 	Map<String, Object> extendedInfo = new HashMap<String,Object>();
 
 	public String getUdid() {
@@ -153,6 +156,9 @@ public class PositionData {
 				+ ", latitude=" + latitude + ", longitude=" + longitude
 				+ ", altitude=" + altitude + ", speed=" + speed + ", course="
 				+ course + ", power=" + power + ", address=" + address
-				+ ", extendedInfo=" + extendedInfo + "]";
+				+ ", coordinateType=" + coordinateType + ", message=" + message
+				+ ", messageType=" + messageType + ", extendedInfo="
+				+ extendedInfo + "]";
 	}
+
 }

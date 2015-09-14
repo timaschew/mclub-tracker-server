@@ -146,6 +146,7 @@ class TrackerDataService {
 		// Convert value object to position entity
 		TrackerPosition position = new TrackerPosition();
 		position.properties = positionData;
+		position.message = positionData.message;
 		position.device = device;
 		if(!positionData.extendedInfo.isEmpty()){
 			def extJson = positionData.extendedInfo as JSON // store extended info in JSON format.
@@ -161,7 +162,7 @@ class TrackerDataService {
 				trackerCacheService.removeDeviceFeature(device.udid);
 				
 				if(log.isDebugEnabled()){
-					log.debug("Device ${device.udid} position changed");
+					log.debug("Device ${device.udid} position updated to [${position.latitude},${position.longitude}], message:${position.message}");
 				}
 				// broadcast the position data change
 				notifyPositionChanges(positionData);
