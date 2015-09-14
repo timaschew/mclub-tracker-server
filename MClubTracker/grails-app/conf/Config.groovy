@@ -79,7 +79,7 @@ log4j = {
     //}
 	appenders {
 		rollingFile name: 'aprsAppender',
-					maxFileSize: 10240,
+					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
 					file: '/var/log/aprs.log'
 	}
@@ -101,12 +101,12 @@ log4j = {
 		  
 	environments {
 		development {
-			info   'grails.app',
-				   'mclub.tracker',
-				   'mclub.datamining'
-//			debug  'org.hibernate.SQL'
+			debug   'grails.app'
+			info	'mclub.tracker',
+				   	'mclub.datamining'
+			//debug  'org.hibernate.SQL'
 			debug  'mclub.user',
-					'mclub.tracker.aprs'
+				   'mclub.tracker'
 		}
 		production {
 			info   'grails.app',
@@ -143,6 +143,9 @@ tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
 //tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
 tracker.aprs.filter = 'p/B' //range in Hangzhou 100KM
+
+tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
+tracker.maximumShowPositionInterval = 30 * 60 * 1000; // in milliseconds
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 
