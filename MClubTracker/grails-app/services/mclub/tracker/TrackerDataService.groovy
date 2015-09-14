@@ -115,10 +115,11 @@ class TrackerDataService {
 		}
 		
 		// Update frequency check 
-		// TODO - timeInterval = (Integer)getConfig("tracker.dataService.updateInterval");
-		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < 5000L)){
+		Integer timeInterval = (Integer)getConfig("tracker.minimalPositionUpdateInterval");
+		if(!timeInterval) timeInterval = 5000L;
+		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < timeInterval)){
 			// update too frequently.
-			log.warn("Device ${device.udid} update location too frequently, ignore that");
+			log.warn("Device ${device.udid} update location too frequently, last update time: ${device.latestPositionTime}, ignored");
 			return;
 		}
 

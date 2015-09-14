@@ -229,6 +229,8 @@ class TrackerService {
 				//markerFeatureProperties['icon'] = device.icon;
 			}
 		}
+		
+		// speed/course is the common properties
 		if(pos.speed && pos.speed >=0){
 			markerFeatureProperties['speed'] = pos.speed;
 		}
@@ -246,14 +248,6 @@ class TrackerService {
 					if(aprs['comment']){
 						markerFeatureProperties['description'] = aprs['comment'];
 					}
-					/* we have speed/course in feature properties. so dont need here.
-					if(pos.speed >=0){
-						aprs['speed'] = pos.speed;
-					}
-					if(pos.course >=0){
-						aprs['course'] = pos.course;
-					}
-					*/
 				}
 			}
 		}
@@ -307,11 +301,15 @@ class TrackerService {
 		   }
 		 */
 		
-		//TODO - configurable MAX_LINE_POINTS, LINE_TIME
-		// Add line string feature, load points that in 45 mins ago and not exceeding 50 in total.
-		int MAX_LINE_POINTS = 360; // 30 * 60 / 5
-		Date lineTime = new Date(System.currentTimeMillis() - mclub.util.DateUtils.TIME_OF_HALF_HOUR + (15 * 60 * 1000));
-		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:MAX_LINE_POINTS]);
+		// Add line string feature, by default will load points that in 45 minutes ago and not exceeding 360 in total.
+		Integer minimalPositionUpdateInterval = (Integer)trackerDataService.getConfig("tracker.minimalPositionUpdateInterval");
+		if(!minimalPositionUpdateInterval) minimalPositionUpdateInterval = 5000L;
+		Integer maximumShowPositionInterval = trackerDataService.getConfig("tracker.maximumShowPositionInterval");
+		if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+		int maxPointsOfLine = maximumShowPositionInterval / minimalPositionUpdateInterval; // (30 * 60 * 1000 / 5000 = 360)
+		
+		Date lineTime = new Date(System.currentTimeMillis() - (45 * 60 * 1000));
+		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:maxPointsOfLine]);
 		positions = shrinkTrackPositions(positions);
 		int positionCount = positions?.size();
 		 
@@ -397,8 +395,9 @@ class TrackerService {
 		}
 		
 		// check whether position is expired
-		// TODO - make the expire time configurable 
-		if((System.currentTimeMillis() - pos.time.time) > mclub.util.DateUtils.TIME_OF_HALF_HOUR){
+		Integer maximumShowPositionInterval = trackerDataService.getConfig("tracker.maximumShowPositionInterval");
+		if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+		if((System.currentTimeMillis() - pos.time.time) > maximumShowPositionInterval){
 			// evict expired device features from cache and returns null;
 			trackerCacheService.removeDeviceFeature(device.udid);
 			return null;
