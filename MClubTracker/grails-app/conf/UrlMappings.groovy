@@ -1,16 +1,19 @@
 class UrlMappings {
 
 	static mappings = {
-		"/$controller/$action?/$id?"{
-			constraints {
-				// apply constraints here
-			}
-		}
+//		"/$controller/$action?/$id?"{
+//			constraints {
+//				// apply constraints here
+//			}
+//		}
 		
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
 		}
 	
+		"/admin/$action?/$id?"(controller:"admin"){
+			
+		}
 		"/admin/user/$action/$id?"(controller:"user"){
 			
 		}
@@ -21,8 +24,6 @@ class UrlMappings {
 		
 		}
 
-		//"/admin"(controller:"admin",action:"index")
-		
 		"/"(view:"/index")
 		"500"(view:'/error')
 	}
