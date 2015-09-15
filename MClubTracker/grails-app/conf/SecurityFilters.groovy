@@ -5,65 +5,22 @@ import mclub.user.User
 
 class SecurityFilters {
 	def userService;
-	
-	private static final AtomicLong REQUEST_NUMBER_COUNTER = new AtomicLong();
-	private static final String START_TIME_ATTRIBUTE = 'Controller__START_TIME__'
-	private static final String REQUEST_NUMBER_ATTRIBUTE = 'Controller__REQUEST_NUMBER__'
 	def filters = {
-		
-		performanceLogFilter(controller:'x',action:'y'){
+		adminFilter(uri:"/admin/**"){
 			before = {
-				if (log.debugEnabled){
-					long start = System.currentTimeMillis()
-					long currentRequestNumber = REQUEST_NUMBER_COUNTER.incrementAndGet()
-		
-					request[START_TIME_ATTRIBUTE] = start
-					request[REQUEST_NUMBER_ATTRIBUTE] = currentRequestNumber
-		
-					log.debug "preHandle request #$currentRequestNumber : " +
-					   "'$request.servletPath'/'$request.forwardURI', " +
-					   "from $request.remoteHost ($request.remoteAddr) " +
-					   " at ${new Date()}, Ajax: $request.xhr, controller: $controllerName, " +
-					   "action: $actionName, params: ${new TreeMap(params)}"
+				if(controllerName?.equals('admin') && actionName?.equals('login')){
+					return true;
 				}
-			} // before
-			
-			after = { Map model ->
-				if(log.debugEnabled){
-					long start = request[START_TIME_ATTRIBUTE]
-					long end = System.currentTimeMillis()
-					long requestNumber = request[REQUEST_NUMBER_ATTRIBUTE]
-		
-					def msg = "postHandle request #$requestNumber: end ${new Date()}, " +
-							  "controller total time ${end - start}ms"
-					if (log.traceEnabled) {
-						log.trace msg + "; model: $model"
-					}
-					else {
-						log.debug msg
-					}
+				User user = session['user'];
+				if(user && user.type == User.USER_TYPE_ADMIN){
+					return true;
+				}else{
+					redirect(controller:'admin', action:'login');
+					return false;
 				}
-			} // after
-			
-			afterView = { Exception e ->
-
-	            if (!log.debugEnabled) return true
-	
-	            long start = request[START_TIME_ATTRIBUTE]
-	            long end = System.currentTimeMillis()
-	            long requestNumber = request[REQUEST_NUMBER_ATTRIBUTE]
-	
-	            def msg = "afterCompletion request #$requestNumber: " +
-	                      "end ${new Date()}, total time ${end - start}ms"
-	            if (e) {
-	               log.debug "$msg \n\texception: $e.message", e
-	            }
-	            else {
-	               log.debug msg
-	            }
-	         }
-		}
-			
+			}
+		} // admin filter
+		
 		
 		apiFilter(controller:'trackerAPI', action:'update*|user'){
 			before = {
@@ -88,22 +45,7 @@ class SecurityFilters {
 				render r as JSON;
 				return false
 			}
-		}
+		} // api filter
 		
-		adminFilter(uri:"/admin/**"){
-			before = {
-				if(controllerName?.equals('admin') && actionName?.equals('login')){
-					return true;
-				}
-				User user = session['user'];
-				if(user && user.type == User.USER_TYPE_ADMIN){
-					return true;
-				}else{
-					redirect(controller:'admin', action:'login');
-					return false;
-				}
-				
-			}
-		}
 	}
 }

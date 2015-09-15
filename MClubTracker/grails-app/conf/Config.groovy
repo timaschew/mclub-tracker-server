@@ -82,7 +82,13 @@ log4j = {
 					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
 					file: '/var/log/aprs.log'
+					
+		rollingFile name: 'perfAppender',
+					maxFileSize: 10240000,
+					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
+					file: '/tmp/mtracker_perf.log'
 	}
+	
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
            'org.codehaus.groovy.grails.web.pages',          // GSP
@@ -98,7 +104,10 @@ log4j = {
 	
 	trace  aprsAppender: 'aprs.log',
 		   additivity:false
-		  
+		   
+	debug  perfAppender: 'perf.log',
+		   additivity:false
+	
 	environments {
 		development {
 			debug   'grails.app'
