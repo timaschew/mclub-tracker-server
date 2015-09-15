@@ -11,7 +11,7 @@
 		<a href="#list-trackerDevice" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
-				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
+				<li><a class="home" href="${createLink(uri: '/admin')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
 			</ul>
 		</div>
@@ -23,11 +23,12 @@
 			<table>
 				<thead>
 					<tr>
-						<g:sortableColumn property="udid" title="${message(code: 'trackerDevice.udid.label', default: 'Unique Device Id')}" />
+						<g:sortableColumn property="udid" title="${message(code: 'trackerDevice.udid.label', default: 'UDID')}" />
 						<g:sortableColumn property="username" title="${message(code: 'trackerDevice.username.label', default: 'User Name')}" />
 						<g:sortableColumn property="status" title="${message(code: 'trackerDevice.status.label', default: 'Status')}" />
 						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
 						<g:sortableColumn property="latestPositionTime" title="${message(code: 'trackerDevice.latestPositionTime.label', default: 'Latest Position Time')}" />
+						<g:sortableColumn property="icon" title="${message(code: 'trackerDevice.icon.label', default: 'Icon')}" />
 					</tr>
 				</thead>
 				<tbody>
@@ -36,8 +37,9 @@
 						<td><g:link action="show" id="${trackerDeviceInstance.id}">${fieldValue(bean: trackerDeviceInstance, field: "udid")}</g:link></td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "status")}</td>
-						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</td>
+						<td><g:link controller="trackerPosition" action="show" id="${trackerDeviceInstance.latestPositionId}">${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</g:link></td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionTime")}</td>
+						<td>${fieldValue(bean: trackerDeviceInstance, field: "icon")}</td>
 					</tr>
 				</g:each>
 				</tbody>

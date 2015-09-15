@@ -11,7 +11,7 @@
 		<a href="#show-trackerDevice" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
-				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
+				<li><a class="home" href="${createLink(uri: '/admin')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
 			</ul>
@@ -42,12 +42,20 @@
 					<span class="property-value" aria-labelledby="status-label"><g:fieldValue bean="${trackerDeviceInstance}" field="status"/></span>
 				</li>
 			
-				<g:if test="${trackerDeviceInstance?.latestPositionId}">
 				<li class="fieldcontain">
 					<span id="latestPositionId-label" class="property-label"><g:message code="trackerDevice.latestPositionId.label" default="Latest Position Id" /></span>
 					<span class="property-value" aria-labelledby="latestPositionId-label"><g:fieldValue bean="${trackerDeviceInstance}" field="latestPositionId"/></span>
 				</li>
-				</g:if>
+				
+				<li class="fieldcontain">
+					<span id="latestPositionTime-label" class="property-label"><g:message code="trackerDevice.latestPositionTime.label" default="Latest Position Time" /></span>
+					<span class="property-value" aria-labelledby="latestPositionTime-label"><g:fieldValue bean="${trackerDeviceInstance}" field="latestPositionTime"/></span>
+				</li>
+
+				<li class="fieldcontain">
+					<span id="icon-label" class="property-label"><g:message code="trackerDevice.icon.label" default="Icon" /></span>
+					<span class="property-value" aria-labelledby="icon-label"><g:fieldValue bean="${trackerDeviceInstance}" field="icon"/></span>
+				</li>
 			
 			</ol>
 			<g:form>

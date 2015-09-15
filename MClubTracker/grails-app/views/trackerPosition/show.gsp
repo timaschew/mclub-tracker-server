@@ -11,7 +11,7 @@
 		<a href="#show-trackerPosition" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
-				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
+				<li><a class="home" href="${createLink(uri: '/admin')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
 			</ul>
@@ -22,43 +22,6 @@
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
 			<ol class="property-list trackerPosition">
-			
-				<g:if test="${trackerPositionInstance?.extendedInfo}">
-				<li class="fieldcontain">
-					<span id="extendedInfo-label" class="property-label"><g:message code="trackerPosition.extendedInfo.label" default="Extended Info" /></span>
-					
-						<span class="property-value" aria-labelledby="extendedInfo-label"><g:fieldValue bean="${trackerPositionInstance}" field="extendedInfo"/></span>
-					
-				</li>
-				</g:if>
-			
-				<g:if test="${trackerPositionInstance?.address}">
-				<li class="fieldcontain">
-					<span id="address-label" class="property-label"><g:message code="trackerPosition.address.label" default="Address" /></span>
-					
-						<span class="property-value" aria-labelledby="address-label"><g:fieldValue bean="${trackerPositionInstance}" field="address"/></span>
-					
-				</li>
-				</g:if>
-			
-				<g:if test="${trackerPositionInstance?.altitude}">
-				<li class="fieldcontain">
-					<span id="altitude-label" class="property-label"><g:message code="trackerPosition.altitude.label" default="Altitude" /></span>
-					
-						<span class="property-value" aria-labelledby="altitude-label"><g:fieldValue bean="${trackerPositionInstance}" field="altitude"/></span>
-					
-				</li>
-				</g:if>
-			
-				<g:if test="${trackerPositionInstance?.course}">
-				<li class="fieldcontain">
-					<span id="course-label" class="property-label"><g:message code="trackerPosition.course.label" default="Course" /></span>
-					
-						<span class="property-value" aria-labelledby="course-label"><g:fieldValue bean="${trackerPositionInstance}" field="course"/></span>
-					
-				</li>
-				</g:if>
-			
 				<g:if test="${trackerPositionInstance?.deviceId}">
 				<li class="fieldcontain">
 					<span id="deviceId-label" class="property-label"><g:message code="trackerPosition.deviceId.label" default="Device Id" /></span>
@@ -67,7 +30,7 @@
 					
 				</li>
 				</g:if>
-			
+
 				<g:if test="${trackerPositionInstance?.latitude}">
 				<li class="fieldcontain">
 					<span id="latitude-label" class="property-label"><g:message code="trackerPosition.latitude.label" default="Latitude" /></span>
@@ -85,16 +48,14 @@
 					
 				</li>
 				</g:if>
-			
-				<g:if test="${trackerPositionInstance?.power}">
+				<g:if test="${trackerPositionInstance?.altitude}">
 				<li class="fieldcontain">
-					<span id="power-label" class="property-label"><g:message code="trackerPosition.power.label" default="Power" /></span>
+					<span id="altitude-label" class="property-label"><g:message code="trackerPosition.altitude.label" default="Altitude" /></span>
 					
-						<span class="property-value" aria-labelledby="power-label"><g:fieldValue bean="${trackerPositionInstance}" field="power"/></span>
+						<span class="property-value" aria-labelledby="altitude-label"><g:fieldValue bean="${trackerPositionInstance}" field="altitude"/></span>
 					
 				</li>
 				</g:if>
-			
 				<g:if test="${trackerPositionInstance?.speed}">
 				<li class="fieldcontain">
 					<span id="speed-label" class="property-label"><g:message code="trackerPosition.speed.label" default="Speed" /></span>
@@ -103,6 +64,42 @@
 					
 				</li>
 				</g:if>
+				<g:if test="${trackerPositionInstance?.course}">
+				<li class="fieldcontain">
+					<span id="course-label" class="property-label"><g:message code="trackerPosition.course.label" default="Course" /></span>
+					
+						<span class="property-value" aria-labelledby="course-label"><g:fieldValue bean="${trackerPositionInstance}" field="course"/></span>
+					
+				</li>
+				</g:if>
+				
+				<g:if test="${trackerPositionInstance?.power}">
+				<li class="fieldcontain">
+					<span id="power-label" class="property-label"><g:message code="trackerPosition.power.label" default="Power" /></span>
+					
+						<span class="property-value" aria-labelledby="power-label"><g:fieldValue bean="${trackerPositionInstance}" field="power"/></span>
+					
+				</li>
+				</g:if>				
+
+				<g:if test="${trackerPositionInstance?.address}">
+				<li class="fieldcontain">
+					<span id="address-label" class="property-label"><g:message code="trackerPosition.address.label" default="Address" /></span>
+					
+						<span class="property-value" aria-labelledby="address-label"><g:fieldValue bean="${trackerPositionInstance}" field="address"/></span>
+					
+				</li>
+				</g:if>
+
+				<g:if test="${trackerPositionInstance?.extendedInfo}">
+				<li class="fieldcontain">
+					<span id="extendedInfo-label" class="property-label"><g:message code="trackerPosition.extendedInfo.label" default="Extended Info" /></span>
+					
+						<span class="property-value" aria-labelledby="extendedInfo-label"><g:fieldValue bean="${trackerPositionInstance}" field="extendedInfo"/></span>
+					
+				</li>
+				</g:if>
+			
 			
 				<g:if test="${trackerPositionInstance?.time}">
 				<li class="fieldcontain">
