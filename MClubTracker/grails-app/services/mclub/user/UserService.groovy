@@ -10,7 +10,6 @@ import grails.transaction.Transactional
 import mclub.user.User
 import static mclub.user.AuthUtils.*;
 
-@Transactional
 class UserService {
 	
 	ConcurrentHashMap<String,UserSession> sessions = new ConcurrentHashMap<String,UserSession>();
@@ -21,21 +20,6 @@ class UserService {
 	
 	@PostConstruct
 	public void start(){
-		// add test user
-		/*
-		User.withTransaction {
-			User.executeUpdate('delete from User')
-		}
-		*/
-		/*
-		if(User.count() == 0){
-			User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(),avatar:'',settings:'');
-			if(!this.createUserAccount(u, "secret")){
-				log.error(u.errors);
-			}
-		}
-		*/
-		
 		// start the session check thread
 		runFlag = true;
 		sessionCleanupThread = java.util.concurrent.Executors.newFixedThreadPool(1);
@@ -59,6 +43,14 @@ class UserService {
 				}
 			}
 		});
+
+		// QUICK-AND-DIRTY solution: Perform a delay data initialize due to some dependency issues.
+		new Thread(new java.lang.Runnable(){
+			public void run(){
+				Thread.sleep(5000);
+				UserService.this.initUserData();
+			}
+		}).start();
 	
 		log.info("UserService initialized");
 	}
@@ -72,6 +64,22 @@ class UserService {
 		}
 		sessionCleanupThread = null;
 		log.info "UserService destroyed"
+	}
+	
+	@Transactional
+	public void initUserData(){
+		// add test user
+		/*
+		User.withTransaction {
+			User.executeUpdate('delete from User')
+		}
+		*/
+		if(User.count() == 0){
+			User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(),avatar:'',settings:'');
+			if(!this.createUserAccount(u, "secret")){
+				log.error(u.errors);
+			}
+		}
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////
