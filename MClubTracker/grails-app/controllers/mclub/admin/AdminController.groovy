@@ -37,12 +37,21 @@ class AdminController {
 		if(request.method == 'GET'){
 			return;
 		}
+		
 		if(!loginCommand.hasErrors()){
 			UserSession usession = userService.login(loginCommand.username, loginCommand.password);
 			if(usession){
 				user = User.findByName(usession.username);
 				session['user'] = user;
-				redirect action:'index';
+				if(user.type == User.USER_TYPE_ADMIN){
+					redirect action:'index';
+				}else if(user.type == User.USER_TYPE_USER){
+					redirect controller:'user', action:'password';
+				}else{
+					// invalid user!
+					session['user'] = null;
+					render text:"No permission";
+				}
 				return;
 			}else{
 				flash['message'] = "Login failed";
