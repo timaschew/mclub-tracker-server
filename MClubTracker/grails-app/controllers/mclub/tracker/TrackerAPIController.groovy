@@ -181,7 +181,7 @@ class TrackerAPIController {
 			return;
 		}
 		
-		// Check user session
+		// Check user session - FIXME - use filter
 		UserSession usession = null;
 		if(token){
 			usession = userService.checkSessionToken(token);
@@ -416,7 +416,7 @@ class TrackerAPIController {
 		}
 		
 		//  now performing login
-		String token = userService.login(username, password);
+		String token = userService.login(username, password)?.token;
 		if(token){
 			result = APIResponse.SUCCESS("Device registreed and login success");
 			result['token'] = token;
@@ -448,7 +448,7 @@ class TrackerAPIController {
 		}
 		
 		def result;
-		String token = userService.login(username, password);
+		String token = userService.login(username, password)?.token;
 		if(token){
 			// if udid is specified, save it and associate with current user.
 			if(udid){
@@ -474,6 +474,30 @@ class TrackerAPIController {
 		render result as JSON;
 	}
 	
+	/**
+	 * User API 
+	 * @param token
+	 * @return current user profiles
+	 */
+	def user(String token){
+//		// Session token is checked in the apiFilter
+		String username = request['session'].username;
+		User user = User.findByName(username);
+		if(user){
+			def u = [:]; 
+			u['name'] = user.name;
+			u['phone'] = user.phone;
+			u['displayName'] = user.displayName;
+			u['avatar'] = user.avatar;
+			u['settings'] = user.settings;
+			u['creationDate'] = user.creationDate;
+			def r = APIResponse.OK();
+			r['user'] = u;
+			render r as JSON;
+		}else{
+			render [:] as JSON;
+		}
+	}
 	
 	/**
 	 * API Response wrapper
