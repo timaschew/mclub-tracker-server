@@ -22,7 +22,15 @@ class AdminController {
 		User user = session['user'];
 		if(user){
 			// we're done!
-			redirect action:'index';
+			if(user.type == User.USER_TYPE_ADMIN){
+				redirect action:'index';
+			}else if(user.type == User.USER_TYPE_USER){
+				redirect controller:'user', action:'password';
+			}else{
+				// invalid user!
+				session['user'] = null;
+				render text:"No permission";
+			}
 			return;
 		}
 		
