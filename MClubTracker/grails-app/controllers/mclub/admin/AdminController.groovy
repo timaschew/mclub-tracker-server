@@ -13,13 +13,26 @@ class AdminController {
 	}
 	
 	def login(LoginCommand loginCommand){
+		if(params.logout){
+			session['user'] = null;
+			redirect action:'index';
+			return;	
+		}
+		
+		User user = session['user'];
+		if(user){
+			// we're done!
+			redirect action:'index';
+			return;
+		}
+		
 		if(request.method == 'GET'){
 			return;
 		}
 		if(!loginCommand.hasErrors()){
 			UserSession usession = userService.login(loginCommand.username, loginCommand.password);
 			if(usession){
-				User user = User.findByName(usession.username);
+				user = User.findByName(usession.username);
 				session['user'] = user;
 				redirect action:'index';
 				return;

@@ -4,6 +4,7 @@ package mclub.user
 
 import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
+import grails.validation.Validateable
 
 @Transactional(readOnly = true)
 class UserController {
@@ -54,6 +55,48 @@ class UserController {
         respond userInstance
     }
 
+	/**
+	 * Update user password
+	 * @param oldPassword
+	 * @param newPassword1
+	 * @param newPassword2
+	 * @return
+	 */
+	def password(PasswordChangeCommand passwordChangeCommand){
+		User user = session['user'];
+		if(!user){
+			log.error("SECURITY ISSUE - User access the change password page without any session credentials, check filter settings!");
+			//flash['message'] = "Not logged in";
+			render text:"error occured"
+			return;
+		}
+
+		if(request.method == 'GET'){
+			return;
+		}
+		
+		if(passwordChangeCommand.hasErrors()){
+			render(view:"password", model: [passwordChangeCommand: passwordChangeCommand])
+			return;
+		}
+
+		if(!passwordChangeCommand.newPassword1.equals(passwordChangeCommand.newPassword2)){
+			flash['message'] = "Password not changed, the new passwords you typed in are mismatch!";
+			//render(view:"password", model: [passwordChangeCommand: passwordChangeCommand])
+			render(view:"password");
+			return;
+		}
+		// validate old password
+		
+		def updatedUser = userService.updateUserPassword(user.name,passwordChangeCommand.oldPassword, passwordChangeCommand.newPassword1);
+		if(updatedUser){
+			//update success
+			flash['message'] = 'Update Password SUCCESS!';
+		}else{
+			flash['message'] = 'Update Password FAILED!';
+		}
+	}
+	
     @Transactional
     def update(User userInstance) {
         if (userInstance == null) {
@@ -105,4 +148,19 @@ class UserController {
             '*'{ render status: NOT_FOUND }
         }
     }
+	
+}
+
+
+@Validateable
+class PasswordChangeCommand{
+	String oldPassword;
+	String newPassword1;
+	String newPassword2;
+	
+	static constraints = {
+		oldPassword size: 5..15, blank: false
+		newPassword1 size: 5..15, blank: false
+		newPassword1 size: 5..15, blank: false
+	}
 }

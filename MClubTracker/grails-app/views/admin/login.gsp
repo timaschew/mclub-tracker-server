@@ -25,8 +25,8 @@
 			</g:hasErrors>
 			<g:form method="post" >
 				<fieldset class="form">
-					<div class="fieldcontain ${hasErrors(bean: loginCommand, field: 'password', 'error')} ">
-						<label for="password">
+					<div class="fieldcontain ${hasErrors(bean: loginCommand, field: 'username', 'error')} ">
+						<label for="username">
 							<g:message code="login.username.label" default="Username" />
 						</label>
 						<g:textField name="username" value="${loginCommand?.username}"/>
@@ -36,7 +36,7 @@
 						<label for="password">
 							<g:message code="login.password.label" default="Password" />
 						</label>
-						<g:textField name="password" value="${loginCommand?.password}"/>
+						<g:passwordField name="password" value="${loginCommand?.password}"/>
 					</div>
 				</fieldset>
 				<fieldset class="buttons">

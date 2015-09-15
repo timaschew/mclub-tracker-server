@@ -79,6 +79,7 @@ class UserService {
 			if(!this.createUserAccount(u, "secret")){
 				log.error(u.errors);
 			}
+			log.info("User data initialized");
 		}
 	}
 	
@@ -158,6 +159,32 @@ class UserService {
 			// no user found
 			return null;
 		}
+	}
+	
+	public User updateUserPassword(String username, String oldpassword, String newpassword){
+		User user = User.findByName(username);
+		if(!user) return null;
+		
+		if(!user.passwordHash.equals(hashPassword(oldpassword,user.passwordSalt))){
+			// oldpassword mismatch
+			log.warn("User ${username} failed to change the password due to incorrect old passwords");
+			return null;
+		}
+		
+		if(oldpassword.equals(newpassword)){
+			// not chaning the password because they're same
+			return null;
+		}
+		
+		// really update the password
+		user.passwordHash = AuthUtils.hashPassword(newpassword,user.passwordSalt);
+		if(!user.save(flush:true)){
+			//TODO - update user change password timestamp;
+			log.error("Error updating user password, " + user.errors)
+			return null;
+		}
+		
+		return user;
 	}
 
 	/**
