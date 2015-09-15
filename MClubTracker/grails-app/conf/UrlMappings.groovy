@@ -10,8 +10,19 @@ class UrlMappings {
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
 		}
+	
+		"/admin/user/$action/$id?"(controller:"user"){
+			
+		}
+		"/admin/device/$action/$id?"(controller:"trackerDevice"){
+		
+		}
+		"/admin/position/$action/$id?"(controller:"trackerPosition"){
+		
+		}
 
-		"/admin"(view:"/admin")
+		//"/admin"(controller:"admin",action:"index")
+		
 		"/"(view:"/index")
 		"500"(view:'/error')
 	}

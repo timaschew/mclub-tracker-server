@@ -27,14 +27,14 @@ class UserService {
 			User.executeUpdate('delete from User')
 		}
 		*/
-		User.withTransaction {
-			if(User.count() == 0){
-				User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(),avatar:'',settings:'');
-				if(!this.createUserAccount(u, "secret")){
-					log.error(u.errors);
-				}
+		/*
+		if(User.count() == 0){
+			User u = new User(name:'admin', phone:'0001', type:User.USER_TYPE_ADMIN, creationDate:new java.util.Date(),avatar:'',settings:'');
+			if(!this.createUserAccount(u, "secret")){
+				log.error(u.errors);
 			}
 		}
+		*/
 		
 		// start the session check thread
 		runFlag = true;
@@ -47,7 +47,7 @@ class UserService {
 						long t = System.currentTimeMillis();
 						for(String key in keys){
 							UserSession us = sessions.get(key);
-							if(isSessionExpired(us,t)){
+							if(UserService.this.isSessionExpired(us,t)){
 								// session expired;
 								sessions.remove(key);
 								log.info("Session ${key} expired")
@@ -101,7 +101,7 @@ class UserService {
 	 * Login user with username/password pair
 	 * @return session token if auth succeed
 	 */
-	public String login(String username, String password){
+	public UserSession login(String username, String password){
 		// search user by phone
 		// compare passwordHash with md5(password*hash)
 		// if success, generate session credential with md5(phone*hash)
@@ -125,14 +125,14 @@ class UserService {
 				UserSession usession = generateUserSession(user);
 				sessions.put(usession.token, usession);
 				log.debug("generated session token: ${usession.token}")
-				return usession.token;
+				return usession.cloneone();
 			}else{
 				log.info("User ${username} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
 			}
 		}else{
 			log.info("User ${username} not found");
 		}
-		return "";
+		return null;
 	}
 
 	
@@ -140,7 +140,7 @@ class UserService {
 	 * Login user with username/password pair
 	 * @return session token if auth succeed
 	 */
-	public String loginWithPhone(String phone, String password){
+	public UserSession loginWithPhone(String phone, String password){
 		// search user by phone
 		User user = User.findByPhone(phone);
 		if(user){
@@ -148,7 +148,7 @@ class UserService {
 			return login(username,password);
 		}else{
 			// no user found
-			return "";
+			return null;
 		}
 	}
 
