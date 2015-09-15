@@ -11,13 +11,20 @@ class SecurityFilters {
 				if(controllerName?.equals('admin') && actionName?.equals('login')){
 					return true;
 				}
+				
 				User user = session['user'];
-				if(user && user.type == User.USER_TYPE_ADMIN){
-					return true;
-				}else{
+				if(!user){
 					redirect(controller:'admin', action:'login');
 					return false;
 				}
+				
+				// for change password, allows normal users
+				if(controllerName?.equals('user') && actionName?.equals('password') && user.type == User.USER_TYPE_USER){
+					return true
+				}else if(user.type == User.USER_TYPE_ADMIN){
+					return true;
+				}
+				return false;
 			}
 		} // admin filter
 		
