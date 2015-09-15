@@ -307,6 +307,12 @@ public class AprsReceiver {
 					}
 					
 					Position pos = ((PositionPacket)info).getPosition();
+					if(pos.getLatitude() == 0 && pos.getLongitude() == 0){
+						// Invalid 0,0 position received, this might be caused by some broken APRS devices
+						log.info("Invalid APRS packet position [0,0]: " + (pack == null?"null":pack.getOriginalString()));
+						return null;
+					}
+					
 					positionData.setLatitude(pos.getLatitude());
 					positionData.setLongitude(pos.getLongitude());
 					positionData.setAltitude(new Double(pos.getAltitude()));
