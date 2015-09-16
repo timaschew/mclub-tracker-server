@@ -176,42 +176,27 @@ class TrackerAPIController {
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String aprscall, String message, Integer messageType){
+	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String message, Integer messageType){
 		if(!lat || !lon){
 			render APIResponse.ERROR("Missing parameters: lat, lon") as JSON
 			return;
 		}
 		
 		// Check user session - FIXME - use filter
-		UserSession usession = null;
-		if(token){
-			usession = userService.checkSessionToken(token);
-		}
+		UserSession usession = request['session'];
 		if(!usession){
-			log.debug("update_position rejected due to session expired");
+			log.warn("Session not found in request, check SecurityFilter configurations!")
 			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
 			return;
-		}
-		
+		}		
 		String username = usession.username;
 		
-		// extract aprs if found
-		boolean isAprs = false;
-		if(!username && aprscall){
-			String[] aprs = mclub.user.AuthUtils.extractAPRSCall(aprscall);
-			if(aprs != null){
-				username = aprs[0];
-				udid = aprscall; // replace the udid with aprscall like "BG5HHP-12"
-				isAprs = true;
-				log.info("APRS position ${aprscall}");
-			}
-		}
 		if(!udid){
 			render APIResponse.ERROR("Missing parameters: udid") as JSON
 			return;
 		}
-		//token/call -> username -> device -> position
 		
+		//token/call -> username -> device -> position
 		PositionData pos = new PositionData();
 		pos.username = username;
 		pos.udid = udid;
@@ -238,37 +223,13 @@ class TrackerAPIController {
 		}
 		pos.valid = true;
 		pos.extendedInfo['protocol'] = 'http_api';
-		if(isAprs){
-			pos.aprs = true;
-		}
+		
 		pos.coordinateType = coordinateType;
 		trackerDataService.updateTrackerPosition(pos);
 		
 		render APIResponse.OK() as JSON
 	}
 	
-	/*
-	 {
-	   "type": "Feature",
-	   "properties": {
-		 "id": "ire3k295",
-		 "title": "Cornell University",
-		 "description": "<div style=\"width:330px;height:240px;overflow:auto\"><div class=\"googft-info-window\" style=\"font-family:sans-serif\"> <b>Governmental Body/Entity:</b> Cornell University<br><p> <b>Type of Drone:</b> University Built (One-Third Scale Piper Cub) UAS</p><p><b>Status:</b> Expired</p><p> <b>General Location of Drone Activity:</b> Aurora, NY</p><p> <b>Stated objective/purpose of COA:</b> The purpose of the proposed UAV flights in this COA is to develop and use experimentally, a system to vertically profile the atmosphere from 300 ft agl to 3000 ft agl.  The UAV payload will be instrumentation to continuously measure temperature, relative humidity, wind speed and wind direction as the UAV spirals vertically from 300 ft agl to 3000 ft agl and back down to 300 ft agl.  The UAV will maintain a GPS controlled circle with a 1500 ft diameter utilizing a Micropilot 1028 autopilot.  The climb rate will be 150 ft/min and the duration of the flight will be approximately 40 min. This system will replace the release of helium filled balloons with radio equipped weather packages and the use of tethered blimps utilized to lift weather instrumentation into the lower atmosphere.   An UAV mounted system is superior because the helium filled free flying balloons rise through the lower 3000 ft of the atmosphere too quickly for accurate weather data.  The tethered blimps have a FAA imposed altitude restriction of 1000-1500 ft due to their danger to aircraft and the inability of the operators to react quickly enough to avoid full scale aircraft.  In contrast, a UAV mounted system can spiral up to 3000 ft in a relatively short time period, yielding high quality weather measurements and can quickly be diverted to avoid full scale aircraft which enter into the area of UAV flights.</p><p> <b>Effective Dates:</b> 3/1/2010-2/28/2011</p><p> <b>Comments:</b> </p><p><b>Link to Records:</b> <a href=\"https://www.eff.org/document/cornell-university-drone-records\" target=\"_blank\">https://www.eff.org/document/cornell-university-drone-records</a></p> </div></div>",
-		 "marker-color": "#00bcce",
-		 "marker-size": "medium",
-		 "marker-symbol": "airport",
-		 "marker-zoom": ""
-	   },
-	   "geometry": {
-		 "type": "Point",
-		 "coordinates": [
-		   -76.702448,
-		   42.753959
-		 ]
-	   },
-	   "id": "ci9bzhum74haejrlvrn7i8fep"
-	 }
-	 */
 	/**
 	 * Returns the geojson of device position
 	 * @param udid
