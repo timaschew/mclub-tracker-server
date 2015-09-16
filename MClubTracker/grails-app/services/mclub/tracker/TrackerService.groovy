@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Map;
 
 import grails.converters.JSON;
+import grails.validation.Validateable
 
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
@@ -33,12 +34,9 @@ class TrackerService {
 //		}
 
 		if(TrackerDevice.count() == 0){
-			def device;
-			TrackerDevice.withTransaction {
-				// load initial data
-				device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
-				device.save(flush:true);
-			}
+			def device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
+			device.save(flush:true);
+			
 			//30.28022, 120.11774
 			// mock device position
 			trackerDataService.addPosition(new TrackerPosition(
@@ -75,8 +73,6 @@ class TrackerService {
 					speed:30,
 					course:182
 					));
-
-			// Test the traccar database
 		}
 	}
 
@@ -126,48 +122,15 @@ class TrackerService {
 	/////////////////////////////////////////////////////////////////
 	// GEOJSON/JSON Data builder
 	/////////////////////////////////////////////////////////////////
-	/**
-	 * 
-	 * @param pos
-	 * @return
-	 */
-	public Map<String,Object> buildDevicePositionGeojsonData(String udid){
-		// TODO - optimize out the query
-		TrackerDevice device = TrackerDevice.findByUdid(udid);
-		if(!device){
-			// no such device
-			return [:];
-		}
-		return buildDevicePositionGeojsonData(device);
-	}
-	
-	
-	/**
-	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
-	 * @param device
-	 * @return
-	 */
-	public Map<String,Object> buildDevicePositionGeojsonData(TrackerDevice device){
-		def featureCollection = [:];
+	public Map<String,Object> listDeviceFeatureCollection(DeviceFilterCommand filter){
+		def devices = filterTrackerDevices(filter);
 		
-		featureCollection['type'] = 'FeatureCollection';
-		featureCollection['id'] = 'mclub_tracker_livepositions';
-		
-		def features = [];
-		def dfeatures = buildDevicePositionGeojsonFeatures(device);
-		if(dfeatures)features.addAll(dfeatures);
-		featureCollection['features'] = features;
-		
-		return featureCollection;
-	}
-	
-	public Map<String, Object> buildAllDevicePositionGeojsonData(){
-		def devices = TrackerDevice.list();
 		def featureCollection = [:];
 		def features = [];
 		devices?.each{ dev->
-			def dfeatures = buildDevicePositionGeojsonFeatures(dev);
-			if(dfeatures) features.addAll(dfeatures);
+			def dfeatures = buildDeviceFeatures(dev);
+			if(dfeatures)
+				features.addAll(dfeatures);
 		}
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
@@ -177,13 +140,80 @@ class TrackerService {
 		return featureCollection;
 	}
 	
+	private Collection<TrackerDevice> filterTrackerDevices(DeviceFilterCommand cmd){
+		if("all".equalsIgnoreCase(cmd.udid)){
+			cmd.udid = null;
+		}
+		
+		if(cmd.activeTime == null){
+			// by default we'll only show active positions in last 30 minutes
+			Integer maximumShowPositionInterval = trackerDataService.getConfig("tracker.maximumShowPositionInterval");
+			if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+			cmd.activeTime = new java.util.Date(System.currentTimeMillis() - maximumShowPositionInterval);
+		}
+		
+		def c = TrackerDevice.createCriteria();
+		def devs = c.list{
+			gt('latestPositionTime',cmd.activeTime)
+			and{
+				if(cmd.udid){
+					ilike('udid',"${cmd.udid}%")
+				}
+				if(cmd.type != null){
+					eq('status', cmd.type)
+				}
+			}
+		}
+		
+		//TODO - filter on lat/lon
+		return devs;
+	}
+	
+	/**
+	 * 
+	 * @param pos
+	 * @return
+	 */
+	public Map<String,Object> getDeviceFeatureCollection(String udid){
+		// TODO - optimize out the query
+		TrackerDevice device = TrackerDevice.findByUdid(udid);
+		if(!device){
+			// no such device
+			return [:];
+		}
+		return getDeviceFeatureCollection(device);
+	}
+	
+	/**
+	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
+	 * @param device
+	 * @return
+	 */
+	public Map<String,Object> getDeviceFeatureCollection(TrackerDevice device){
+		def featureCollection = [:];
+		
+		featureCollection['type'] = 'FeatureCollection';
+		featureCollection['id'] = 'mclub_tracker_livepositions';
+		
+		def features = [];
+		def dfeatures = buildDeviceFeatures(device);
+		if(dfeatures)features.addAll(dfeatures);
+		featureCollection['features'] = features;
+		
+		return featureCollection;
+	}
+	
 	/**
 	 * Load device features from db
 	 * @param device
 	 * @return
 	 */
-	private Collection<Object> loadDeviceFeatures(TrackerDevice device, TrackerPosition pos){
+	private Collection<Object> loadDeviceFeatures(TrackerDevice device){
 		def deviceFeatures = [];
+		
+		if(!device || !device.latestPositionId){
+			return deviceFeatures;
+		}
 		
 		def markerFeatureProperties = [
 			//'id':"fp_${device.id}",
@@ -236,14 +266,17 @@ class TrackerService {
 			}
 		}
 		
-		// speed/course is the common properties
+		// load speed/course from latest position
+		TrackerPosition pos = TrackerPosition.load(device.latestPositionId);
+		if(!pos) return deviceFeatures; // empty result
+		
 		if(pos.speed && pos.speed >=0){
 			markerFeatureProperties['speed'] = pos.speed;
 		}
 		if(pos.course && pos.course >=0){
 			markerFeatureProperties['course'] = pos.course;
 		}
-
+		
 		// Add extended info
 		if(pos.getExtendedInfo()){
 			def extendedInfo = JSON.parse(pos.getExtendedInfo());
@@ -262,8 +295,7 @@ class TrackerService {
 		if(pos.message){
 			markerFeatureProperties['message'] = pos.message;
 		}
-		
-		// Timestamp is formatted in Chinese style with GMT+8. 
+		// Timestamp is formatted in Chinese style with GMT+8.
 		String sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(pos.time);
 		markerFeatureProperties['timestamp'] = sTime;
 		
@@ -282,11 +314,11 @@ class TrackerService {
 				coordinate = [pos.longitude, pos.latitude];
 				break;
 		}
-				
+		
 		// round to xx.yyyyyy
 		coordinate[0] = Math.round(coordinate[0] * 1000000)/1000000.0
 		coordinate[1] = Math.round(coordinate[1] * 1000000)/1000000.0
-
+		
 		def markerFeatureGeometry = [
 			"type": "Point",
 			"coordinates": coordinate
@@ -399,16 +431,11 @@ class TrackerService {
 	 * @param device
 	 * @return
 	 */
-	public Collection buildDevicePositionGeojsonFeatures(TrackerDevice device /*, Map<String,Object> feature_properties_template*/){
-		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
-		if(!pos){
-			return null;
-		}
-		
-		// check whether position is expired
+	private Collection buildDeviceFeatures(TrackerDevice device){
+		// check whether position is expired - DUPLICATED!
 		Integer maximumShowPositionInterval = trackerDataService.getConfig("tracker.maximumShowPositionInterval");
 		if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
-		if((System.currentTimeMillis() - pos.time.time) > maximumShowPositionInterval){
+		if((System.currentTimeMillis() - device.latestPositionTime?.time) > maximumShowPositionInterval){
 			// evict expired device features from cache and returns null;
 			trackerCacheService.removeDeviceFeature(device.udid);
 			return null;
@@ -417,7 +444,7 @@ class TrackerService {
 		//load from cache first
 		Collection<Object> features = trackerCacheService.getDeviceFeature(device.udid);
 		if(!features){
-			Collection<Object> f = loadDeviceFeatures(device,pos);
+			Collection<Object> f = loadDeviceFeatures(device);
 			if(f){
 				// the cache returns the true features, see implementations inside.
 				features = trackerCacheService.cacheDeviceFeature(device.udid, f);
@@ -432,14 +459,14 @@ class TrackerService {
 	 * @param position
 	 * @return
 	 */
-	public Map<String,Object> buildDevicePositionJsonData(String udid){
+	public Map<String,Object> getDeviceJsonData(String udid){
 		// TODO - optimize out the query
 		TrackerDevice device = TrackerDevice.findByUdid(udid);
 		if(!device){
 			// no such device
 			return [:];
 		}
-		return buildDevicePositionJsonData(device);
+		return getDeviceJsonData(device);
 	}
 	
 	/**
@@ -447,7 +474,7 @@ class TrackerService {
 	 * @param udid
 	 * @return
 	 */
-	public Map<String,Object> buildDevicePositionJsonData(TrackerDevice device){
+	public Map<String,Object> getDeviceJsonData(TrackerDevice device){
 		def values = [:]
 
 		values['udid'] = device.udid;
@@ -490,3 +517,16 @@ class TrackerService {
 		return "tk-${device.id}"
 	}
 }
+
+@Validateable(nullable=true)
+public class DeviceFilterCommand{
+	static constraints = {
+		udid blank:false, nullable:false
+	}
+	String udid;
+	Integer type;
+	Double lat1,lon1,lat2,lon2;
+	Date activeTime;
+}
+
+

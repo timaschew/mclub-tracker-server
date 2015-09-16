@@ -90,8 +90,9 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		boolean pushAllDataOnConnected = false;
 		if(pushAllDataOnConnected){
 			// push all tracker nodes
-			def val = getTrackerService().buildAllDevicePositionGeojsonData();
-			def txt = val as JSON;
+			def filter = new DeviceFilterCommand(udid:'all');
+			def featureCollection = getTrackerService().listDeviceFeatureCollection(filter);
+			def txt = featureCollection as JSON;
 			try{
 				clientSession.basicRemote.sendText(txt.toString());
 			}catch(Exception e){
@@ -152,9 +153,9 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		def val;
 		
 		if(true/*geojson*/)
-			val = getTrackerService().buildDevicePositionGeojsonData(position.udid);
+			val = getTrackerService().getDeviceFeatureCollection(position.udid);
 		else
-			val = getTrackerService().buildDevicePositionJsonData(position);
+			val = getTrackerService().getDeviceJsonData(position.udid);
 		
 		def txt = val as JSON;
 		for(Session session : sessions.values()){

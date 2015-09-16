@@ -23,6 +23,7 @@ class TrackerDevice {
 		udid index:'idx_trackerdevice_udid'
 		username index:'idx_trackerdevice_username'
 		status index:'idx_trackerdevice_status'
+		latestPositionTime index:'idx_trackerdevice_lastpositiontime'
 	}
 	
 	String udid; // the unique device id, could be IMEI or callsign or manual assigned devices;

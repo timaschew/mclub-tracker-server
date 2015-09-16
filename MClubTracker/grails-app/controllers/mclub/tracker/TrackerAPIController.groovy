@@ -2,6 +2,7 @@ package mclub.tracker
 import java.util.Map;
 
 import grails.converters.JSON
+import mclub.tracker.DeviceFilterCommand
 import mclub.user.User
 import mclub.user.UserService;
 import mclub.user.UserService.UserSession
@@ -273,37 +274,17 @@ class TrackerAPIController {
 	 * @param udid
 	 * @return FeatureCollection in GeoJSON of the desired devices latest position.
 	 */
-	def geojson(String udid){
-		if(!udid){
-			udid = params.id
+	def geojson(DeviceFilterCommand filter){
+		if(filter.udid == null && params.id){
+			filter.udid = params.id;
+			filter.validate();
 		}
-		if(!udid){
-			render text:"Missing udid";
+		if(filter.hasErrors()){
+			render text:"Invalid parameters";
 			return;
 		}
 		
-		def devices = [];
-		if(udid.equals("all")){
-			devices  = TrackerDevice.list();
-		}else{
-			def devs = TrackerDevice.findAllByUdidLike("${udid}%");
-			if(devs?.size() > 0) devices.addAll(devs); 
-		}
-		
-		def featureCollection = [:];
-		
-		def features = [];
-		devices?.each{ dev->
-			def dfeatures = trackerService.buildDevicePositionGeojsonFeatures(dev);
-			if(dfeatures)
-				features.addAll(dfeatures);
-		}
-		if(!features.isEmpty()){
-			featureCollection['type'] = 'FeatureCollection';
-			featureCollection['features'] = features; 
-			featureCollection['id'] = 'mclub_tracker_livepositions';
-		}
-		
+		def featureCollection = trackerService.listDeviceFeatureCollection(filter);
 		// Allow browser XSS
 		response.setHeader('Access-Control-Allow-Origin',"*")
 		response.setHeader('X-Powered-By', "BG5HHP")
@@ -330,12 +311,12 @@ class TrackerAPIController {
 			// load all tracker's latest positions
 			def devices = TrackerDevice.list();
 			devices?.each{ dev->
-				allDevicePositions << trackerService.buildDevicePositionJsonData(dev);
+				allDevicePositions << trackerService.getDeviceJsonData(dev);
 			}
 		}else{
 			TrackerDevice dev = TrackerDevice.findByUdid(udid);
 			if(dev){
-				allDevicePositions << trackerService.buildDevicePositionJsonData(dev);
+				allDevicePositions << trackerService.getDeviceJsonData(dev);
 			}
 		}
 		
