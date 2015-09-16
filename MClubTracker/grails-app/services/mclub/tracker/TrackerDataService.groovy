@@ -117,6 +117,9 @@ class TrackerDataService {
 		// Update frequency check 
 		Integer timeInterval = (Integer)getConfig("tracker.minimalPositionUpdateInterval");
 		if(!timeInterval) timeInterval = 5000L;
+		if(positionData.messageType!= null && positionData.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
+			timeInterval = 500; // for emergency messages, threshold set to 0.5s
+		}
 		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < timeInterval)){
 			// update too frequently.
 			log.warn("Device ${device.udid} update location too frequently, last update time: ${device.latestPositionTime}, ignored");
