@@ -161,8 +161,7 @@ class TrackerAPIController {
 	
 	private Map<String,Object> convertToTrackValues(String deviceUniqueId, TrackerTrack t){
 		return [
-			//FIXME - use deviceId may cause XSS !!!
-			'deviceId':deviceUniqueId.encodeAsHTML(),
+			'deviceId':deviceUniqueId,
 			'title':t.title,
 			'beginDate':t.beginDate.time,
 			'endDate':t.endDate.time,
