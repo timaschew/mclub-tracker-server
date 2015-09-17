@@ -57,6 +57,10 @@ grails.project.dependency.resolution = {
 		
 		compile 'io.netty:netty:3.6.3.Final'
 		
+		compile ('org.atmosphere:nettosphere:2.0.0.RC4'){
+			excludes "slf4j-api","logback-core","logback-classic","geronimo-servlet_3.0_spec"
+		}
+		
 		/*
 		compile ('commons-httpclient:commons-httpclient:3.1'){
 			excludes "commons-codec","commons-logging"
@@ -86,13 +90,14 @@ plugins {
         // plugins needed at runtime but not for compilation
 		runtime ':hibernate:3.6.10.19' // ':hibernate4:4.3.8.1' for Hibernate 4
         runtime ":database-migration:1.4.0"
-        runtime ":jquery:1.11.0.2"
-        runtime ":resources:1.2.8"
+        runtime ":resources:1.2.14"
+		runtime ":jquery:1.11.1"
         // Uncomment these (or add new ones) to enable additional resources capabilities
         //runtime ":zipped-resources:1.0.1"
         //runtime ":cached-resources:1.1"
         //runtime ":yui-minify-resources:0.1.5"
-//		compile ":gwt:0.8"
+//		runtime ':adminlte-ui:0.1.0'
+		
 		compile ":quartz:1.0.2"
     }
 }
