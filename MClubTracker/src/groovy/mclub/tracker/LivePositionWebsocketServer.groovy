@@ -153,7 +153,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		def val;
 		
 		if(true/*geojson*/)
-			val = getTrackerService().getDeviceFeatureCollection(position.udid);
+			val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
 		else
 			val = getTrackerService().getDeviceJsonData(position.udid);
 		

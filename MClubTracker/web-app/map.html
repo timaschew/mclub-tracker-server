@@ -3,7 +3,7 @@
     
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
         <meta name="screen-orientation" content="portrait">
         <meta name="x5-orientation" content="portrait">
         <title>
@@ -165,32 +165,55 @@
 
                 var LineStringRender = {
                     lineStringsMap: {},
+                    createLine: function(points){
+                        var polylineoptions = {
+                        	path: points,
+                            strokeColor: "#3366FF", 
+                            strokeOpacity: 1,       
+                            strokeWeight: 5,        
+                            strokeStyle: "solid",   
+                            strokeDasharray: [10, 5]
+                        };
+                    	return new AMap.Polyline(polylineoptions);
+                    },
+                    
                     render: function(points, tag) {
                         if (points.length == 0) {
                             return;
                         };
                         var polyline;
-                        var polylineoptions = {
-                            path: points,          
-                            strokeColor: "#3366FF", 
-                            strokeOpacity: 1,       
-                            strokeWeight: 5,        
-                            strokeStyle: "solid",   
-                            strokeDasharray: [10, 5] 
-                        };
                         if (typeof tag == "undefined" || typeof this.lineStringsMap[tag] == "undefined") {
-                            polyline = new AMap.Polyline(polylineoptions);
+                            polyline = this.createLine(points);
                             polyline.setMap(map);
                             if (tag) {
                                 this.lineStringsMap[tag] = polyline;
                             };
-                            
                         } else {
                             polyline = this.lineStringsMap[tag];
                             polyline && polyline.setOptions(polylineoptions);
                         }
                         //map.setFitView();
                         return polyline;
+                    },
+                    
+                    append: function(point, tag){
+                    	if (typeof tag == "undefined"){
+                    		return;
+                    	}
+                    	var path = new Array(point);
+                    	var polyline = this.lineStringsMap[tag];
+                    	if(typeof polyline == "undefined"){
+                    		polyline = this.createLine(path);
+                    		polyline.setMap(map);
+                    		this.lineStringsMap[tag] = polyline;
+                    	}else{
+                    		//path = path.concat(polyline.getPath());
+                    		path = polyline.getPath();
+                    		path.unshift(point);
+                    		polyline.setPath(path);
+                    	}
+                    	//path.unshift(point); // append current point to the top element of path array
+                    	//polyline.show();
                     },
                 }
 
@@ -298,6 +321,24 @@
                         };
                     };
                 };
+                
+                
+                
+                var updateGEOJSON = function(geojson) {
+                    if ("FeatureCollection" === geojson["type"]) {
+                        for (var i = 0; i < geojson.features.length; i++) {
+                            var feature = geojson.features[i];
+                            var tag = feature['properties']['udid'];
+                            if ("Point" === feature['geometry']['type']) {
+                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
+                                setupCustomMarker(marker, feature);
+                                
+                                // update the line
+                                LineStringRender.append(feature['geometry']['coordinates'],tag)
+                            }
+                        };
+                    };
+                };
 
                 var connectService = function(){
                     var wsUri = serviceURL;
@@ -309,8 +350,8 @@
                         // alert("DISCONNECTED"); 
                     };
                     websocket.onmessage = function(e) { 
-                        var udid = ($.parseJSON(e.data))["udid"];
-                        parseGEOJSON($.parseJSON(e.data));
+                        //parseGEOJSON($.parseJSON(e.data));
+                        updateGEOJSON($.parseJSON(e.data))
                         //websocket.close(); 
                     };
                     websocket.onerror = function(e) { 

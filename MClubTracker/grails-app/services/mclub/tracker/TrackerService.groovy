@@ -176,47 +176,62 @@ class TrackerService {
 	 * @param pos
 	 * @return
 	 */
-	public Map<String,Object> getDeviceFeatureCollection(String udid){
+	public Map<String,Object> getDeviceFeatureCollection(String udid,boolean includeLine){
 		// TODO - optimize out the query
 		TrackerDevice device = TrackerDevice.findByUdid(udid);
 		if(!device){
 			// no such device
 			return [:];
 		}
-		return getDeviceFeatureCollection(device);
+		return getDeviceFeatureCollection(device,includeLine);
 	}
+	
+//	/**
+//	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
+//	 * @param device
+//	 * @return
+//	 */
+//	public Map<String,Object> getDeviceFeatureCollection(TrackerDevice device){
+//		def featureCollection = [:];
+//		
+//		featureCollection['type'] = 'FeatureCollection';
+//		featureCollection['id'] = 'mclub_tracker_livepositions';
+//		
+//		def features = [];
+//		def dfeatures = buildDeviceFeatures(device);
+//		if(dfeatures)features.addAll(dfeatures);
+//		featureCollection['features'] = features;
+//		
+//		return featureCollection;
+//	}
 	
 	/**
 	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
 	 * @param device
+	 * @param includeLine
 	 * @return
 	 */
-	public Map<String,Object> getDeviceFeatureCollection(TrackerDevice device){
+	public Map<String,Object> getDeviceFeatureCollection(TrackerDevice device, boolean includeLine){
 		def featureCollection = [:];
 		
 		featureCollection['type'] = 'FeatureCollection';
 		featureCollection['id'] = 'mclub_tracker_livepositions';
 		
 		def features = [];
-		def dfeatures = buildDeviceFeatures(device);
-		if(dfeatures)features.addAll(dfeatures);
+		if(includeLine){
+			def dfeatures = buildDeviceFeatures(device);
+			if(dfeatures) features.addAll(dfeatures);
+		}else{
+			def mf = loadDeviceMarkerFeature(device);
+			if(mf) features.add(mf);
+		}
 		featureCollection['features'] = features;
 		
 		return featureCollection;
 	}
+
 	
-	/**
-	 * Load device features from db
-	 * @param device
-	 * @return
-	 */
-	private Collection<Object> loadDeviceFeatures(TrackerDevice device){
-		def deviceFeatures = [];
-		
-		if(!device || !device.latestPositionId){
-			return deviceFeatures;
-		}
-		
+	private Map<String,Object> loadDeviceMarkerFeature(TrackerDevice device){
 		def markerFeatureProperties = [
 			//'id':"fp_${device.id}",
 			'title':"tk-${device.udid}",
@@ -249,7 +264,8 @@ class TrackerService {
 		}else{
 			markerFeatureProperties['username'] = "unknown"; // no user associated ?
 		}
-
+		
+		
 		// Load marker symbol
 		if(device.icon){
 			if(device.status == TrackerDevice.DEVICE_TYPE_APRS){
@@ -270,7 +286,7 @@ class TrackerService {
 		
 		// load speed/course from latest position
 		TrackerPosition pos = TrackerPosition.load(device.latestPositionId);
-		if(!pos) return deviceFeatures; // empty result
+		if(!pos) return null; // empty result
 		
 		if(pos.speed && pos.speed >=0){
 			markerFeatureProperties['speed'] = pos.speed;
@@ -331,21 +347,11 @@ class TrackerService {
 			'properties':markerFeatureProperties,
 			'geometry' : markerFeatureGeometry,
 			];
-		
-		/*
-		 { "type": "Feature",
-		   "geometry": {
-			  "type": "LineString",
-			  "coordinates": [
-				[102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
-				]
-			  },
-			 "properties": {
-				"udid": "0001"
-			 }
-		   }
-		 */
-		
+
+		return markerFeature;
+	}
+	
+	private Map<String,Object> loadDeviceLineFeature(TrackerDevice device/*, Date time, Integer limit*/){
 		// Add line string feature, by default will load points that in 45 minutes ago and not exceeding 360 in total.
 		Integer minimalPositionUpdateInterval = (Integer)trackerDataService.getConfig("tracker.minimalPositionUpdateInterval");
 		if(!minimalPositionUpdateInterval) minimalPositionUpdateInterval = 5000L;
@@ -357,12 +363,8 @@ class TrackerService {
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:maxPointsOfLine]);
 		positions = shrinkTrackPositions(positions);
 		int positionCount = positions?.size();
-		 
-		// Add marker only when it contains valid positions
-		if(positionCount > 0){
-			deviceFeatures.add(markerFeature);
-		}
 		
+		def lineFeature = [:];
 		// Add line only when positions count >=4
 		if(positionCount >=4){
 			def lineCoordinates = [];
@@ -386,11 +388,36 @@ class TrackerService {
 			def lineFeatureProperties = [
 				'udid':"${device.udid}"
 			];
-			def lineFeature = [
+		
+			lineFeature = [
 				'type':'Feature',
 				'geometry':lineFeatureGeometry,
 				'properties':lineFeatureProperties
 			];
+		}
+		return lineFeature;
+	}
+	
+	/**
+	 * Load device features from db
+	 * @param device
+	 * @return
+	 */
+	private Collection<Object> loadDeviceFeatures(TrackerDevice device){
+		def deviceFeatures = [];
+		
+		if(!device || !device.latestPositionId){
+			return deviceFeatures;
+		}
+		
+		def markerFeature = loadDeviceMarkerFeature(device);
+		if(!markerFeature){
+			return deviceFeatures;
+		}
+		deviceFeatures.add(markerFeature);
+		
+		def lineFeature = loadDeviceLineFeature(device);
+		if(lineFeature){
 			deviceFeatures.add(lineFeature);
 		}
 		return deviceFeatures;
