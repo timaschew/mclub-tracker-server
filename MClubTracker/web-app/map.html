@@ -71,14 +71,14 @@
         <script type="text/javascript">
             $(function() {
 
-                var debug = false;
+                var debug = true;
                 
-                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/all";
-                var serviceURL = "ws://aprs2.mclub.to:20880/mtracker/live0";
+                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/all?type=2";
+                var serviceURL = "ws://aprs2.mclub.to:20880/mtracker/live0?type=2";
                 
                 if(debug){
-                    var dataURL = "http://localhost:8080/mclub/api/geojson/all";
-                    var serviceURL = "ws://localhost:8080/mclub/live0";
+                    var dataURL = "http://localhost:8080/mclub/api/geojson/all?type=2";
+                    var serviceURL = "ws://localhost:8080/mclub/live0?type=2";
                 }
                 
                 // http://bolt1.mclub.to:20880/mtracker/api/update_position?udid=0001&lat=39&lon=116

@@ -11,6 +11,7 @@ import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
 import javax.servlet.annotation.WebListener
 import javax.websocket.CloseReason
+import javax.websocket.EndpointConfig
 import javax.websocket.OnClose
 import javax.websocket.OnError
 import javax.websocket.OnMessage
@@ -31,7 +32,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	private static GrailsApplication grailsApplication;
 	
 	//FIXME - use session store instead of the static hash set
-	private static ConcurrentHashMap<String,Session> sessions = new ConcurrentHashMap<String,Session>();
+	private static ConcurrentHashMap<String,SessionEntry> sessions = new ConcurrentHashMap<String,Session>();
 	
 	private TrackerService getTrackerService(){
 		return grailsApplication?.getMainContext().getBean(TrackerService.class);
@@ -82,11 +83,30 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	
 
 	@OnOpen
-	public void handleOpen(Session clientSession) {
-		sessions.put(clientSession.getId(), clientSession);
+	public void handleOpen(Session clientSession, EndpointConfig config) {
+		SessionEntry sessionEntry = new SessionEntry();
+		sessionEntry.session = clientSession;
+		
+		Map<String,Object> params = clientSession.getRequestParameterMap();
+		if(params.size() > 0){
+			DeviceFilterCommand  filter = new DeviceFilterCommand();
+			if(params.get("udid")){
+				filter.udid = params.get("udid");
+			}
+			if(params.get("type")){
+				try{filter.type = params.get("type");}catch(Exception e){}
+			}
+			
+			if(filter.udid || filter.type){
+				sessionEntry.filter = filter;
+			}
+		}
+				
+		sessions.put(clientSession.getId(), sessionEntry);
 		log.debug "websocket session[${clientSession.id}] opened"
 		
 		//TODO read parameters from client
+		/*
 		boolean pushAllDataOnConnected = false;
 		if(pushAllDataOnConnected){
 			// push all tracker nodes
@@ -100,12 +120,15 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 				log.error(e);
 			}
 		}
+		*/
 	}
 	
 	@OnMessage
 	public String handleMessage(String message,Session clientSession) throws IOException {
 		log.debug "Received: " + message
 		return "echo [" + clientSession.getId() + "]"  + message;
+		
+		//TODO - read input as JSON and parse to {"filter":{"type":1,"udid":"xxxx"}};
 		/*
 		def myMsg=[:]
 		JSONBuilder jSON = new JSONBuilder ()
@@ -143,7 +166,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 
 	@Override
 	public void onPositionChanged(PositionData position) {
-		log.trace("onPositionChange called, sessions: ${sessions}");
+		//log.trace("onPositionChange called, sessions: ${sessions}");
 		// TODO filter out sessions according to the subscription record
 		if(sessions.isEmpty()){
 			return;
@@ -158,14 +181,22 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 			val = getTrackerService().getDeviceJsonData(position.udid);
 		
 		def txt = val as JSON;
-		for(Session session : sessions.values()){
-			try{
-				session.basicRemote.sendText(txt.toString());
-			}catch(Exception e){
-				// ignore
-				log.error("Error pushing position changes",e);
+		for(SessionEntry sessionEntry : sessions.values()){
+			DeviceFilterCommand filter = sessionEntry.filter;
+			if(filter && filter.accept(position)){
+				try{
+					sessionEntry.session.basicRemote.sendText(txt.toString());
+				}catch(Exception e){
+					// ignore
+					log.error("Error pushing position changes",e);
+				}
 			}
 		}
+	}
+	
+	public static class SessionEntry{
+		Session session;
+		DeviceFilterCommand filter;
 	}
 		
 }

@@ -169,6 +169,8 @@ class TrackerDataService {
 					log.debug("Device ${device.udid} position updated to [${position.latitude},${position.longitude}], message:${position.message}");
 				}
 				// broadcast the position data change
+				// HACK - we should set the device type currently for websocket filtering work.
+				positionData.deviceType = device.status;
 				notifyPositionChanges(positionData);
 			}
 		} catch (Exception error) {

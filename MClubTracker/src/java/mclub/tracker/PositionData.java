@@ -31,6 +31,9 @@ public class PositionData {
 	String message;
 	Integer messageType;
 	
+	// Other types
+	Integer deviceType;
+	
 	Map<String, Object> extendedInfo = new HashMap<String,Object>();
 
 	public String getUdid() {

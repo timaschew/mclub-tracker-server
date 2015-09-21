@@ -556,6 +556,22 @@ public class DeviceFilterCommand{
 	Integer type;
 	Double lat1,lon1,lat2,lon2;
 	Date activeTime;
+	
+	public boolean accept(PositionData positionData){
+		
+		// UDID available
+		if(udid){
+			if(udid.equalsIgnoreCase("ALL") || udid.equalsIgnoreCase(positionData.udid)){
+				return true;
+			}
+		}
+		
+		// just only have the type
+		if(udid == null && type > 0){
+			return type == positionData.deviceType;
+		}
+		return false;
+	}
 }
 
 
