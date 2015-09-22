@@ -16,7 +16,7 @@
 			</ul>
 		</div>
 		<div id="list-trackerDevice" class="content scaffold-list" role="main">
-			<h1><g:message code="default.list.label" args="[entityName]" /></h1>
+			<h1><g:message code="default.list.label" args="[entityName]" /> - Total <%=trackerDeviceInstanceTotal%></h1>
 			<g:if test="${flash.message}">
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
@@ -29,6 +29,7 @@
 						<g:sortableColumn property="latestPositionId" title="${message(code: 'trackerDevice.latestPositionId.label', default: 'Latest Position Id')}" />
 						<g:sortableColumn property="latestPositionTime" title="${message(code: 'trackerDevice.latestPositionTime.label', default: 'Latest Position Time')}" />
 						<g:sortableColumn property="icon" title="${message(code: 'trackerDevice.icon.label', default: 'Icon')}" />
+						<th>More</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -40,6 +41,7 @@
 						<td><g:link controller="trackerPosition" action="show" id="${trackerDeviceInstance.latestPositionId}">${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</g:link></td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionTime")}</td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "icon")}</td>
+						<td><g:link action="list" controller="trackerPosition" params="[udid:trackerDeviceInstance.udid,max:100,sort:'id',order:'desc']">positions...</g:link></td>
 					</tr>
 				</g:each>
 				</tbody>

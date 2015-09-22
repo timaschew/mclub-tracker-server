@@ -16,7 +16,7 @@
 			</ul>
 		</div>
 		<div id="list-trackerPosition" class="content scaffold-list" role="main">
-			<h1><g:message code="default.list.label" args="[entityName]" /></h1>
+			<h1><g:message code="default.list.label" args="[entityName]" /> - Total: <%=trackerPositionInstanceTotal%></h1>
 			<g:if test="${flash.message}">
 			<div class="message" role="status">${flash.message}</div>
 			</g:if>
@@ -27,7 +27,8 @@
 						<g:sortableColumn  property="deviceId" title="${message(code: 'trackerPosition.deviceId.label', default: 'Device Id')}" />
 						<th>Lat/Lon</th>
 						<th>Speed/Course</th>
-						<th>Altitude</th>
+						<th>Valid</th>
+						<th>Time</th>
 						<th>Message</th>
 						<th>Extended Info</th>
 					</tr>
@@ -36,7 +37,7 @@
 				<g:each in="${trackerPositionInstanceList}" status="i" var="trackerPositionInstance">
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
 					
-						<td><g:link action="show" id="${trackerPositionInstance.id}">${fieldValue(bean: trackerPositionInstance, field: "deviceId")}</g:link></td>
+						<td><g:link action="show" id="${trackerPositionInstance.id}">${fieldValue(bean: trackerPositionInstance, field: "id")}</g:link></td>
 						
 						<td><g:link controller="trackerDevice" action="show" id="${trackerPositionInstance.deviceId}">${fieldValue(bean: trackerPositionInstance, field: "deviceId")}</g:link></td>
 					
@@ -44,7 +45,8 @@
 
 						<td>${fieldValue(bean: trackerPositionInstance, field: "speed")} / ${fieldValue(bean: trackerPositionInstance, field: "course")}</td>
 						
-						<td>${fieldValue(bean: trackerPositionInstance, field: "altitude")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "valid")}</td>
+						<td>${fieldValue(bean: trackerPositionInstance, field: "time")}</td>
 						<td>${fieldValue(bean: trackerPositionInstance, field: "message")}</td>
 						
 						<td>${fieldValue(bean: trackerPositionInstance, field: "extendedInfo")}</td>

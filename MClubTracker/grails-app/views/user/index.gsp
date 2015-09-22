@@ -35,6 +35,8 @@
 						<g:sortableColumn property="creationDate" title="${message(code: 'user.creationDate.label', default: 'Creation Date')}" />
 						
 						<g:sortableColumn property="avatar" title="${message(code: 'user.avatar.label', default: 'Avatar')}" />
+						
+						<th>More</th>
 					
 					</tr>
 				</thead>
@@ -52,7 +54,8 @@
 
 						<td><g:formatDate date="${userInstance.creationDate}" /></td>
 						
-						<td>${fieldValue(bean: userInstance, field: "avatar")}</td>					
+						<td>${fieldValue(bean: userInstance, field: "avatar")}</td>
+						<td><g:link action="list" controller="trackerDevice" params="[username:userInstance.name]">Device...</g:link></td>					
 					</tr>
 				</g:each>
 				</tbody>

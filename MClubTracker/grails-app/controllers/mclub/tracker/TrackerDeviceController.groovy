@@ -12,7 +12,14 @@ class TrackerDeviceController {
 
     def list(Integer max) {
         params.max = Math.min(max ?: 10, 100)
-        [trackerDeviceInstanceList: TrackerDevice.list(params), trackerDeviceInstanceTotal: TrackerDevice.count()]
+		
+		if(params.username){
+			// filter by username
+			def r = TrackerDevice.findAllByUsername(params.username);
+			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: r?.size()]
+		}else{
+        	return [trackerDeviceInstanceList: TrackerDevice.list(params), trackerDeviceInstanceTotal: TrackerDevice.count()]
+		}
     }
 
     def create() {
@@ -34,8 +41,13 @@ class TrackerDeviceController {
         redirect(action: "show", id: trackerDeviceInstance.id)
     }
 
-    def show(Long id) {
-        def trackerDeviceInstance = TrackerDevice.get(id)
+    def show(Long id,String udid) {
+        def trackerDeviceInstance;
+		if(udid){
+			trackerDeviceInstance = TrackerDevice.findByUdid(udid);
+		}else{
+			trackerDeviceInstance = TrackerDevice.get(id)
+		}
         if (!trackerDeviceInstance) {
             flash.message = message(code: 'default.not.found.message', args: [message(code: 'trackerDevice.label', default: 'TrackerDevice'), id])
             redirect(action: "list")

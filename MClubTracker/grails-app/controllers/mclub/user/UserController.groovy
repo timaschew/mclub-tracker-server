@@ -18,8 +18,18 @@ class UserController {
         respond User.list(params), model:[userInstanceCount: User.count()]
     }
 
-    def show(User userInstance) {
-        respond userInstance
+    def show(/*User userInstance*/) {
+		User u = null;
+		if(params.id){
+			if(params.id.isNumber())
+				u = User.load(params.id);
+			if(!u){
+				u = User.findByName(params.id);
+			}
+		}else if(params.phone){
+			u = User.findByPhoneLike("${params.phone}%");
+		}
+		return [userInstance:u];
     }
 
     def create() {

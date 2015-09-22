@@ -11,13 +11,13 @@ class TrackerPositionController {
     }
 
     def list(Integer max,String udid) {
-        params.max = Math.min(max ?: 10, 100)
+        params.max = Math.min(max ?: 10, 360)
 		def positions = [];
 		int positionCount = 0;
 		if(udid){
 			TrackerDevice device = TrackerDevice.findByUdid(udid);
 			if(device){
-				positions = TrackerPosition.findAllByDevice(device);
+				positions = TrackerPosition.findAllByDevice(device,params);
 				positionCount = positions?.size();
 			}
 		}else{
