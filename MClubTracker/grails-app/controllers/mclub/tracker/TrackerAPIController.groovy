@@ -389,8 +389,8 @@ class TrackerAPIController {
 		}
 		
 		def result;
-		String token = userService.login(username, password)?.token;
-		if(token){
+		def uSession = userService.login(username, password);
+		if(uSession && uSession.token){
 			// if udid is specified, save it and associate with current user.
 			if(udid){
 				TrackerDevice device = TrackerDevice.findByUdid(udid);
@@ -407,7 +407,7 @@ class TrackerAPIController {
 				}
 			}
 			result = APIResponse.SUCCESS("Login success");
-			result['token'] = token;
+			result['token'] = uSession.token;
 			log.info("User " + username + " login ok");
 		}else{
 			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed");

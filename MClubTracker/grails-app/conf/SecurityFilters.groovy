@@ -38,11 +38,11 @@ class SecurityFilters {
 					token = request.JSON.token;
 					
 				if(token){
-					log.info("got token: ${token}")
+					log.debug("got token: ${token}")
 					def userSession = userService.checkSessionToken(token);
 					if(userSession){
 						request['session'] = userSession;
-						log.info("User session loaded ${userSession.username}")
+						log.debug("User session loaded ${userSession.username}")
 						return true;
 					}
 				}

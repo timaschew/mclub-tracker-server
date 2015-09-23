@@ -352,7 +352,7 @@ class TrackerService {
 	}
 	
 	private Map<String,Object> loadDeviceLineFeature(TrackerDevice device/*, Date time, Integer limit*/){
-		// Add line string feature, by default will load points that in 45 minutes ago and not exceeding 360 in total.
+		// Add line string feature, by default will load points that in 30 minutes ago and not exceeding 360 in total.
 		Integer minimalPositionUpdateInterval = (Integer)trackerDataService.getConfig("tracker.minimalPositionUpdateInterval");
 		if(!minimalPositionUpdateInterval) minimalPositionUpdateInterval = 5000L;
 		Integer maximumShowPositionInterval = trackerDataService.getConfig("tracker.maximumShowPositionInterval");
