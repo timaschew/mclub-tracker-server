@@ -96,7 +96,11 @@ plugins {
         //runtime ":zipped-resources:1.0.1"
         //runtime ":cached-resources:1.1"
         //runtime ":yui-minify-resources:0.1.5"
-//		runtime ':adminlte-ui:0.1.0'
+		
+		// Greate theme for admin site
+		//runtime ':adminlte-ui:0.1.0'
+		
+		//compile ':platform-core:1.0.0'
 		
 		compile ":quartz:1.0.2"
     }

@@ -37,7 +37,7 @@ grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
 grails.resources.adhoc.excludes = ['**/WEB-INF/**','**/META-INF/**']
 
 // The default codec used to encode data with ${}
-grails.views.default.codec = "none" // none, html, base64
+grails.views.default.codec = "html" // none, html, base64
 grails.views.gsp.encoding = "UTF-8"
 grails.converters.encoding = "UTF-8"
 // enable Sitemesh preprocessing of GSP pages
@@ -66,7 +66,7 @@ environments {
     }
     production {
         grails.logging.jul.usebridge = false
-        // TODO: grails.serverURL = "http://www.changeme.com"
+        //grails.serverURL = "http://aprs.hamclub.net"
     }
 }
 
@@ -151,14 +151,15 @@ tracker.aprs.port = 14580
 tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
 //tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
-tracker.aprs.filter = 'p/B' //range in Hangzhou 100KM
+tracker.aprs.filter = 'p/B' //All callsign starts with B
+//tracker.aprs.filter = 'p/BG5HEU'
 
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
-tracker.maximumShowPositionInterval = 30 * 60 * 1000; // in milliseconds
+tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
-
-/* remove this line 
+// See https://github.com/grails/grails-core/wiki/Default-Codecs for more details
+/* remove this line
 // GSP settings
 grails {
     views {
