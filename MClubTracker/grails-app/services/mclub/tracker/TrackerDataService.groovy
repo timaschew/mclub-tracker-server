@@ -14,8 +14,8 @@ import mclub.util.DateUtils
 import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.springframework.transaction.TransactionDefinition;
 
-@Transactional
 class TrackerDataService {
 	GrailsApplication grailsApplication;
 	TrackerCacheService trackerCacheService;
@@ -99,6 +99,7 @@ class TrackerDataService {
 	 * @param udid
 	 * @param positionData
 	 */
+	@Transactional
 	public void updateTrackerPosition(PositionData positionData){
 		// Load device
 		TrackerDevice device = null;
@@ -120,6 +121,10 @@ class TrackerDataService {
 		if(positionData.messageType!= null && positionData.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
 			timeInterval = 500; // for emergency messages, threshold set to 0.5s
 		}
+		if(device.status == TrackerDevice.DEVICE_TYPE_ACTIVED){
+			timeInterval = 1000;// for registered devices, the threshold set to 1s
+		}
+		
 		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < timeInterval)){
 			// update too frequently.
 			log.warn("Device ${device.udid} update location too frequently, last update time: ${device.latestPositionTime}, ignored");
@@ -182,12 +187,29 @@ class TrackerDataService {
 	 * 
 	 */
 	public int deleteAprsPosition(int daysOfDataToSave){
+		log.info("Delete APRS Positions");
+		int count = 0;
+		def aprsDevices = TrackerDevice.findAllByStatus(TrackerDevice.DEVICE_TYPE_APRS);
+		log.info("Total ${aprsDevices.size()} APRS devices");
+		Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000));
+		for(TrackerDevice dev in aprsDevices){
+			int c = TrackerPosition.executeUpdate('DELETE FROM TrackerPosition tp WHERE tp.device=:device AND tp.time < :time',[device:dev,time:timeToDelete]);
+			if(c > 0){
+				count +=c;
+				if(count > 0 && count % 100 == 0){
+					log.info("  ${count} positions deleted.");
+				}
+			}
+		}
+		log.info("Total ${count} position records deleted");
+		return count;
+		
 		//TrackerPosition.executeUpdate("DELETE FROM TrackerPosition tp WHERE tp.type==2 AND");
 		//def list = TrackerPosition.executeQuery("FROM TrackerPosition tp JOIN TrackerDevice td ON tp.device_id = td.id");
-		Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000)); 
+		//Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000)); 
 		//def count = TrackerPosition.executeQuery("SELECT count(*) FROM TrackerPosition tp WHERE tp.device.status=2 AND tp.time < :time",[time:timeToDelete]);
-		def count = TrackerPosition.executeUpdate("DELETE TrackerPosition tp WHERE tp.id IN (SELECT p.id FROM TrackerPosition p WHERE p.device.status=2 AND p.time < :time)",[time:timeToDelete]);
-		return count;
+		//def count = TrackerPosition.executeUpdate("DELETE TrackerPosition tp WHERE tp.id IN (SELECT p.id FROM TrackerPosition p WHERE p.device.status=2 AND p.time < :time)",[time:timeToDelete]);
+		//return count;
 	}
 	
 	/**
