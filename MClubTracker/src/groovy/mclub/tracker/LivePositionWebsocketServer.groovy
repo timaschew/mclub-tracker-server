@@ -86,15 +86,15 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	public void handleOpen(Session clientSession, EndpointConfig config) {
 		SessionEntry sessionEntry = new SessionEntry();
 		sessionEntry.session = clientSession;
-		
-		Map<String,Object> params = clientSession.getRequestParameterMap();
+		Map<String,List<String>> params = clientSession.getRequestParameterMap();
 		if(params.size() > 0){
 			DeviceFilterCommand  filter = new DeviceFilterCommand();
 			if(params.get("udid")){
-				filter.udid = params.get("udid");
+				filter.udid = params["udid"][0];
 			}
 			if(params.get("type")){
-				try{filter.type = params.get("type");}catch(Exception e){}
+				String t = params["type"][0];
+				try{filter.type = Integer.parseInt(t);}catch(Exception e){}
 			}
 			
 			if(filter.udid || filter.type){
@@ -104,23 +104,6 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 				
 		sessions.put(clientSession.getId(), sessionEntry);
 		log.debug "websocket session[${clientSession.id}] opened"
-		
-		//TODO read parameters from client
-		/*
-		boolean pushAllDataOnConnected = false;
-		if(pushAllDataOnConnected){
-			// push all tracker nodes
-			def filter = new DeviceFilterCommand(udid:'all');
-			def featureCollection = getTrackerService().listDeviceFeatureCollection(filter);
-			def txt = featureCollection as JSON;
-			try{
-				clientSession.basicRemote.sendText(txt.toString());
-			}catch(Exception e){
-				// ignore
-				log.error(e);
-			}
-		}
-		*/
 	}
 	
 	@OnMessage
@@ -173,13 +156,8 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		}
 		
 		//def val = getTrackerService().buildDevicePositionValues(position);
-		def val;
-		
-		if(true/*geojson*/)
-			val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
-		else
-			val = getTrackerService().getDeviceJsonData(position.udid);
-		
+		//def val = getTrackerService().getDeviceJsonData(position.udid);
+		def val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
 		def txt = val as JSON;
 		for(SessionEntry sessionEntry : sessions.values()){
 			DeviceFilterCommand filter = sessionEntry.filter;
