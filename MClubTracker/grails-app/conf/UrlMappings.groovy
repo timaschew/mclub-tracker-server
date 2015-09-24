@@ -7,6 +7,10 @@ class UrlMappings {
 //			}
 //		}
 		
+		"/map/$action/$id?"(controller:"trackerMap"){
+			
+		}
+		
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
 		}
@@ -14,14 +18,21 @@ class UrlMappings {
 		"/admin/$action?/$id?"(controller:"admin"){
 			
 		}
+		
 		"/admin/user/$action/$id?"(controller:"user"){
 			
 		}
+		
 		"/admin/device/$action/$id?"(controller:"trackerDevice"){
 		
 		}
+		
 		"/admin/position/$action/$id?"(controller:"trackerPosition"){
 		
+		}
+		
+		"/admin/console/$action/$id?"(controller:"console"){
+			
 		}
 
 		"/"(view:"/index")
