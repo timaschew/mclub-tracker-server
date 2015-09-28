@@ -1,7 +1,6 @@
 package mclub.tracker.aprs;
 
 import java.net.InetSocketAddress;
-import java.util.Date;
 import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
@@ -9,17 +8,6 @@ import javax.annotation.PreDestroy;
 
 import mclub.tracker.PositionData;
 import mclub.tracker.TrackerDataService;
-import mclub.tracker.aprs.parser.APRSPacket;
-import mclub.tracker.aprs.parser.CourseAndSpeedExtension;
-import mclub.tracker.aprs.parser.DataExtension;
-import mclub.tracker.aprs.parser.Digipeater;
-import mclub.tracker.aprs.parser.InformationField;
-import mclub.tracker.aprs.parser.PHGExtension;
-import mclub.tracker.aprs.parser.Parser;
-import mclub.tracker.aprs.parser.Position;
-import mclub.tracker.aprs.parser.PositionPacket;
-import mclub.tracker.aprs.parser.Utilities;
-import mclub.user.AuthUtils;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -32,6 +20,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
@@ -45,8 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AprsReceiver {
-	private Logger aprsLog = LoggerFactory.getLogger("aprs.log");
-	
 	private Logger log = LoggerFactory.getLogger(getClass());
 	
     /********************************************************************************/
@@ -60,6 +47,13 @@ public class AprsReceiver {
 	private String protocol = "aprs";
     private String address;
 	private Integer port;
+	private int state;
+	
+	private static final int STATE_INIT = 0;
+	private static final int STATE_CONNECTING = 1;
+	private static final int STATE_CONNECTED = 2;
+	private static final int STATE_DESTROY = 3;
+	
     public String getAddress() {
         return address;
     }
@@ -104,6 +98,8 @@ public class AprsReceiver {
 			return;
 		}
 		
+		state = STATE_DESTROY;
+		
 		log.info("Shutdown APRS receiver...");
 		// Close the connections
 		try{
@@ -118,30 +114,15 @@ public class AprsReceiver {
 		releaseNettyResources();
 	}
 	
-	private static final String APRS_LOGIN_COMMAND_PATTERN = "user %s pass %s vers mClubClient 001 filter %s\r\n";
-	
-	private String buildAprsLoginCommand(String call, String pass,String filter){
-		return String.format(APRS_LOGIN_COMMAND_PATTERN, call,pass,filter);
-	}
-	
 	private String getConfigString(String key){
 		return (String)trackerDataService.getConfig(key);
 	}
 	
-	private int getConfigInt(String key){
-		return (Integer)trackerDataService.getConfig(key);
-	}
+//	private int getConfigInt(String key){
+//		return (Integer)trackerDataService.getConfig(key);
+//	}
 	
 	private void initReceiver(){
-		InetSocketAddress aprsServerAddr;
-		address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
-        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
-        if (address == null) {
-        	aprsServerAddr = new InetSocketAddress(port);
-        } else {
-        	aprsServerAddr = new InetSocketAddress(address, port);
-        }
-        
  		// Start the connection attempt.
  		try{
  	        bootstrap = new ClientBootstrap(
@@ -152,43 +133,38 @@ public class AprsReceiver {
  							2 /*worker thread count*/));        
  	        // Configure the pipeline factory.
  	 		bootstrap.setPipelineFactory(new PipelineFactory());
- 			
- 			ChannelFuture future = bootstrap.connect(aprsServerAddr);
- 			// Wait until the connection attempt succeeds or fails.
- 			Channel channel = future.awaitUninterruptibly().getChannel();
-			if (future.isSuccess()) {
-				// store the channels
-				getChannelGroup().add(channel);
-				log.debug("Connected to APRS server " + address + ":" + port);
-				
-				//FIXME - should use states
-				Thread.sleep(5000); // sleep 5s for server welcome message;
-				
-				// TODO - use LoginCommand filters
-				// Writing the filter command
-				String call = getConfigString("tracker.aprs.call");
-				String pass = getConfigString("tracker.aprs.pass");
-				
-				//32.14/120.09 hangzhou center
-				//30.21,120.15 the river side
-				
-				String filter = getConfigString("tracker.aprs.filter");
-				String loginCmd = buildAprsLoginCommand(call,pass,filter);
-				log.debug("Send APRS Login:" + loginCmd);
-				ChannelFuture writeFuture = channel.write(loginCmd);
-				writeFuture.awaitUninterruptibly();
-				
-			}else{
-				log.error("Error connect APRS server", future.getCause());
-				releaseNettyResources();
-				return;
-			}
+ 	 		doConnect();
  		}catch(Exception e){
  			log.error("Error connect APRS server", e);
 			releaseNettyResources();
  		}
 	}
 	
+	private boolean doConnect() throws Exception{
+		InetSocketAddress aprsServerAddr;
+		address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
+        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
+        if (address == null) {
+        	aprsServerAddr = new InetSocketAddress(port);
+        } else {
+        	aprsServerAddr = new InetSocketAddress(address, port);
+        }
+
+		ChannelFuture future = bootstrap.connect(aprsServerAddr);
+		// Wait until the connection attempt succeeds or fails.
+		Channel channel = future.awaitUninterruptibly().getChannel();
+		if (future.isSuccess()) {
+			// store the channels
+			getChannelGroup().add(channel);
+			log.debug("Connected to APRS server " + address + ":" + port);
+			
+			return true;
+		}else{
+			log.error("Error connect APRS server", future.getCause());
+			return false;
+		}
+	}
+		
 	private void releaseNettyResources(){
 		if(bootstrap != null){
 			try{
@@ -211,7 +187,6 @@ public class AprsReceiver {
     	return "[APRS] receiver@" + Integer.toHexString(System.identityHashCode(this)); 
     }
     
-    
 	public class PipelineFactory implements ChannelPipelineFactory {
 		public ChannelPipeline getPipeline() throws Exception {
 			// Create a default pipeline implementation.
@@ -222,6 +197,11 @@ public class AprsReceiver {
 					Delimiters.lineDelimiter()));
 			pipeline.addLast("decoder", new StringDecoder());
 			pipeline.addLast("encoder", new StringEncoder());
+			pipeline.addLast("aprsDecoder",new AprsDecoder(
+					getConfigString("tracker.aprs.call"),
+					getConfigString("tracker.aprs.pass"),
+					getConfigString("tracker.aprs.filter")
+					));
 
 			// and then business logic.
 			pipeline.addLast("handler", new AprsReceiverClientHandler());
@@ -230,24 +210,16 @@ public class AprsReceiver {
 		}
 	}
 	
-	/**
-	 * Convert symbol char to file name
-	 * see http://www.aprs.net/vm/DOS/SYMBOLS.HTM
-	 *     http://wa8lmf.net/aprs/APRS_symbols.htm
-	 * @param table
-	 * @param index
-	 * @return
-	 */
-	private static String convertSymbolCharToFileName(char table, char index){
-		if(table == '/'){
-			return "1_" + String.format("%02d", index - '!');	
-		}else if(table == '\\'){
-			return "2_" + String.format("%02d", index - '!');
-		}else{
-			return "1_29"; // '>', Car
-		}
-	}
-	
+    /**
+     * Open channel handler
+     */
+    protected class OpenChannelHandler extends SimpleChannelHandler {
+        @Override
+        public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
+            getChannelGroup().add(e.getChannel());
+        }
+    }
+		
 	/**
 	 * The aprs receiver client handler
 	 * @author shawn
@@ -265,112 +237,24 @@ public class AprsReceiver {
 
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
-			//FIXME - use proper decoder
-			PositionData positionData = parseAPRSPacket(e.getMessage().toString());
-			if(positionData != null){
-				// update the device position
+			//See aprsDecoder
+			Object obj = e.getMessage();
+			if(obj instanceof PositionData){
 				try{
+					PositionData positionData = (PositionData)obj;
 					AprsReceiver.this.getTrackerDataService().updateTrackerPosition(positionData);
 				}catch(Exception ex){
 					log.error("Error update track position", ex);
-				}
+				}				
 			}
 		}
 		
-		protected PositionData parseAPRSPacket(String aprsMessage){
-			PositionData positionData = null;
-			if(aprsMessage.startsWith("#")){
-				log.debug("RECV CMD: " + aprsMessage);
-				return null;
-			}
-			// log aprs message
-			aprsLog.trace(aprsMessage);
-			try{
-				APRSPacket pack = Parser.parse(aprsMessage);
-				if(pack == null || !pack.isAprs()){
-					// Invalid aprs packet
-					log.info("Invalid APRS packet: " + (pack == null?"null":pack.getOriginalString()));
-					return null;
-				}
-				
-				InformationField info = pack.getAprsInformation();
-				if(info instanceof PositionPacket){
-					positionData = new PositionData();
-					
-					positionData.setUdid(pack.getSourceCall());
-					// extract the call without ssid
-					String[] name_id = AuthUtils.extractAPRSCall(pack.getSourceCall());
-					if(name_id != null){
-						positionData.setUsername(name_id[0]);	
-					}else{
-						log.warn("Invalid APRS source call " + pack.getSourceCall() + " Raw: " + aprsMessage);
-					}
-					
-					Position pos = ((PositionPacket)info).getPosition();
-					if(pos.getLatitude() == 0 && pos.getLongitude() == 0){
-						// Invalid 0,0 position received, this might be caused by some broken APRS devices
-						log.info("Invalid APRS packet position [0,0]: " + (pack == null?"null":pack.getOriginalString()));
-						return null;
-					}
-					
-					positionData.setLatitude(pos.getLatitude());
-					positionData.setLongitude(pos.getLongitude());
-					positionData.setAltitude(new Double(pos.getAltitude()));
-					
-					DataExtension ext = info.getExtension();
-					if(ext instanceof CourseAndSpeedExtension){
-						CourseAndSpeedExtension csext = (CourseAndSpeedExtension)ext;
-						positionData.setSpeed(new Double(Utilities.kntsToKmh(csext.getSpeed()))); // speed in km/h
-						positionData.setCourse(new Double(csext.getCourse()));
-					}else{
-						positionData.setCourse(new Double(-1));
-						positionData.setSpeed(new Double(-1));
-					}
-					
-					AprsData aprsData = new AprsData();
-					// digi peater path
-					StringBuilder sb = new StringBuilder();
-					for(Digipeater digiPeater : pack.getDigipeaters()) {
-						sb.append(digiPeater.toString()).append(',');
-					}
-					sb.deleteCharAt(sb.length()-1);
-					aprsData.setPath(sb.toString());
-					// comment
-					aprsData.setComment(info.getComment());
-					// index of symbol
-					aprsData.setSymbol(convertSymbolCharToFileName(pos.getSymbolTable(),pos.getSymbolCode()));
-					aprsData.setDestination(pack.getDestinationCall());
-					// PHG info
-					if(ext instanceof PHGExtension){
-						PHGExtension phg = (PHGExtension)ext;
-						aprsData.setHeight(new Integer(phg.getHeight()));
-						aprsData.setGain(new Integer(phg.getGain()));
-						aprsData.setPower(new Integer(phg.getPower()));
-						aprsData.setDirectivity(new Integer(phg.getDirectivity()));
-					}
-					positionData.setTime(pos.getTimestamp());
-					positionData.setValid(true);
-					positionData.setAprs(true);
-					positionData.addExtendedInfo("aprs",aprsData);					
-					positionData.addExtendedInfo("protocol", "APRS");
-					
-					log.debug("ACCEPT: " + aprsMessage);				
-					return positionData;
-				}
-			}catch(Exception e){
-				log.info("Error parse APRS message, " + e.getMessage() + ". Raw: " + aprsMessage);
-			}
-			
-			return null;
-		}
-
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
 			log.warn("Exception from APRS server downstream.", e.getCause());
 			e.getChannel().close();
 		}
 	}
-	
     
 //	public static void main(String[] args) throws Exception {
 //		// Print usage if no argument is specified.

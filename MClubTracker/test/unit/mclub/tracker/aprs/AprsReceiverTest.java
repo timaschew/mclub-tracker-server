@@ -171,7 +171,7 @@ public class AprsReceiverTest {
 	@Test 
 	public void testReceiverParseAPRSPacket(){
 		String s = "BG5EEK-9>APOTC1,BR5HB-2*,WIDE1*,WIDE2-1,qAS,BG5HLN-10:/040236z3027.58N/12021.99E>356/019/A=000052HelloWorld";
-		PositionData pd = new AprsReceiver().new AprsReceiverClientHandler().parseAPRSPacket(s);
+		PositionData pd = new AprsDecoder(null,null,null).decodeAPRS(s);
 		assertNotNull(pd);
 		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
 		assertNotNull(aprsData);
@@ -182,7 +182,7 @@ public class AprsReceiverTest {
 	@Test
 	public void testDecodeMICEPacket(){
 		String s = "BG5HSC-9>SPQRQ5,WIDE1-1,qAR,BG5HSC-10:`0*Nm!kv/]\"4<}=";
-		PositionData pd = new AprsReceiver().new AprsReceiverClientHandler().parseAPRSPacket(s);
+		PositionData pd = new AprsDecoder(null,null,null).decodeAPRS(s);
 		assertNotNull(pd);
 		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
 		assertNotNull(aprsData);
