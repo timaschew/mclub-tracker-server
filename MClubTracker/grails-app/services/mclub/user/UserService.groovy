@@ -16,6 +16,7 @@ class UserService {
 	ExecutorService sessionCleanupThread;
 	private static final long SESSION_EXPIRE_TIME_SEC = 30 * 60; // session expires in 30 mins idle by defalt
 	private static final long SESSION_CHECK_INTERVAL_MS = 3000; 
+	private static final Object sleepLock = new Object();
 	volatile boolean runFlag = false;
 	
 	@PostConstruct
@@ -38,7 +39,14 @@ class UserService {
 							}
 						}
 					}finally{
-						try{Thread.sleep(SESSION_CHECK_INTERVAL_MS);}catch(Exception e){}
+						try{
+							synchronized(sleepLock){
+								sleepLock.wait(SESSION_CHECK_INTERVAL_MS);
+							}
+							//Thread.sleep(SESSION_CHECK_INTERVAL_MS);
+						}catch(Exception e){
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -58,6 +66,9 @@ class UserService {
 	@PreDestroy
 	public void stop(){
 		runFlag = false;
+		synchronized(sleepLock){
+			sleepLock.notifyAll();
+		}
 		try{
 			sessionCleanupThread?.shutdown();
 		}catch(Exception e){

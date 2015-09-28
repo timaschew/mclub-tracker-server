@@ -1,6 +1,7 @@
 package mclub.tracker.aprs;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
@@ -11,7 +12,6 @@ import mclub.tracker.TrackerDataService;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelEvent;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -20,7 +20,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
@@ -47,12 +46,14 @@ public class AprsReceiver {
 	private String protocol = "aprs";
     private String address;
 	private Integer port;
-	private int state;
 	
+	private int state;
 	private static final int STATE_INIT = 0;
 	private static final int STATE_CONNECTING = 1;
 	private static final int STATE_CONNECTED = 2;
 	private static final int STATE_DESTROY = 3;
+	ExecutorService connectThread;	
+	private static final Object sleepLock = new Object();
 	
     public String getAddress() {
         return address;
@@ -88,8 +89,8 @@ public class AprsReceiver {
 		if(!isEnabled()){
 			return;
 		}
-		log.info("Startup APRS receiver...");
-		initReceiver();
+		initConnector();
+		log.info("Startup APRS receiver...");		
 	}
 	
 	@PreDestroy
@@ -97,10 +98,22 @@ public class AprsReceiver {
 		if(!isEnabled()){
 			return;
 		}
+
+		log.info("Shutdown APRS receiver...");
 		
 		state = STATE_DESTROY;
+
+		synchronized(sleepLock){
+			sleepLock.notifyAll();
+		}
 		
-		log.info("Shutdown APRS receiver...");
+		// Stop the reconnect thread
+		try{
+			connectThread.shutdown();
+		}catch(Exception e){
+			
+		}
+		
 		// Close the connections
 		try{
 			// channel removed from group when closed.
@@ -122,8 +135,9 @@ public class AprsReceiver {
 //		return (Integer)trackerDataService.getConfig(key);
 //	}
 	
-	private void initReceiver(){
+	private void initConnector(){
  		// Start the connection attempt.
+		state = STATE_INIT;
  		try{
  	        bootstrap = new ClientBootstrap(
  					new NioClientSocketChannelFactory(
@@ -133,36 +147,74 @@ public class AprsReceiver {
  							2 /*worker thread count*/));        
  	        // Configure the pipeline factory.
  	 		bootstrap.setPipelineFactory(new PipelineFactory());
- 	 		doConnect();
  		}catch(Exception e){
- 			log.error("Error connect APRS server", e);
-			releaseNettyResources();
+ 			log.error("Error initialize APRS connector", e);
+ 			throw new RuntimeException("Error initialize APRS connector", e);
  		}
+ 		
+ 		// the reconnect thread
+		connectThread = java.util.concurrent.Executors.newFixedThreadPool(1);
+		connectThread.submit(new Runnable(){
+			@Override
+			public void run() {
+				while(true){
+					switch(state){
+						case STATE_INIT:{
+							// perform connect
+							if(doConnect()){
+								state = STATE_CONNECTING;
+							}
+							break;
+						}
+						case STATE_DESTROY:{
+							return;
+						}
+						default:{
+							// do nothing
+						}
+					}
+					try{
+						// sleep 15s for retry
+						synchronized(sleepLock){
+							sleepLock.wait(15000);
+						}
+						//Thread.sleep(15000);
+					}catch(Exception e){
+						e.printStackTrace();
+						// noop;
+					}
+				}
+			}
+		});
 	}
 	
-	private boolean doConnect() throws Exception{
-		InetSocketAddress aprsServerAddr;
-		address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
-        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
-        if (address == null) {
-        	aprsServerAddr = new InetSocketAddress(port);
-        } else {
-        	aprsServerAddr = new InetSocketAddress(address, port);
-        }
+	private boolean doConnect() {
+		try{
+			InetSocketAddress aprsServerAddr;
+			address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
+	        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
+	        if (address == null) {
+	        	aprsServerAddr = new InetSocketAddress(port);
+	        } else {
+	        	aprsServerAddr = new InetSocketAddress(address, port);
+	        }
 
-		ChannelFuture future = bootstrap.connect(aprsServerAddr);
-		// Wait until the connection attempt succeeds or fails.
-		Channel channel = future.awaitUninterruptibly().getChannel();
-		if (future.isSuccess()) {
-			// store the channels
-			getChannelGroup().add(channel);
-			log.debug("Connected to APRS server " + address + ":" + port);
-			
-			return true;
-		}else{
-			log.error("Error connect APRS server", future.getCause());
-			return false;
+	        log.info("Connecting to APRS server " + address + ":" + port);
+			ChannelFuture future = bootstrap.connect(aprsServerAddr);
+			// Wait until the connection attempt succeeds or fails.
+			Channel channel = future.awaitUninterruptibly().getChannel();
+			if (future.isSuccess()) {
+				// store the channels
+				getChannelGroup().add(channel);
+				log.debug("Connected to APRS server " + address + ":" + port);
+				return true;
+			}else{
+				log.warn("failed to connect to APRS server: " + future.getCause().getMessage());
+			}
+		}catch(Exception e){
+			log.warn("failed to connect to APRS server: " + e.getMessage());
 		}
+		return false;
 	}
 		
 	private void releaseNettyResources(){
@@ -210,30 +262,42 @@ public class AprsReceiver {
 		}
 	}
 	
-    /**
-     * Open channel handler
-     */
-    protected class OpenChannelHandler extends SimpleChannelHandler {
-        @Override
-        public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
-            getChannelGroup().add(e.getChannel());
-        }
-    }
-		
 	/**
 	 * The aprs receiver client handler
 	 * @author shawn
 	 *
 	 */
 	public class AprsReceiverClientHandler extends SimpleChannelUpstreamHandler {
-		@Override
-		public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e)
-				throws Exception {
-			if (e instanceof ChannelStateEvent) {
-				log.debug(e.toString());
-			}
-			super.handleUpstream(ctx, e);
-		}
+//        @Override
+//        public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) {
+//        	log.debug("channel opened");
+//            getChannelGroup().add(e.getChannel());
+//            ctx.sendUpstream(e);
+//        }
+        
+        @Override
+        public void channelDisconnected(
+                ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+            state = STATE_INIT;
+            ctx.sendUpstream(e);
+            log.debug("channel disconnected");
+        }
+        
+        @Override
+        public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        	log.debug("channel connected");
+            state = STATE_CONNECTED;
+            ctx.sendUpstream(e);
+        }
+
+//		@Override
+//		public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e)
+//				throws Exception {
+//			if (e instanceof ChannelStateEvent) {
+//				log.debug(e.toString());
+//			}
+//			super.handleUpstream(ctx, e);
+//		}
 
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
@@ -251,7 +315,8 @@ public class AprsReceiver {
 		
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-			log.warn("Exception from APRS server downstream.", e.getCause());
+			if(log.isInfoEnabled())
+				log.info("Exception from APRS server downstream.", e.getCause());
 			e.getChannel().close();
 		}
 	}

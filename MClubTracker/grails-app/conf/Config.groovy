@@ -152,7 +152,7 @@ tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
 //tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
 tracker.aprs.filter = 'p/B' //All callsign starts with B
-//tracker.aprs.filter = 'p/BG5HEU'
+//tracker.aprs.filter = 'p/BG5HHP'
 
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
