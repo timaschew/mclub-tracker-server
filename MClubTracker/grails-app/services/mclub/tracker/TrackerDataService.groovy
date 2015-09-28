@@ -52,6 +52,7 @@ class TrackerDataService {
 	 * @return
 	 * @throws Exception
 	 */
+	@Transactional
 	public Long addPosition(TrackerPosition position) throws Exception{
 		// save position
 		if(!position.save(flush:true)){

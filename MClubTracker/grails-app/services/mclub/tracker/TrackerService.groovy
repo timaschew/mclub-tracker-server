@@ -34,8 +34,9 @@ class TrackerService {
 //		}
 
 		if(TrackerDevice.count() == 0){
+			def device;
 			TrackerDevice.withTransaction{
-				def device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
+				device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
 				device.save(flush:true);
 			}
 			

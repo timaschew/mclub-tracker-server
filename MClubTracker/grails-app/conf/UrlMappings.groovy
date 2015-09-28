@@ -35,7 +35,9 @@ class UrlMappings {
 			
 		}
 
-		"/"(view:"/index")
+		"/"(controller:'trackerMap',action:'aprs')
+
+//		"/"(view:"/index")
 		"500"(view:'/error')
 	}
 }
