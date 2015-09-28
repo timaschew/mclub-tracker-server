@@ -52,7 +52,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
 
-			if (true /*Environment.current == Environment.DEVELOPMENT*/) {
+			if (Environment.current == Environment.DEVELOPMENT) {
 				serverContainer.addEndpoint(LivePositionWebsocketServer)
 			}
 

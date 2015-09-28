@@ -57,10 +57,6 @@ grails.project.dependency.resolution = {
 		
 		compile 'io.netty:netty:3.6.3.Final'
 		
-		compile ('org.atmosphere:nettosphere:2.0.0.RC4'){
-			excludes "slf4j-api","logback-core","logback-classic","geronimo-servlet_3.0_spec"
-		}
-		
 		/*
 		compile ('commons-httpclient:commons-httpclient:3.1'){
 			excludes "commons-codec","commons-logging"
@@ -101,6 +97,7 @@ plugins {
 		//runtime ':adminlte-ui:0.1.0'
 		
 		//compile ':platform-core:1.0.0'
+		//runtime ':twitter-bootstrap:3.3.5'
 		
 		compile ":quartz:1.0.2"
     }
