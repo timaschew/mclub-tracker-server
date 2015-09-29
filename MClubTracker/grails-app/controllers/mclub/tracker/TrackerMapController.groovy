@@ -3,6 +3,7 @@ package mclub.tracker
 import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 import mclub.sys.ConfigService
 import mclub.tracker.TrackerDevice;
+import mclub.user.User
 import grails.util.Environment;
 
 class TrackerMapController {
@@ -76,6 +77,14 @@ class TrackerMapController {
 	}
 	
 	def mclub(String id, String lat, String lon){
+		// Need user login
+		User user = session['user'];
+		if(!user){
+			String returnURL = grailsLinkGenerator.link(action:'mclub',params:params,absolute:true);
+			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
+			return ;
+		}
+		
 		MapConfig mapConfig = new MapConfig(title:"mClub Map");
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id, type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
