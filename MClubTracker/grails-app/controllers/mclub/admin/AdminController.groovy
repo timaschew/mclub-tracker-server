@@ -12,7 +12,7 @@ class AdminController {
 		render view:"admin.gsp"
 	}
 	
-	def login(LoginCommand loginCommand){
+	def login(LoginCommand loginCommand, String returnURL){
 		if(params.logout){
 			session['user'] = null;
 			redirect action:'index';
@@ -34,33 +34,36 @@ class AdminController {
 			return;
 		}
 		
-		if(request.method == 'GET'){
-			return;
+		if(request.method == 'POST'){
+			if(!loginCommand.hasErrors()){
+				UserSession usession = userService.login(loginCommand.username, loginCommand.password);
+				if(usession){
+					user = User.findByName(usession.username);
+					session['user'] = user;
+					if(returnURL){
+						redirect uri:returnURL;
+						return;
+					}
+					if(user.type == User.USER_TYPE_ADMIN){
+						redirect action:'index';
+					}else if(user.type == User.USER_TYPE_USER){
+						redirect controller:'user', action:'password';
+					}else{
+						// invalid user!
+						session['user'] = null;
+						render text:"No permission";
+					}
+					return;
+				}else{
+					flash['message'] = "Login failed";
+				}
+				loginCommand.password = null;
+			}
+			render(view:"login", model: [loginCommand: loginCommand]);
+		}else{
+			render(view:"login");
 		}
 		
-		if(!loginCommand.hasErrors()){
-			UserSession usession = userService.login(loginCommand.username, loginCommand.password);
-			if(usession){
-				user = User.findByName(usession.username);
-				session['user'] = user;
-				if(user.type == User.USER_TYPE_ADMIN){
-					redirect action:'index';
-				}else if(user.type == User.USER_TYPE_USER){
-					redirect controller:'user', action:'password';
-				}else{
-					// invalid user!
-					session['user'] = null;
-					render text:"No permission";
-				}
-				return;
-			}else{
-				flash['message'] = "Login failed";
-			}
-			loginCommand.password = null;
-		}else{
-			
-		}
-		render(view:"login", model: [loginCommand: loginCommand])
 	}
 }
 

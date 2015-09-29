@@ -38,6 +38,9 @@
 						</label>
 						<g:passwordField name="password" value="${loginCommand?.password}"/>
 					</div>
+					<g:if test="${params['returnURL']}">
+						<g:hiddenField name="returnURL" value="${params['returnURL']}"></g:hiddenField>
+					</g:if>
 				</fieldset>
 				<fieldset class="buttons">
 					<g:actionSubmit class="save" action="login" value="Login" />
