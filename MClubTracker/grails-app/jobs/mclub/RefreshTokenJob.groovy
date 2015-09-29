@@ -15,6 +15,7 @@ class RefreshTokenJob {
 	
     def execute() {
         // execute job
-		weiboService.refreshTokens();
+		if(weiboService.isEnabled())
+			weiboService.refreshTokens();
     }
 }

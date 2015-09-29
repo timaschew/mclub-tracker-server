@@ -1,5 +1,6 @@
 package mclub.social
 
+import mclub.tracker.TrackerDataService
 import mclub.tracker.TrackerDevice
 import weibo4j.Oauth
 import weibo4j.Timeline
@@ -7,6 +8,11 @@ import weibo4j.http.AccessToken
 import weibo4j.model.Status
 
 class WeiboService {
+	
+	TrackerDataService trackerDataService;
+	public boolean isEnabled(){
+		return Boolean.TRUE.equals(trackerDataService.getConfig("social.weibo.enabled"));
+	}
 
 	/**
 	 * Post status
@@ -51,7 +57,7 @@ class WeiboService {
 	
 	public void refreshTokens(){
 		// Enumerate the devices
-		List<TrackerDevice> devices = TrackerDevice.findAll();
+		List<TrackerDevice> devices = TrackerDevice.findAllByStatus(TrackerDevice.DEVICE_TYPE_ACTIVED);
 		for(TrackerDevice dev in devices){
 			String deviceId = dev.udid;
 			try{

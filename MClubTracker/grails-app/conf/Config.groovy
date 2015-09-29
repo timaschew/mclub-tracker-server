@@ -157,6 +157,9 @@ tracker.aprs.filter = 'p/B' //All callsign starts with B
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
+// Enable/disable the social feature
+social.weibo.enabled = false
+
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 // See https://github.com/grails/grails-core/wiki/Default-Codecs for more details
 /* remove this line
