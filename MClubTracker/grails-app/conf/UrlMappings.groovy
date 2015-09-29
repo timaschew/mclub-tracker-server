@@ -8,7 +8,11 @@ class UrlMappings {
 //				// apply constraints here
 //			}
 //		}
+
+		"/map"(controller:"trackerMap", action:'index'){
 		
+		}
+
 		"/map/$action/$id?"(controller:"trackerMap"){
 			
 		}
@@ -47,8 +51,7 @@ class UrlMappings {
 
 //		"/"(view:"/index")
 		
-		//if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
-		if (false) {
+		if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
 			"500"(view:'/error')
 		}else{
 			"500"(view:'/errors/500')

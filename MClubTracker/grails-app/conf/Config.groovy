@@ -157,6 +157,8 @@ tracker.aprs.filter = 'p/B' //All callsign starts with B
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
+tracker.map.secure = true;
+
 // Enable/disable the social feature
 social.weibo.enabled = false
 
