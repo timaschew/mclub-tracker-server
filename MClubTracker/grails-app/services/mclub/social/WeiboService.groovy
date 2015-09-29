@@ -1,5 +1,6 @@
 package mclub.social
 
+import mclub.sys.ConfigService
 import mclub.tracker.TrackerDataService
 import mclub.tracker.TrackerDevice
 import weibo4j.Oauth
@@ -9,9 +10,9 @@ import weibo4j.model.Status
 
 class WeiboService {
 	
-	TrackerDataService trackerDataService;
+	ConfigService configService;
 	public boolean isEnabled(){
-		return Boolean.TRUE.equals(trackerDataService.getConfig("social.weibo.enabled"));
+		return Boolean.TRUE.equals(configService.getConfig("social.weibo.enabled"));
 	}
 
 	/**

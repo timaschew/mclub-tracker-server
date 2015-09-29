@@ -39,6 +39,7 @@ import org.jboss.netty.handler.codec.string.StringEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import mclub.sys.ConfigService;
 import mclub.tracker.PositionData;
 import mclub.tracker.TrackerDataService;
 import mclub.tracker.TrackerServer;
@@ -55,8 +56,8 @@ public class Gps103TrackerServer extends TrackerServer{
 	 * @param protocol
 	 * @param trackerDataService
 	 */
-    public Gps103TrackerServer(Bootstrap bootstrap, String protocol, TrackerDataService trackerDataService) {
-	    super(bootstrap, protocol, trackerDataService);
+    public Gps103TrackerServer(Bootstrap bootstrap, String protocol, TrackerDataService trackerDataService, ConfigService configService) {
+	    super(bootstrap, protocol, trackerDataService,configService);
     }
 
 	/* (non-Javadoc)

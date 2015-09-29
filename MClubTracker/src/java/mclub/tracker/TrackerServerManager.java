@@ -6,6 +6,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import mclub.sys.ConfigService;
 import mclub.tracker.protocol.Gps103TrackerServer;
 import mclub.tracker.protocol.T55TrackerServer;
 import mclub.tracker.protocol.Tk103TrackerServer;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 public class TrackerServerManager {
 	Logger log = LoggerFactory.getLogger(TrackerServerManager.class);
 	TrackerDataService trackerDataService;
+	ConfigService configService;
 	
 	private List<TrackerServer> serverList = new ArrayList<TrackerServer>();
 	
@@ -62,7 +64,7 @@ public class TrackerServerManager {
 			return;
 		}
 		try{
-			TrackerServer server = new Tk103TrackerServer(new ServerBootstrap(), protocol, trackerDataService);
+			TrackerServer server = new Tk103TrackerServer(new ServerBootstrap(), protocol, trackerDataService,configService);
 	        serverList.add(server);
 		}catch(Exception e){
 			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
@@ -75,7 +77,7 @@ public class TrackerServerManager {
 			return;
 		}
 		try{
-			serverList.add(new Gps103TrackerServer(new ServerBootstrap(), protocol,trackerDataService));
+			serverList.add(new Gps103TrackerServer(new ServerBootstrap(), protocol,trackerDataService,configService));
 		}catch(Exception e){
 			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
 		}
@@ -87,7 +89,7 @@ public class TrackerServerManager {
 			return;
 		}
 		try{
-			serverList.add(new T55TrackerServer(new ServerBootstrap(), protocol,trackerDataService));
+			serverList.add(new T55TrackerServer(new ServerBootstrap(), protocol,trackerDataService,configService));
 		}catch(Exception e){
 			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
 		}
@@ -99,10 +101,15 @@ public class TrackerServerManager {
 	 * @return
 	 */
 	private boolean isProtocolEnabled(String protocol){
-		return Boolean.TRUE.equals(trackerDataService.getConfig("tracker."+protocol+".enabled"));
+		return Boolean.TRUE.equals(configService.getConfig("tracker."+protocol+".enabled"));
 	}
 	
 	public void setTrackerDataService(TrackerDataService ts){
 		this.trackerDataService = ts;
 	}
+
+	public void setConfigService(ConfigService configService) {
+		this.configService = configService;
+	}
+
 }

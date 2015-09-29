@@ -24,6 +24,7 @@ package mclub.tracker;
 import java.net.InetSocketAddress;
 import java.nio.ByteOrder;
 
+import mclub.sys.ConfigService;
 import mclub.tracker.geocode.GoogleReverseGeocoder;
 import mclub.tracker.geocode.ReverseGeocoder;
 import mclub.tracker.geocode.ReverseGeocoderHandler;
@@ -68,6 +69,7 @@ public abstract class TrackerServer {
     private ReverseGeocoder reverseGeocoder;
     
     private TrackerDataService trackerDataService;
+    private ConfigService configService;
 
     /********************************************************************************/
     /* Dependencies */
@@ -78,13 +80,16 @@ public abstract class TrackerServer {
     public TrackerDataService getTrackerDataService(){
     	return trackerDataService;
     }
+    public ConfigService getConfigService() {
+		return configService;
+	}
     
-
-    public TrackerServer(Bootstrap bootstrap, String protocol, TrackerDataService trackerDataService) {
+	public TrackerServer(Bootstrap bootstrap, String protocol, TrackerDataService trackerDataService,ConfigService configService) {
     	
         this.bootstrap = bootstrap;
         this.protocol = protocol;
         this.trackerDataService = trackerDataService;
+        this.configService = configService;
         
         // Set appropriate channel factory
         if (bootstrap instanceof ServerBootstrap) {
@@ -93,22 +98,22 @@ public abstract class TrackerServer {
             bootstrap.setFactory(NettyResource.getDatagramChannelFactory());
         }
 
-        address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
-        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
+        address = (String)configService.getConfig("tracker." + protocol + ".address");
+        port = (Integer)configService.getConfig("tracker." + protocol + ".port");
         if(port == null){
         	port = 5000;
         }
 
         // enable logger
-        loggerEnabled = Boolean.TRUE.equals(trackerDataService.getConfig().get("tracker.logger.enabled"));
+        loggerEnabled = Boolean.TRUE.equals(configService.getConfig("tracker.logger.enabled"));
         // enable geocoder        
-        reverseGeocoderEnabled = Boolean.TRUE.equals(trackerDataService.getConfig().get("tracker.geocoder.enabled")); 
+        reverseGeocoderEnabled = Boolean.TRUE.equals(configService.getConfig("tracker.geocoder.enabled")); 
         if(reverseGeocoderEnabled){
         	reverseGeocoder = new GoogleReverseGeocoder();
         }
         
         // enable tracker reset delay
-        String resetDelayProperty = (String)trackerDataService.getConfig().get("tracker." + protocol + ".resetDelay");
+        String resetDelayProperty = (String)configService.getConfig("tracker." + protocol + ".resetDelay");
         if (resetDelayProperty != null) {
             resetDelay = Integer.valueOf(resetDelayProperty);
         }

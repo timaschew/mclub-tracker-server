@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 import mclub.util.DateUtils
+import mclub.sys.ConfigService
 import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -19,6 +20,7 @@ import org.springframework.transaction.TransactionDefinition;
 class TrackerDataService {
 	GrailsApplication grailsApplication;
 	TrackerCacheService trackerCacheService;
+	ConfigService configService;
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
 	
 	static {
@@ -117,7 +119,7 @@ class TrackerDataService {
 		}
 		
 		// Update frequency check 
-		Integer timeInterval = (Integer)getConfig("tracker.minimalPositionUpdateInterval");
+		Integer timeInterval = configService.getConfigInt("tracker.minimalPositionUpdateInterval");
 		if(!timeInterval) timeInterval = 5000L;
 		if(positionData.messageType!= null && positionData.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
 			timeInterval = 500; // for emergency messages, threshold set to 0.5s
@@ -212,24 +214,7 @@ class TrackerDataService {
 		//def count = TrackerPosition.executeUpdate("DELETE TrackerPosition tp WHERE tp.id IN (SELECT p.id FROM TrackerPosition p WHERE p.device.status=2 AND p.time < :time)",[time:timeToDelete]);
 		//return count;
 	}
-	
-	/**
-	 * Bridge methods for Java POJO to access the grails configuration
-	 * @return
-	 */
-	public Map<String,Object> getConfig(){
-		return grailsApplication.getFlatConfig();
-	}
-	
-	/**
-	 * Get config by key
-	 * @param key
-	 * @return
-	 */
-	public Object getConfig(String key){
-		return grailsApplication.getFlatConfig().get(key);
-	}	
-	
+
 	/**
 	 * Data change event listeners
 	 */

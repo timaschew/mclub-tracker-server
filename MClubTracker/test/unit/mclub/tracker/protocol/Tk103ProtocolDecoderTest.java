@@ -36,7 +36,7 @@ public class Tk103ProtocolDecoderTest {
 	 @Test
 	    public void testDecode() throws Exception {
 
-	        Tk103TrackerServer decoder = new Tk103TrackerServer(new MockNettyBootstrap(),"",new MockTrackerService());
+	        Tk103TrackerServer decoder = new Tk103TrackerServer(new MockNettyBootstrap(),"",new MockTrackerService(),new MockConfigService());
 //	        decoder.setDataManager(new TestDataManager());
 
 	        assertNull(decoder.decode(null, null, "(090411121854BP0000001234567890HSO"));

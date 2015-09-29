@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import mclub.sys.ConfigService;
 import mclub.tracker.PositionData;
 import mclub.tracker.TrackerDataService;
 
@@ -40,6 +41,8 @@ public class AprsReceiver {
     /********************************************************************************/
 	
 	private TrackerDataService trackerDataService;
+	private ConfigService configService;
+	
 	private ClientBootstrap bootstrap;
     private ChannelGroup allChannels = new DefaultChannelGroup();
 
@@ -75,6 +78,9 @@ public class AprsReceiver {
     }
     public void setTrackerDataService(TrackerDataService trackerDataService) {
 		this.trackerDataService = trackerDataService;
+	}
+	public void setConfigService(ConfigService configService) {
+		this.configService = configService;
 	}
 	public ChannelGroup getChannelGroup() {
         return allChannels;
@@ -126,14 +132,6 @@ public class AprsReceiver {
 		// Release resources
 		releaseNettyResources();
 	}
-	
-	private String getConfigString(String key){
-		return (String)trackerDataService.getConfig(key);
-	}
-	
-//	private int getConfigInt(String key){
-//		return (Integer)trackerDataService.getConfig(key);
-//	}
 	
 	private void initConnector(){
  		// Start the connection attempt.
@@ -191,8 +189,8 @@ public class AprsReceiver {
 	private boolean doConnect() {
 		try{
 			InetSocketAddress aprsServerAddr;
-			address = (String)trackerDataService.getConfig("tracker." + protocol + ".address");
-	        port = (Integer)trackerDataService.getConfig("tracker." + protocol + ".port");
+			address = configService.getConfigString("tracker." + protocol + ".address");
+	        port = configService.getConfigInt("tracker." + protocol + ".port");
 	        if (address == null) {
 	        	aprsServerAddr = new InetSocketAddress(port);
 	        } else {
@@ -228,7 +226,7 @@ public class AprsReceiver {
 	}
 	
 	private boolean isEnabled(){
-		return Boolean.TRUE.equals(trackerDataService.getConfig("tracker."+protocol+".enabled"));
+		return Boolean.TRUE.equals(configService.getConfig("tracker."+protocol+".enabled"));
 	}
 	
 	public boolean isConnected(){
@@ -250,9 +248,9 @@ public class AprsReceiver {
 			pipeline.addLast("decoder", new StringDecoder());
 			pipeline.addLast("encoder", new StringEncoder());
 			pipeline.addLast("aprsDecoder",new AprsDecoder(
-					getConfigString("tracker.aprs.call"),
-					getConfigString("tracker.aprs.pass"),
-					getConfigString("tracker.aprs.filter")
+					configService.getConfigString("tracker.aprs.call"),
+					configService.getConfigString("tracker.aprs.pass"),
+					configService.getConfigString("tracker.aprs.filter")
 					));
 
 			// and then business logic.
