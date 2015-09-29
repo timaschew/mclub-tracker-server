@@ -1,3 +1,5 @@
+import grails.util.Environment
+
 class UrlMappings {
 
 	static mappings = {
@@ -10,7 +12,13 @@ class UrlMappings {
 		"/map/$action/$id?"(controller:"trackerMap"){
 			
 		}
+
+		// For compatible with the application
+		"/mtracker/api/$action/$id?"(controller:"trackerAPI"){
 		
+		}
+
+				
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
 		}
@@ -35,9 +43,16 @@ class UrlMappings {
 			
 		}
 
-		"/"(controller:'trackerMap',action:'aprs')
+		"/"(controller:'trackerMap',action:'index')
 
 //		"/"(view:"/index")
-		"500"(view:'/error')
+		
+		//if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
+		if (false) {
+			"500"(view:'/error')
+		}else{
+			"500"(view:'/errors/500')
+			"404"(view:'/errors/404')
+		}
 	}
 }

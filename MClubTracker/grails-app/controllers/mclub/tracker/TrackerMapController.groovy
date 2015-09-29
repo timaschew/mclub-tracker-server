@@ -15,9 +15,19 @@ class TrackerMapController {
 			return link.replace("http://","ws://");	
 		}
 	}
-	
+
+	/**
+	 * Tricky index that redirect according to hard-coded domain name	
+	 * @return
+	 */
     def index() {
-		redirect action:'aprs'
+		String serverName = request.getServerName();
+		if(serverName && serverName.indexOf("nc.semitno".reverse()) != -1){
+			// for on times domain, forward to the mclub map
+			forward action:'mclub'
+		}else{
+			forward action:'aprs'
+		}
 	}
 	
 	def aprs(String id, String lat, String lon){
