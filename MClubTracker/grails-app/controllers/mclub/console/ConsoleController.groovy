@@ -1,10 +1,12 @@
-package mclub.tracker
+package mclub.console
 
 import org.apache.commons.codec.binary.Hex
 
 class ConsoleController {
 	def tracCarDataImportService;
-    def index() { }
+    def index() {
+		render view:'index', namespace:'console'
+	}
 	
 	def raw_data(){
 		if(request.method == 'GET'){

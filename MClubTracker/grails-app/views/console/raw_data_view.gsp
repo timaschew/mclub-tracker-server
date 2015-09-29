@@ -18,7 +18,7 @@
 			</g:if>
 			<hr/>
 			<div>Input:</div>
-			<g:form method="post" action="raw">
+			<g:form method="post" action="raw_data">
 				<fieldset class="form">
 					<div class="fieldcontain">
 						<g:textArea name="hex" rows="30" cols="100">${hex}</g:textArea>
