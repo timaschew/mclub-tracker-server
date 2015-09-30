@@ -330,6 +330,9 @@ class TrackerAPIController {
 		User user;
 		user = User.findByPhone(phone);
 		if(user){
+			// 目前只允许 一个手机对应一个号码对应一个用户。
+			//TODO - To support one phone number to many devices, 
+			// perform the authentication here and returns the existing user 
 			result = APIResponse.ERROR("Phone number is occupied");
 			render result as JSON;
 			return;
@@ -416,6 +419,13 @@ class TrackerAPIController {
 						log.warn("Failed to save device, ${device.errors}");
 					}
 				}else{
+					// device already exists, need to check whether it's the same user that associated with
+					if(!username.equals(device.username)){
+						// the device is associated with other users
+						result = APIResponse.ERROR("Device is binded to another user");
+						render result as JSON;
+						return;
+					}
 					// No need to to associate here, because later when data reported, it will associate automatically
 				}
 			}
