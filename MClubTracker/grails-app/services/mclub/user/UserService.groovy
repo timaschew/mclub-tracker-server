@@ -157,10 +157,10 @@ class UserService {
 
 	
 	/**
-	 * Login user with username/password pair
+	 * Login user with phone/password pair
 	 * @return session token if auth succeed
 	 */
-	public UserSession loginWithPhone(String phone, String password){
+	public UserSession loginByPhone(String phone, String password){
 		// search user by phone
 		User user = User.findByPhone(phone);
 		if(user){

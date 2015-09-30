@@ -1,6 +1,7 @@
 package mclub.admin
 
 import grails.validation.Validateable
+import mclub.user.AuthUtils;
 import mclub.user.User
 import mclub.user.UserService;
 import mclub.user.UserService.UserSession
@@ -36,7 +37,13 @@ class AdminController {
 		
 		if(request.method == 'POST'){
 			if(!loginCommand.hasErrors()){
-				UserSession usession = userService.login(loginCommand.username, loginCommand.password);
+				
+				UserSession usession = null;
+				if(AuthUtils.isMobilePhoneNumber(loginCommand.username)){
+					usession = userService.loginByPhone(loginCommand.username, loginCommand.password);
+				}else{
+					usession = userService.login(loginCommand.username, loginCommand.password);
+				}
 				if(usession){
 					user = User.findByName(usession.username);
 					session['user'] = user;

@@ -326,11 +326,19 @@ class TrackerAPIController {
 			return;
 		}
 		
+		// check whether phone number is registered.
+		User user;
+		user = User.findByPhone(phone);
+		if(user){
+			result = APIResponse.ERROR("Phone number is occupied");
+			render result as JSON;
+			return;
+		}
+		
 		// generate user name uXXXXYYYY, where XXXX is last 4 digi of udid and YYYY is last 4 digi of phone
 		String username = "u" + udid.substring(udid.length() - 4) + phone.substring(phone.length() - 4);
-		
 		// check whether user exists
-		User user = User.findByName(username);
+		user = User.findByName(username);
 		if(user){
 			// user exists, bail out
 			result = APIResponse.ERROR("User already exists");
@@ -389,7 +397,12 @@ class TrackerAPIController {
 		}
 		
 		def result;
-		def uSession = userService.login(username, password);
+		def uSession;
+		if(mclub.user.AuthUtils.isMobilePhoneNumber(username)){
+			uSession = userService.loginByPhone(username, password);
+		}else{
+			uSession = userService.login(username,password);
+		}
 		if(uSession && uSession.token){
 			// if udid is specified, save it and associate with current user.
 			if(udid){
