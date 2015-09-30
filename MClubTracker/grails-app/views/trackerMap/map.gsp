@@ -32,7 +32,7 @@
     <body>
         <div id="mapContainer">
         </div>
-        <script type="text/javascript" src="${createLink(uri:'/js/jquery-2.1.4.min.js')}">
+        <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
         </script>
         <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee">
         </script>
@@ -220,7 +220,11 @@
                         var markerIcon = new AMap.Icon({
                         	size: [20,20],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	image: "${createLink(uri:'/images/aprs/sym')}" + symbol[0] + ".png"
+                        	
+                        	image: "${resource(dir:'images/aprs', file:'sym')}" + symbol[0] + ".png"
+                        	<%--
+                        	image: "${createLink(uri:'/images/aprs/sym', absolute:false)}" + symbol[0] + ".png"
+                        	--%>
                         });
                         marker.setIcon(markerIcon);
                 	}else{
@@ -256,7 +260,7 @@
                             var markerIcon = new AMap.Icon({
                                 //image : "http://webapi.amap.com/images/marker_sprite.png"
                                 size: [48,48],
-                            	image : "${createLink(uri:'/images/marker_')}" + feature['properties']['marker-symbol'] + ".png"
+                            	image : "${resource(dir:'images', file:'marker_')}" + feature['properties']['marker-symbol'] + ".png"
                             });
                             marker.setIcon(markerIcon);                        	
                         }
