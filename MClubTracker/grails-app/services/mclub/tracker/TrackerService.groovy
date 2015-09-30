@@ -145,7 +145,7 @@ class TrackerService {
 		return featureCollection;
 	}
 	
-	private Collection<TrackerDevice> filterTrackerDevices(DeviceFilterCommand cmd){
+	public Collection<TrackerDevice> filterTrackerDevices(DeviceFilterCommand cmd){
 		if("all".equalsIgnoreCase(cmd.udid)){
 			cmd.udid = null;
 		}

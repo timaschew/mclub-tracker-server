@@ -1,15 +1,17 @@
 package mclub.tracker
 
+import grails.util.Environment
+import mclub.sys.ConfigService;
+import mclub.user.User;
+import mclub.sys.IpService;
 import org.codehaus.groovy.grails.web.mapping.LinkGenerator
-import mclub.sys.ConfigService
-import mclub.tracker.TrackerDevice;
-import mclub.user.User
-import grails.util.Environment;
 
 class TrackerMapController {
 	// Inject link generator
 	LinkGenerator grailsLinkGenerator
 	ConfigService configService;
+	TrackerService trackerService;
+	IpService ipService;
 	
 	private String generateMapLiveServiceURL(Map<String,Object> params){
 		String link = grailsLinkGenerator.link(uri:'/live0',id:'all', params:params, absolute:true);
@@ -65,15 +67,68 @@ class TrackerMapController {
 	
 	def aprs(String id, String lat, String lon){
 		MapConfig mapConfig = new MapConfig(title:"APRS Map");
+		
+		
+
+		
+			
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
+			
+			DeviceFilterCommand filter = new DeviceFilterCommand(udid:id);
+			def devices = trackerService.filterTrackerDevices(filter);
+			if(devices?.size() > 0){
+				def dev = devices[0];
+				if(dev.latestPositionId){
+					TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
+					if(pos){
+						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
+						mapConfig.mapZoomLevel = 7;
+					}
+				}
+			}
+			
 		}else{
+			// detect remote location by address
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 		}
-			
+		
+		// load the default center point
+		if(!mapConfig.centerCoordinate){
+			mapConfig.centerCoordinate = detectRemoteClientLocation(); // center of hangzhou
+		}
+		
 		render view:"map", model:[mapConfig:mapConfig];
+	}
+	
+	private List<Float> detectRemoteClientLocation(){
+		String ip = request.getHeader("Client-IP");
+		if (!ip){
+			ip = request.getHeader("X-Forwarded-For")
+		}
+		if (!ip){
+			ip = request.remoteAddr
+		}
+		List<Float> ipLoc = null;
+		if(ip){
+			try{
+				String ipAddr = ipService.lookupIpAddress(ip);
+				ipLoc = ipService.addressToLocation(ipAddr);
+				if(ipLoc){
+					log.info "remote ip: ${ip} resolved to ${ipAddr} ${ipLoc}";
+				}
+			}catch(Exception e){
+				// do nothing;
+			}
+		} else{
+			log.info "detect remote ip failed"
+		}
+		if(!ipLoc){
+			ipLoc = [120.20,30.24];
+		}
+		return ipLoc;
 	}
 	
 	def mclub(String id, String lat, String lon){
@@ -102,4 +157,6 @@ class MapConfig{
 	String title;
 	String serviceURL;
 	String dataURL;
+	List<Float> centerCoordinate;
+	int mapZoomLevel = 9
 }

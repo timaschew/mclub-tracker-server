@@ -40,11 +40,11 @@
             $(function() {
                 var dataURL = "<%=mapConfig.dataURL%>";
                 var serviceURL = "<%=mapConfig.serviceURL%>";
-                
+                var mapCenter = <%=mapConfig.centerCoordinate.toString()%>;
                 var map = new AMap.Map('mapContainer', {
                     resizeEnable: true,
-                    center: [120.20, 30.24],
-                    zoom: 11
+                    center: mapCenter,
+                    zoom: <%=mapConfig.mapZoomLevel%>
                 });
 
                 var infoWindow = new AMap.InfoWindow({

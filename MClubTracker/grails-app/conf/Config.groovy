@@ -158,6 +158,8 @@ tracker.aprs.filter = 'r/36.045101/103.836093/2500'
 //tracker.aprs.filter = 'p/B' //All callsign starts with B
 //tracker.aprs.filter = 'p/BG5HHP'
 
+//tracker.aprs.data.daysToPreserve = 7
+
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
@@ -165,6 +167,8 @@ tracker.map.secure = true;
 
 // Enable/disable the social feature
 social.weibo.enabled = false
+
+sys.ipdb.filepath = "~/mclub-tracker/17monipdb.dat"
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 // See https://github.com/grails/grails-core/wiki/Default-Codecs for more details
