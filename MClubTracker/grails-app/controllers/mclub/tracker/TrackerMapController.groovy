@@ -98,6 +98,7 @@ class TrackerMapController {
 		// load the default center point
 		if(!mapConfig.centerCoordinate){
 			mapConfig.centerCoordinate = detectRemoteClientLocation(); // center of hangzhou
+			mapConfig.mapZoomLevel = 8;
 		}
 		
 		render view:"map", model:[mapConfig:mapConfig];
@@ -158,5 +159,5 @@ class MapConfig{
 	String serviceURL;
 	String dataURL;
 	List<Float> centerCoordinate;
-	int mapZoomLevel = 9
+	int mapZoomLevel = 8
 }
