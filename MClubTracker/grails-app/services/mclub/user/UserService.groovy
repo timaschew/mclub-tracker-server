@@ -103,6 +103,7 @@ class UserService {
 	 * @return
 	 */
 	public boolean createUserAccount(User user, String password){
+		user.creationDate = new java.util.Date();
 		// generate salts
 		user.passwordSalt = AuthUtils.generateSalt(5);
 		user.sessionSalt = AuthUtils.generateSalt(5);

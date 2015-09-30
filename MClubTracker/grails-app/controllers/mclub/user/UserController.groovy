@@ -45,12 +45,16 @@ class UserController {
             return
         }
 
-        if (userInstance.hasErrors()) {
-            respond userInstance.errors, view:'create'
-            return
-        }
-
-        userInstance.save flush:true
+		if(!userService.createUserAccount(userInstance, 'changeme!')){
+			respond userInstance.errors, view:'create';
+			return;
+		}
+//        if (userInstance.hasErrors()) {
+//            respond userInstance.errors, view:'create'
+//            return
+//        }
+//
+//        userInstance.save flush:true
 
         request.withFormat {
             form multipartForm {
