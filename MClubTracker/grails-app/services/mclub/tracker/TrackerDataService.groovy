@@ -190,7 +190,7 @@ class TrackerDataService {
 	 * 
 	 */
 	public int deleteAprsPosition(int daysOfDataToSave){
-		log.info("Delete APRS Positions");
+		log.info("Delete APRS Positions ${daysOfDataToSave} days before");
 		int count = 0;
 		def aprsDevices = TrackerDevice.findAllByStatus(TrackerDevice.DEVICE_TYPE_APRS);
 		log.info("Total ${aprsDevices.size()} APRS devices");

@@ -33,7 +33,15 @@ public class ConfigService {
 		return (String)getConfig(key);
 	}
 	
-	public int getConfigInt(String key){
-		return (Integer)getConfig(key);
+	public Integer getConfigInt(String key){
+		def v = getConfig(key);
+		if(v){
+			try{
+				return Integer.parseInt(v.toString());	
+			}catch(Exception e){
+				// noop
+			}
+		}
+		return null;
 	}
 }
