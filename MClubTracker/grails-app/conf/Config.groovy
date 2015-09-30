@@ -150,8 +150,12 @@ tracker.aprs.address = 'rotate.aprs2.net'
 tracker.aprs.port = 14580
 tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
+//small china filter
+//tracker.aprs.filter = 'r/31.864128/109.930590/1600'
+//huge china filter
+tracker.aprs.filter = 'r/36.045101/103.836093/2500'
 //tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
-tracker.aprs.filter = 'p/B' //All callsign starts with B
+//tracker.aprs.filter = 'p/B' //All callsign starts with B
 //tracker.aprs.filter = 'p/BG5HHP'
 
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
