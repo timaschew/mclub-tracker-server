@@ -2,6 +2,7 @@ package mclub.tracker
 import java.util.Map;
 
 import grails.converters.JSON
+import mclub.sys.ConfigService
 import mclub.tracker.DeviceFilterCommand
 import mclub.user.User
 import mclub.user.UserService;
@@ -12,6 +13,7 @@ class TrackerAPIController {
 	TrackerService trackerService;
 	TrackerDataService trackerDataService;
 	UserService userService;
+	ConfigService configService;
 	
 	def index(){
 		render text:'Tracker API 0.1'
@@ -284,7 +286,11 @@ class TrackerAPIController {
 	}
 	
 	def clean_aprs_data(){
-		def r = [result:trackerDataService.deleteAprsPosition(7)];
+		Integer daysToPreserve = configService.getConfigInt("tracker.aprs.data.daysToPreserve");
+		if(!daysToPreserve){
+			daysToPreserve = 3; // by default will keep 7 days data
+		}
+		def r = [result:trackerDataService.deleteAprsPosition(daysToPreserve)];
 		render r as JSON;
 	}
 	

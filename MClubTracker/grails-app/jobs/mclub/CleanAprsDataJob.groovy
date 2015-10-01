@@ -19,7 +19,7 @@ class CleanAprsDataJob {
 	def execute() {
 		Integer daysToPreserve = configService.getConfigInt("tracker.aprs.data.daysToPreserve");
 		if(!daysToPreserve){
-			daysToPreserve = 7; // by default will keep 7 days data
+			daysToPreserve = 3; // by default will keep 7 days data
 		}
 		trackerDataService.deleteAprsPosition(daysToPreserve);
 	}
