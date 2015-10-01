@@ -34,18 +34,14 @@
 				<g:if test="${trackerPositionInstance?.latitude}">
 				<li class="fieldcontain">
 					<span id="latitude-label" class="property-label"><g:message code="trackerPosition.latitude.label" default="Latitude" /></span>
-					
-						<span class="property-value" aria-labelledby="latitude-label"><g:fieldValue bean="${trackerPositionInstance}" field="latitude"/></span>
-					
+						<span class="property-value" aria-labelledby="latitude-label">${String.format("%.6f",trackerPositionInstance.latitude)}</span>
 				</li>
 				</g:if>
 			
 				<g:if test="${trackerPositionInstance?.longitude}">
 				<li class="fieldcontain">
 					<span id="longitude-label" class="property-label"><g:message code="trackerPosition.longitude.label" default="Longitude" /></span>
-					
-						<span class="property-value" aria-labelledby="longitude-label"><g:fieldValue bean="${trackerPositionInstance}" field="longitude"/></span>
-					
+						<span class="property-value" aria-labelledby="longitude-label">${String.format("%.6f",trackerPositionInstance.longitude)}</span>
 				</li>
 				</g:if>
 				<g:if test="${trackerPositionInstance?.altitude}">

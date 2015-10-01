@@ -40,9 +40,11 @@
 						<td><g:link action="show" id="${trackerPositionInstance.id}">${fieldValue(bean: trackerPositionInstance, field: "id")}</g:link></td>
 						
 						<td><g:link controller="trackerDevice" action="show" id="${trackerPositionInstance.deviceId}">${fieldValue(bean: trackerPositionInstance, field: "deviceId")}</g:link></td>
-					
+						<%--
 						<td>${fieldValue(bean: trackerPositionInstance, field: "latitude")},${fieldValue(bean: trackerPositionInstance, field: "longitude")}</td>
-
+ 						--%>
+ 						<td>${String.format("%.6f",trackerPositionInstance.latitude)},${String.format("%.6f",trackerPositionInstance.longitude)}</td>
+ 						
 						<td>${fieldValue(bean: trackerPositionInstance, field: "speed")} / ${fieldValue(bean: trackerPositionInstance, field: "course")}</td>
 						
 						<td>${fieldValue(bean: trackerPositionInstance, field: "valid")}</td>
