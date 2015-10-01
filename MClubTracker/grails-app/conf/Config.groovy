@@ -163,7 +163,7 @@ tracker.aprs.filter = 'r/31.864128/109.930590/1600'
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-tracker.map.secure = true;
+tracker.map.secure = false;
 
 // Enable/disable the social feature
 social.weibo.enabled = false

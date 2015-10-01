@@ -221,7 +221,7 @@
                         	size: [20,20],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
                         	
-                        	image: "${createLink(uri:'/images/aprs/sym', absolute:false)}" + symbol[0] + ".png"
+                        	image: "${createLink(uri:'/static/images/aprs/sym', absolute:false)}" + symbol[0] + ".png"
                         });
                         marker.setIcon(markerIcon);
                 	}else{
@@ -255,9 +255,8 @@
                         
                         if(typeof symbol != "undefined"){
                             var markerIcon = new AMap.Icon({
-                                //image : "http://webapi.amap.com/images/marker_sprite.png"
                                 size: [48,48],
-								image : "${createLink(uri:'/images/marker_', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
+                                image : "${createLink(uri:'/static/images/marker_', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
                             });
                             marker.setIcon(markerIcon);                        	
                         }
