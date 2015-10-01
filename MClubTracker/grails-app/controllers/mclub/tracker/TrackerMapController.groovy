@@ -67,10 +67,6 @@ class TrackerMapController {
 	
 	def aprs(String id, String lat, String lon){
 		MapConfig mapConfig = new MapConfig(title:"APRS Map");
-		
-		
-
-		
 			
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
@@ -112,6 +108,7 @@ class TrackerMapController {
 		if (!ip){
 			ip = request.remoteAddr
 		}
+		//FIXME - Move to IPService
 		List<Float> ipLoc = null;
 		if(ip){
 			try{

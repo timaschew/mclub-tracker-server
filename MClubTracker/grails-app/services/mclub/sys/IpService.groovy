@@ -10,12 +10,15 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 
-import mclub.ham.repeater.util.GeoLocation;
 import mclub.util.IP;
+import mclub.util.loc.LocationObject;
+import mclub.util.loc.LocationCoderService;
 import grails.converters.JSON;
 
 public class IpService {
 	ConfigService configService;
+	
+	LocationCoderService locationCoderService;
 	
 	@PostConstruct
 	public void start(){
@@ -38,7 +41,11 @@ public class IpService {
 			}else{
 				log.warn("IP db file not found at ${ipdbFilePath}");
 			}
-		}	
+		}
+		
+		// initialize the location coder service
+		locationCoderService = new LocationCoderService("/tmp/location_coder_cache.json");
+		locationCoderService.start();
 	}
 	
 //	public String lookupIpLocation(String ip){
@@ -68,7 +75,8 @@ public class IpService {
 	
 	public List<Float> addressToLocation(String address){
 		if(!address) return null;
-		GeoLocation loc = queryGeoLocation(address);
+		LocationObject loc;
+		loc = locationCoderService.getLocation(address, true);
 		if(loc){
 			return [loc.lon,loc.lat];
 		}
@@ -76,54 +84,53 @@ public class IpService {
 	
 	@PreDestroy
 	public void stop(){
-		
+		this.locationCoderService.stop();
 	}
 	
-	private GeoLocation queryGeoLocation(String cityNames){
-		// http://api.map.baidu.com/geocoder?address=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E&output=json&key=g2fQ61PYZCgBwTY7YAk9c8n7&city=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E
-		GeoLocation location = null;
-		String apiURL = "http://api.map.baidu.com/geocoder";
-		try {
-			HttpClient client = new HttpClient();
-			GetMethod httpget = new GetMethod(apiURL /*"http://api.map.baidu.com/geocoder"*/);
-			httpget.setRequestHeader("Accept-Charset", "utf-8,gb2312");
-			
-			List<NameValuePair> params = new ArrayList<NameValuePair>();
-			params.add(new NameValuePair("address",cityNames));
-			params.add(new NameValuePair("city",cityNames));
-			params.add(new NameValuePair("output","json"));
-			params.add(new NameValuePair("key","g2fQ61PYZCgBwTY7YAk9c8n7"));
-			
-			httpget.setQueryString(params.toArray(new NameValuePair[0]));
-
-			int status = client.executeMethod(httpget);
-			//System.out.println("Response status: " + status);
-			log.debug("Response status: " + status);
-
-			String jsonString = httpget.getResponseBodyAsString();
-			log.debug("JSON:");
-			log.debug(jsonString);
-			//System.out.println("JSON:");
-			//System.out.println(jsonString);
-			
-			def obj = JSON.parse(jsonString);
-			if(obj != null){
-				if("OK".equalsIgnoreCase(obj["status"])){
-					def loc = obj["result"]["location"];
-					if(loc != null){
-						// construct the GeoLocation object
-						location = new GeoLocation();
-						location.addr = cityNames;
-						location.lat = String.format("%.9f", loc["lat"]);//new String(loc("lat");
-						location.lon = String.format("%.9f", loc["lng"]);//loc.getString("lon");
-					}
-				}
-				
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return location;
-	}
+//	private LocationObject queryGeoLocation(String cityNames){
+//		// http://api.map.baidu.com/geocoder?address=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E&output=json&key=g2fQ61PYZCgBwTY7YAk9c8n7&city=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E
+//		LocationObject location = null;
+//		String apiURL = "http://api.map.baidu.com/geocoder";
+//		try {
+//			HttpClient client = new HttpClient();
+//			GetMethod httpget = new GetMethod(apiURL /*"http://api.map.baidu.com/geocoder"*/);
+//			httpget.setRequestHeader("Accept-Charset", "utf-8,gb2312");
+//			
+//			List<NameValuePair> params = new ArrayList<NameValuePair>();
+//			params.add(new NameValuePair("address",cityNames));
+//			params.add(new NameValuePair("city",cityNames));
+//			params.add(new NameValuePair("output","json"));
+//			params.add(new NameValuePair("key","g2fQ61PYZCgBwTY7YAk9c8n7"));
+//			
+//			httpget.setQueryString(params.toArray(new NameValuePair[0]));
+//
+//			int status = client.executeMethod(httpget);
+//			//System.out.println("Response status: " + status);
+//			log.debug("Response status: " + status);
+//
+//			String jsonString = httpget.getResponseBodyAsString();
+//			log.debug("JSON:");
+//			log.debug(jsonString);
+//			//System.out.println("JSON:");
+//			//System.out.println(jsonString);
+//			
+//			def obj = JSON.parse(jsonString);
+//			if(obj != null){
+//				if("OK".equalsIgnoreCase(obj["status"])){
+//					def loc = obj["result"]["location"];
+//					if(loc != null){
+//						// construct the GeoLocation object
+//						location = new LocationObject();
+//						location.addr = cityNames;
+//						location.lat = String.format("%.6f", loc["lat"]);//new String(loc("lat");
+//						location.lon = String.format("%.6f", loc["lng"]);//loc.getString("lon");
+//					}
+//				}
+//				
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return location;
+//	}
 }
