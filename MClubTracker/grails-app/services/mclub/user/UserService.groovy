@@ -118,11 +118,15 @@ class UserService {
 	
 	//////////////////////////////////////////////////////////////////////////////
 	// Authentication Part
+	public UserSession login(String username, String password){
+		return login(username,password,false);
+	}
+	
 	/**
 	 * Login user with username/password pair
 	 * @return session token if auth succeed
 	 */
-	public UserSession login(String username, String password){
+	public UserSession login(String username, String password, boolean authOnly){
 		// search user by phone
 		// compare passwordHash with md5(password*hash)
 		// if success, generate session credential with md5(phone*hash)
@@ -132,20 +136,24 @@ class UserService {
 			String hash2 = user.passwordHash;
 			if(hash1.equals(hash2)){
 				// login success
-				// remove previous session
-				for(UserSession us in sessions.values()){
-					if(us.username.equals(username)){
-						// found existing session
-						sessions.remove(us.token);
-						log.debug("remove existing session token: ${us.token}")
-						break;
-					}
-				}
-				
+				// if authOnly == false, will replace the previous session
+				// that will kick-off previous user
 				// generate session token
 				UserSession usession = generateUserSession(user);
-				sessions.put(usession.token, usession);
-				log.debug("generated session token: ${usession.token}")
+				log.debug("generated new session token: ${usession.token}")
+
+				if(!authOnly){
+					for(UserSession us in sessions.values()){
+						if(us.username.equals(username)){
+							// found existing session
+							sessions.remove(us.token);
+							log.debug("removed previous session token: ${us.token}")
+							break;
+						}
+					}
+					sessions.put(usession.token, usession);
+				}
+				
 				return usession.cloneone();
 			}else{
 				log.info("User ${username} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
@@ -161,12 +169,12 @@ class UserService {
 	 * Login user with phone/password pair
 	 * @return session token if auth succeed
 	 */
-	public UserSession loginByPhone(String phone, String password){
+	public UserSession loginByPhone(String phone, String password, boolean authOnly){
 		// search user by phone
 		User user = User.findByPhone(phone);
 		if(user){
 			String username = user.name;
-			return login(username,password);
+			return login(username,password,authOnly);
 		}else{
 			// no user found
 			return null;

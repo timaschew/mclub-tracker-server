@@ -408,9 +408,9 @@ class TrackerAPIController {
 		def result;
 		def uSession;
 		if(mclub.user.AuthUtils.isMobilePhoneNumber(username)){
-			uSession = userService.loginByPhone(username, password);
+			uSession = userService.loginByPhone(username, password,false);
 		}else{
-			uSession = userService.login(username,password);
+			uSession = userService.login(username,password,false);
 		}
 		if(uSession && uSession.token){
 			// if udid is specified, save it and associate with current user.

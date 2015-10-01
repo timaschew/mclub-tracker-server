@@ -78,7 +78,7 @@ public class AuthUtils {
 	}
 	
 	public static boolean isMobilePhoneNumber(String input){
-		if(input.length() == 11){
+		if(input?.length() == 11){
 			for(int i = 0;i < input.length();i++){
 				char c = input.charAt(i);
 				if(c >='0' && c <='9'){

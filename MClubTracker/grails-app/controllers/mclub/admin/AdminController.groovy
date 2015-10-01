@@ -40,9 +40,9 @@ class AdminController {
 				
 				UserSession usession = null;
 				if(AuthUtils.isMobilePhoneNumber(loginCommand.username)){
-					usession = userService.loginByPhone(loginCommand.username, loginCommand.password);
+					usession = userService.loginByPhone(loginCommand.username, loginCommand.password, true);
 				}else{
-					usession = userService.login(loginCommand.username, loginCommand.password);
+					usession = userService.login(loginCommand.username, loginCommand.password, true);
 				}
 				if(usession){
 					user = User.findByName(usession.username);
