@@ -124,7 +124,8 @@ class TrackerDataService {
 		if(positionData.messageType!= null && positionData.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
 			timeInterval = 500; // for emergency messages, threshold set to 0.5s
 		}
-		if(device.status == TrackerDevice.DEVICE_TYPE_ACTIVED){
+		//if(device.status == TrackerDevice.DEVICE_TYPE_ACTIVED){
+		if(true){
 			timeInterval = 1000;// for registered devices, the threshold set to 1s
 		}
 		
