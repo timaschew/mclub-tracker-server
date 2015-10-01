@@ -107,9 +107,9 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	}
 	
 	@OnMessage
-	public String handleMessage(String message,Session clientSession) throws IOException {
+	public void handleMessage(String message,Session clientSession) throws IOException {
 		log.debug "Received: " + message
-		return "echo [" + clientSession.getId() + "]"  + message;
+		clientSession.basicRemote.sendText("echo [" + clientSession.getId() + "]"  + message);
 		
 		//TODO - read input as JSON and parse to {"filter":{"type":1,"udid":"xxxx"}};
 		/*
@@ -138,15 +138,20 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	
 	@OnError
 	public void handleError(Session clientSession, Throwable t) {
+		log.error("websocket error", t);
+		closeSession(clientSession);
+	}
+
+	private void closeSession(Session clientSession){
 		try{
-			clientSession.close();
+			if(clientSession.isOpen())
+				clientSession.close();
 		}catch(Exception e){
 			// noop;
 		}
 		sessions.remove(clientSession.getId());
-		log.error("websocket error", t);
 	}
-
+	
 	@Override
 	public void onPositionChanged(PositionData position) {
 		//log.trace("onPositionChange called, sessions: ${sessions}");
@@ -162,11 +167,13 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		for(SessionEntry sessionEntry : sessions.values()){
 			DeviceFilterCommand filter = sessionEntry.filter;
 			if(filter && filter.accept(position)){
+				Session clientSession = sessionEntry.session;
 				try{
-					sessionEntry.session.basicRemote.sendText(txt.toString());
+					clientSession.basicRemote.sendText(txt.toString());
 				}catch(Exception e){
 					// ignore
-					log.error("Error pushing position changes",e);
+					log.warn("Error pushing position changes, " + e.getMessage());
+					closeSession(clientSession);
 				}
 			}
 		}
