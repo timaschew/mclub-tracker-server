@@ -92,7 +92,6 @@
                             });
                             marker.setMap(map);
                         }
-                        //map.setFitView();
                         return marker;
                     },
                 };
@@ -100,11 +99,11 @@
                 var PointRender = {
                     pointsMap: {},
                     render: function(point, tag) {
-                        if (!point) {
+                        if (!point || !tag) {
                             return;
                         };
-                        var marker;
-                        if (typeof tag == "undefined" || typeof this.pointsMap[tag] == "undefined") {
+                        var marker = this.pointsMap[tag]
+                        if (typeof marker == "undefined") {
                             marker = new AMap.Marker({
                                 icon: "http://webapi.amap.com/images/marker_sprite.png",
                                 topWhenClick:true,
@@ -115,10 +114,8 @@
                                 this.pointsMap[tag] = marker;
                             }
                         } else {
-                            marker = this.pointsMap[tag];
-                            marker && marker.setPosition(point);
+                            marker.moveTo(point,1000);
                         }
-                        //map.setFitView();
                         return marker;
                     },
                 };
