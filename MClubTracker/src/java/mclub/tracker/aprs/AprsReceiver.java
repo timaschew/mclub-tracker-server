@@ -151,6 +151,7 @@ public class AprsReceiver {
  		}
  		
  		// the reconnect thread
+ 		log.debug("Startup aprs connecting thread...");
 		connectThread = java.util.concurrent.Executors.newFixedThreadPool(1);
 		connectThread.submit(new Runnable(){
 			@Override

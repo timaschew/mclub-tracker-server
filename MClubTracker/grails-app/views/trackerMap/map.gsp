@@ -40,15 +40,17 @@
             $(function() {
                 var dataURL = "<%=mapConfig.dataURL%>";
                 var serviceURL = "<%=mapConfig.serviceURL%>";
-                var mapCenter = <%=mapConfig.centerCoordinate.toString()%>;
                 var map = new AMap.Map('mapContainer', {
                     resizeEnable: true,
-                    center: mapCenter,
+                    <%if(mapConfig.centerCoordinate){%>
+                    center: <%=mapConfig.centerCoordinate.toString()%>,
                     zoom: <%=mapConfig.mapZoomLevel%>
+					<%}%>
                 });
 
                 var infoWindow = new AMap.InfoWindow({
                     // isCustom: true
+                	closeWhenClickMap:true,
                 });
 
                 // Add map toolbar controller

@@ -172,7 +172,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 					clientSession.basicRemote.sendText(txt.toString());
 				}catch(Exception e){
 					// ignore
-					log.warn("Error pushing position changes, " + e.getMessage());
+					log.warn("Error pushing position changes, ${e.getMessage()}. Remote ip: ");
 					closeSession(clientSession);
 				}
 			}

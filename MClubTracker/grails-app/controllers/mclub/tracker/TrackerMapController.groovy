@@ -80,7 +80,7 @@ class TrackerMapController {
 					TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
 					if(pos){
 						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
-						mapConfig.mapZoomLevel = 7;
+						mapConfig.mapZoomLevel = 10;
 					}
 				}
 			}
@@ -92,11 +92,16 @@ class TrackerMapController {
 		}
 		
 		// load the default center point
+		/*
 		if(!mapConfig.centerCoordinate){
 			mapConfig.centerCoordinate = detectRemoteClientLocation(); // center of hangzhou
 			mapConfig.mapZoomLevel = 8;
 		}
-		
+		*/
+		if(log.isInfoEnabled()){
+			// detect remote client location;
+			detectRemoteClientLocation();
+		}
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	

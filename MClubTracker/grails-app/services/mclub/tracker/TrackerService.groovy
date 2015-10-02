@@ -564,7 +564,11 @@ public class DeviceFilterCommand{
 		
 		// UDID available
 		if(udid){
-			if(udid.equalsIgnoreCase("ALL") || udid.equalsIgnoreCase(positionData.udid)){
+			if(udid.equalsIgnoreCase("ALL") ){
+				return true;
+			//} else if(udid.equalsIgnoreCase(positionData.udid)){
+			//	return true;
+			} else if(positionData.udid.startsWith(udid)){
 				return true;
 			}
 		}
