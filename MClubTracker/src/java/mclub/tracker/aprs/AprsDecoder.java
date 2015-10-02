@@ -96,13 +96,13 @@ public class AprsDecoder extends OneToOneDecoder{
 	}
 	
 	protected PositionData decodeAPRS(String aprsMessage){
-		PositionData positionData = null;
-		if(aprsMessage.startsWith("#")){
-			log.debug("RECV CMD: " + aprsMessage);
-			return null;
-		}
 		// log aprs message
 		aprsLog.trace(aprsMessage);
+		PositionData positionData = null;
+		if(aprsMessage.startsWith("#")){
+			if(log.isDebugEnabled()) log.debug("RECV CMD: " + aprsMessage);
+			return null;
+		}
 		try{
 			APRSPacket pack = Parser.parse(aprsMessage);
 			if(pack == null || !pack.isAprs()){

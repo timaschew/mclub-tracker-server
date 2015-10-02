@@ -39,6 +39,7 @@ environments {
     production {
         dataSource {
             dbCreate = "update"
+			//url = "jdbc:mysql://localhost/mclub-tracker?useUnicode=yes&characterEncoding=UTF-8"
             url = "jdbc:h2:~/mclub-tracker/main_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
             pooled = true
             properties {

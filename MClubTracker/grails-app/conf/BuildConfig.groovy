@@ -53,7 +53,9 @@ grails.project.dependency.resolution = {
 
 		// enable if use sqlite
 		// runtime 'org.xerial:sqlite-jdbc:3.7.2'
-        // runtime 'mysql:mysql-connector-java:5.1.22'
+		
+		// Enable if use MySQL 
+		//runtime 'mysql:mysql-connector-java:5.1.36'
 		
 		compile 'io.netty:netty:3.6.3.Final'
 		
@@ -66,10 +68,7 @@ grails.project.dependency.resolution = {
 		compile 'com.alibaba:fastjson:1.2.6'
 		//test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
 		
-		runtime 'com.h2database:h2:1.4.187'   // or 'com.h2database:h2:1.3.175' for older version
-		
-		//compile 'org.geotools:gt-main:2.6.0'
-		//compile 'net.sf.json-lib:json-lib:2.4'
+		runtime 'com.h2database:h2:1.4.189'   // or 'com.h2database:h2:1.3.175' for older version
 		
 		build ('javax.websocket:javax.websocket-api:1.0') { export = false }
     }
