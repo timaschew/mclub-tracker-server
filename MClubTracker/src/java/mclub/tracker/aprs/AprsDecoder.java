@@ -26,9 +26,8 @@ public class AprsDecoder extends OneToOneDecoder{
 
 	private int state;
 	private static final int STATE_INIT_WAIT_WELCOME = 0;
-	private static final int STATE_NEED_LOGIN = 1;
-	private static final int STATE_LOGIN_WAIT_ACK = 2;
-	private static final int STATE_APRS = 3;
+	private static final int STATE_LOGIN_WAIT_ACK = 1;
+	private static final int STATE_WAIT_APRS = 2;
 
 	private String loginCommand;
 	
@@ -44,11 +43,7 @@ public class AprsDecoder extends OneToOneDecoder{
 		case STATE_INIT_WAIT_WELCOME:{
 			// send the login command
 			log.debug("<<< APRS Welcome: " + response);
-			state = STATE_NEED_LOGIN;
-			break;
-		}
-		case STATE_NEED_LOGIN:{
-			// wait for the login ack
+			// send the login command and wait for the ack
 			if(sendLoginCommand(channel)){
 				state = STATE_LOGIN_WAIT_ACK;
 				log.debug(">>> APRS Login: " + loginCommand);
@@ -56,11 +51,11 @@ public class AprsDecoder extends OneToOneDecoder{
 			break;
 		}
 		case STATE_LOGIN_WAIT_ACK:{
-			state = STATE_APRS;
+			state = STATE_WAIT_APRS;
 			log.debug("<<< APRS Login ACK: " + response);
 			break;
 		}
-		case STATE_APRS:{
+		case STATE_WAIT_APRS:{
 			try{
 				log.debug("<<< APRS Packet: " + response);
 				return decodeAPRS(response);
@@ -72,12 +67,12 @@ public class AprsDecoder extends OneToOneDecoder{
 		default:
 			log.warn("Unhandled Server Response: " + response);
 			break;
-		}
+		}			
 		return null;
 	}
 	
 	private static final String APRS_LOGIN_COMMAND_PATTERN = "user %s pass %s vers mClubClient 001 filter %s\r\n";
-	private String buildAprsLoginCommand(String call, String pass,String filter){
+	static String buildAprsLoginCommand(String call, String pass,String filter){
 		return String.format(APRS_LOGIN_COMMAND_PATTERN, call,pass,filter);
 	}
 
@@ -85,6 +80,7 @@ public class AprsDecoder extends OneToOneDecoder{
 		//log.debug("Send APRS Login:" + loginCommand);
 		try{
 			ChannelFuture writeFuture = channel.write(loginCommand);
+			//writeFuture.awaitUninterruptibly();
 			return true;
 		}catch(Exception e){
 			// noop

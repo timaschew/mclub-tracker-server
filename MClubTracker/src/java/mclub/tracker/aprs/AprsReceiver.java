@@ -52,11 +52,11 @@ public class AprsReceiver {
 	
 	private int state;
 	private static final int STATE_INIT = 0;
-	private static final int STATE_CONNECTING = 1;
-	private static final int STATE_CONNECTED = 2;
-	private static final int STATE_DESTROY = 3;
+	private static final int STATE_CONNECTED = 1;
+	private static final int STATE_DESTROY = 2;
 	ExecutorService connectThread;	
 	private static final Object sleepLock = new Object();
+	private long lastPingTime = 0;
 	
     public String getAddress() {
         return address;
@@ -160,13 +160,28 @@ public class AprsReceiver {
 					switch(state){
 						case STATE_INIT:{
 							// perform connect
-							if(doConnect()){
-								state = STATE_CONNECTING;
-							}
+							doConnect();
 							break;
 						}
 						case STATE_DESTROY:{
 							return;
+						}
+						
+						case STATE_CONNECTED:{
+							if(lastPingTime == 0){
+								lastPingTime = System.currentTimeMillis();
+							} else if(System.currentTimeMillis() - lastPingTime > 59000){
+								// send the ping command
+								// FIXME - ugly workaround to avoid server reset the connection.
+								String loginCommand = AprsDecoder.buildAprsLoginCommand(
+										configService.getConfigString("tracker.aprs.call"),
+										configService.getConfigString("tracker.aprs.pass"),
+										configService.getConfigString("tracker.aprs.filter"));
+								getChannelGroup().write(loginCommand);
+								lastPingTime = System.currentTimeMillis();
+							}
+							
+							break;
 						}
 						default:{
 							// do nothing
@@ -205,7 +220,7 @@ public class AprsReceiver {
 			if (future.isSuccess()) {
 				// store the channels
 				getChannelGroup().add(channel);
-				log.debug("Connected to APRS server " + address + ":" + port);
+				log.info("Connected to APRS server " + address + ":" + port);
 				return true;
 			}else{
 				log.warn("failed to connect to APRS server: " + future.getCause().getMessage());
@@ -284,7 +299,7 @@ public class AprsReceiver {
         
         @Override
         public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        	log.debug("channel connected");
+        	log.debug("channel connected: " + e.toString());
             state = STATE_CONNECTED;
             ctx.sendUpstream(e);
         }
