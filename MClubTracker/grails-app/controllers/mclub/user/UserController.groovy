@@ -14,7 +14,11 @@ class UserController {
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
     def index(Integer max) {
-        params.max = Math.min(max ?: 10, 100)
+        params.max = Math.min(max ?: 25, 100)
+		if(!params.sort){
+			// by default should sort by row id
+			params.sort = 'id';
+		}
         respond User.list(params), model:[userInstanceCount: User.count()]
     }
 
