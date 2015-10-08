@@ -151,7 +151,7 @@ class TrackerMapController {
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all', type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
 		}
-		mapConfig.mapZoomLevel = 11;
+		mapConfig.mapZoomLevel = 13;
 		
 		render view:"map", model:[mapConfig:mapConfig];
 	}

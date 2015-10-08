@@ -194,7 +194,7 @@
                             infoWindow.setContent("");
                             
                             var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
-                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
                             s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
                             // spped and course
                             if((typeof speed != "undefined")){
@@ -232,12 +232,11 @@
                 		
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
-                            var s = "<div class=\"marker-info\"> <div>" + feature['properties']['username'] + "</div>";
-                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
-                            s = s.concat("<div>时间:", feature['properties']['timestamp'], "</div>");
+                            var s = "<div class=\"marker-info\">"
+                            s = s.concat("<div>", feature['properties']['username']," ( <a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a> )</div>");
+                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
                             s = s.concat("<div>设备:", feature['properties']['udid'], "</div>");
-                            s = s.concat("<div>电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div>");
-                            
+                            s = s.concat("<div>时间:", feature['properties']['timestamp'], "</div>");                            
                             if((typeof speed != "undefined")){
                             	s = s.concat("<div>速度:",speed," km/h ");
                             	if((typeof course != "undefined")){
