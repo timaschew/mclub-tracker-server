@@ -232,8 +232,11 @@
                 		
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
-                            var s = "<div class=\"marker-info\"> <div> 设备:" + feature['properties']['udid'] + "</div>";
-                            s = s.concat("<div> 电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div>");
+                            var s = "<div class=\"marker-info\"> <div>" + feature['properties']['username'] + "</div>";
+                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+                            s = s.concat("<div>时间:", feature['properties']['timestamp'], "</div>");
+                            s = s.concat("<div>设备:", feature['properties']['udid'], "</div>");
+                            s = s.concat("<div>电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div>");
                             
                             if((typeof speed != "undefined")){
                             	s = s.concat("<div>速度:",speed," km/h ");
