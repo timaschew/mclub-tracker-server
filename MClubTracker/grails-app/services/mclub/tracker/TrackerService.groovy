@@ -288,7 +288,7 @@ class TrackerService {
 		}
 		
 		// load speed/course from latest position
-		TrackerPosition pos = TrackerPosition.load(device.latestPositionId);
+		TrackerPosition pos = TrackerPosition.get(device.latestPositionId);
 		if(!pos) return null; // empty result
 		
 		if(pos.speed && pos.speed >=0){
