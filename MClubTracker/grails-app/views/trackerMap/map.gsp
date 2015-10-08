@@ -44,8 +44,10 @@
                     resizeEnable: true,
                     <%if(mapConfig.centerCoordinate){%>
                     center: <%=mapConfig.centerCoordinate.toString()%>,
-                    zoom: <%=mapConfig.mapZoomLevel%>
 					<%}%>
+                    <%if(mapConfig.mapZoomLevel > 0){%>
+                    zoom: <%=mapConfig.mapZoomLevel%>
+                    <%}%>
                 });
 
                 var infoWindow = new AMap.InfoWindow({
