@@ -14,7 +14,7 @@ class UserService {
 	
 	ConcurrentHashMap<String,UserSession> sessions = new ConcurrentHashMap<String,UserSession>();
 	ExecutorService sessionCleanupThread;
-	private static final long SESSION_EXPIRE_TIME_SEC = 30 * 60; // session expires in 30 mins idle by defalt
+	private static final long SESSION_EXPIRE_TIME_SEC = 48 * 60 * 60; // session expires in 48 hours of idle by default
 	private static final long SESSION_CHECK_INTERVAL_MS = 3000; 
 	private static final Object sleepLock = new Object();
 	volatile boolean runFlag = false;
