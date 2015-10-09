@@ -26,7 +26,26 @@
 				padding:0px 0px 0px 0px;
 				font: 10px arial,sans-serif;      
             }
+            .hamclub-copyrights{
+            	margin-left:50%;
+            	position: absolute;
+    			right: 15px;
+			    height: 16px;
+			    bottom: 0;
+			    font-size: 11px;
+			    line-height: 16px;
+			    font-family: Arial,sans-serif;
+			    z-index: 160;    
+            }
         </style>
+        <%--
+        <script language="javascript" type="text/javascript">
+			if(top.location!=self.location){
+				// PLEASE DON'T INCLUDE ME!
+				top.location="http://hamclub.net";
+			}
+		</script>
+		--%>
     </head>
     
     <body>
@@ -335,5 +354,8 @@
             });
 
         </script>
+        <%if(mapConfig.copyrights){%>
+        <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
+        <%}%>
     </body>
 </html>

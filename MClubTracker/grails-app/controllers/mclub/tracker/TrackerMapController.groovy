@@ -102,6 +102,7 @@ class TrackerMapController {
 			// detect remote client location;
 			detectRemoteClientLocation();
 		}
+		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	
@@ -152,7 +153,6 @@ class TrackerMapController {
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all', type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
 		}
 		mapConfig.mapZoomLevel = 11;
-		
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 }
@@ -163,4 +163,5 @@ class MapConfig{
 	String dataURL;
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
+	String copyrights;
 }
