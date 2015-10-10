@@ -137,22 +137,18 @@ class TrackerDataService {
 
 		// check user name
 		String username = positionData.username;
-		if(username){
-			if(!username.equals(device.username)){
-				// WARN - 根据当前逻辑，如果两个用户用同一个设备udid登录的话，会导致数据错乱！
-				// arbitrary update device with current username
-				//TrackerDevice.executeUpdate("UPDATE TrackerDevice as d SET d.username=:un)",[un:username]);
-				String oldUsername = device.username
-				device.username = username;
-				if(device.save(flush:true)){
-					log.warn("Re-associate device ${device.udid} from  ${oldUsername} to ${username}");
-				}else{
-					log.warn("Failed to Re-associate device username, ${device.errors}");
-					return;
-				}
+		if(username && !username.equals(device.username)){
+			// WARN - 根据当前逻辑，如果两个用户用同一个设备udid登录的话，会导致数据错乱！
+			// arbitrary update device with current username
+			//TrackerDevice.executeUpdate("UPDATE TrackerDevice as d SET d.username=:un)",[un:username]);
+			String oldUsername = device.username
+			device.username = username;
+			if(device.save(flush:true)){
+				log.warn("Re-associate device ${device.udid} from  ${oldUsername} to ${username}");
+			}else{
+				log.warn("Failed to Re-associate device username, ${device.errors}");
+				return;
 			}
-		}else{
-			log.warn("PositionData contains NO username, running for test ? " + positionData.toString());
 		}
 		
 		// Convert value object to position entity
@@ -166,7 +162,7 @@ class TrackerDataService {
 			position.extendedInfo = extJson;
 		}
 		
-		// Flush to database
+		// Save the position data
 		try {
 			Long id = addPosition(position);
 			if (id != null) {

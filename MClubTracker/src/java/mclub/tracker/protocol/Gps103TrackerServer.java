@@ -171,7 +171,7 @@ public class Gps103TrackerServer extends TrackerServer{
         position.setLongitude(lonlitude);
 
         // Altitude
-        position.setAltitude(0.0);
+        position.setAltitude(-1d);
 
         // Speed
         position.setSpeed(Double.valueOf(parser.group(index++)));
@@ -181,7 +181,7 @@ public class Gps103TrackerServer extends TrackerServer{
         if (course != null) {
             position.setCourse(Double.valueOf(course));
         } else {
-            position.setCourse(0.0);
+            position.setCourse(-1d);
         }
 
         // Extended info from GPS103 protocol
