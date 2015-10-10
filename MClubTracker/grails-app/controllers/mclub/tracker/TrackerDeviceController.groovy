@@ -105,14 +105,19 @@ class TrackerDeviceController {
             return
         }
 
-        try {
-            trackerDeviceInstance.delete(flush: true)
-            flash.message = message(code: 'default.deleted.message', args: [message(code: 'trackerDevice.label', default: 'TrackerDevice'), id])
-            redirect(action: "list")
-        }
-        catch (DataIntegrityViolationException e) {
-            flash.message = message(code: 'default.not.deleted.message', args: [message(code: 'trackerDevice.label', default: 'TrackerDevice'), id])
-            redirect(action: "show", id: id)
-        }
+		TrackerDevice.withTransaction{
+			try {
+				// First delete the associated positions
+				TrackerPosition.executeUpdate("DELETE TrackerPosition tp WHERE tp.device=:dev",[dev:trackerDeviceInstance]);
+				trackerDeviceInstance.delete(flush: true)
+				flash.message = message(code: 'default.deleted.message', args: [message(code: 'trackerDevice.label', default: 'TrackerDevice'), id])
+				redirect(action: "list")
+			}
+			catch (DataIntegrityViolationException e) {
+				flash.message = message(code: 'default.not.deleted.message', args: [message(code: 'trackerDevice.label', default: 'TrackerDevice'), id])
+				redirect(action: "show", id: id)
+			}
+	
+		}
     }
 }
