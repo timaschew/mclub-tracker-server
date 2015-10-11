@@ -98,8 +98,8 @@ public abstract class TrackerServer {
             bootstrap.setFactory(NettyResource.getDatagramChannelFactory());
         }
 
-        address = (String)configService.getConfig("tracker." + protocol + ".address");
-        port = (Integer)configService.getConfig("tracker." + protocol + ".port");
+        address = configService.getConfigString("tracker." + protocol + ".address");
+        port = configService.getConfigInt("tracker." + protocol + ".port");
         if(port == null){
         	port = 5000;
         }

@@ -15,7 +15,7 @@ class TrackerMapController {
 	
 	private String generateMapLiveServiceURL(Map<String,Object> params){
 		String link = grailsLinkGenerator.link(uri:'/live0',id:'all', params:params, absolute:true);
-		boolean secure = Boolean.TRUE.equals(configService.getConfig('tracker.map.secure'));
+		boolean secure = configService.getConfigBool('tracker.map.secure');
 		if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
 			secure = false;
 		}

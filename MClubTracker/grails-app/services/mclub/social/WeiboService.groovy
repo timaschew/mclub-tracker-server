@@ -12,7 +12,7 @@ class WeiboService {
 	
 	ConfigService configService;
 	public boolean isEnabled(){
-		return Boolean.TRUE.equals(configService.getConfig("social.weibo.enabled"));
+		return configService.getConfigBool("social.weibo.enabled");
 	}
 
 	/**

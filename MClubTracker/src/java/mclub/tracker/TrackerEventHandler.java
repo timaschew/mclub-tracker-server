@@ -48,11 +48,11 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
     private void processSinglePosition(PositionData position) {
         if (position == null) {
-        	if(log.isInfoEnabled())
-        		log.info("null message");
+        	if(log.isDebugEnabled())
+        		log.debug("null message");
         } else {
-        	if(log.isInfoEnabled()){
-        		log.info(
+        	if(log.isDebugEnabled()){
+        		log.debug(
                     "udid: " + position.getUdid() +
                     ", valid: " + position.getValid() +
                     ", time: " + position.getTime() +
