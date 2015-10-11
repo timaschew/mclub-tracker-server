@@ -105,9 +105,9 @@ public abstract class TrackerServer {
         }
 
         // enable logger
-        loggerEnabled = Boolean.TRUE.equals(configService.getConfig("tracker.logger.enabled"));
+        loggerEnabled = Boolean.TRUE.equals(configService.getConfigBool("tracker.logger.enabled"));
         // enable geocoder        
-        reverseGeocoderEnabled = Boolean.TRUE.equals(configService.getConfig("tracker.geocoder.enabled")); 
+        reverseGeocoderEnabled = Boolean.TRUE.equals(configService.getConfigBool("tracker.geocoder.enabled")); 
         if(reverseGeocoderEnabled){
         	reverseGeocoder = new GoogleReverseGeocoder();
         }

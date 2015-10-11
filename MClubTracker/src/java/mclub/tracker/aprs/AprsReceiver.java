@@ -242,7 +242,7 @@ public class AprsReceiver {
 	}
 	
 	private boolean isEnabled(){
-		return Boolean.TRUE.equals(configService.getConfig("tracker."+protocol+".enabled"));
+		return Boolean.TRUE.equals(configService.getConfigBool("tracker."+protocol+".enabled"));
 	}
 	
 	public boolean isConnected(){

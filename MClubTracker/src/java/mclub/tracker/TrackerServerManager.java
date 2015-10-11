@@ -101,7 +101,7 @@ public class TrackerServerManager {
 	 * @return
 	 */
 	private boolean isProtocolEnabled(String protocol){
-		return Boolean.TRUE.equals(configService.getConfig("tracker."+protocol+".enabled"));
+		return Boolean.TRUE.equals(configService.getConfigBool("tracker."+protocol+".enabled"));
 	}
 	
 	public void setTrackerDataService(TrackerDataService ts){
