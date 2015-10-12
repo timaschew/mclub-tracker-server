@@ -39,11 +39,17 @@ class AdminController {
 			if(!loginCommand.hasErrors()){
 				
 				UserSession usession = null;
-				if(AuthUtils.isMobilePhoneNumber(loginCommand.username)){
-					usession = userService.loginByPhone(loginCommand.username, loginCommand.password, true);
-				}else{
-					usession = userService.login(loginCommand.username, loginCommand.password, true);
+				String authErrMsg = null;
+				try{
+					if(AuthUtils.isMobilePhoneNumber(loginCommand.username)){
+						usession = userService.loginByPhone(loginCommand.username, loginCommand.password, true);
+					}else{
+						usession = userService.login(loginCommand.username, loginCommand.password, true);
+					}
+				}catch(Exception e){
+					authErrMsg = e.getMessage();
 				}
+				
 				if(usession){
 					user = User.findByName(usession.username);
 					session['user'] = user;

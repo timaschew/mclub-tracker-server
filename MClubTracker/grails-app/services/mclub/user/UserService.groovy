@@ -118,7 +118,7 @@ class UserService {
 	
 	//////////////////////////////////////////////////////////////////////////////
 	// Authentication Part
-	public UserSession login(String username, String password){
+	public UserSession login(String username, String password) throws AuthException{
 		return login(username,password,false);
 	}
 	
@@ -126,42 +126,47 @@ class UserService {
 	 * Login user with username/password pair
 	 * @return session token if auth succeed
 	 */
-	public UserSession login(String username, String password, boolean authOnly){
+	public UserSession login(String username, String password, boolean authOnly) throws AuthException{
 		// search user by phone
 		// compare passwordHash with md5(password*hash)
 		// if success, generate session credential with md5(phone*hash)
 		User user = User.findByName(username);
-		if(user){
-			String hash1 = hashPassword(password,user.passwordSalt);
-			String hash2 = user.passwordHash;
-			if(hash1.equals(hash2)){
-				// login success
-				// if authOnly == false, will replace the previous session
-				// that will kick-off previous user
-				// generate session token
-				UserSession usession = generateUserSession(user);
-				log.debug("generated new session token: ${usession.token}")
-
-				if(!authOnly){
-					for(UserSession us in sessions.values()){
-						if(us.username.equals(username)){
-							// found existing session
-							sessions.remove(us.token);
-							log.debug("removed previous session token: ${us.token}")
-							break;
-						}
-					}
-					sessions.put(usession.token, usession);
-				}
-				
-				return usession.cloneone();
-			}else{
-				log.info("User ${username} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
-			}
-		}else{
+		if(!user){
 			log.info("User ${username} not found");
+			throw new AuthException("User not found");
 		}
-		return null;
+		
+		if(user.type == 0){
+			// user account disabled.
+			throw new AuthException("User account is not activated yet");
+		}
+		
+		String hash1 = hashPassword(password,user.passwordSalt);
+		String hash2 = user.passwordHash;
+		if(!hash1.equals(hash2)){
+			log.info("User ${username} login failed, wrong password, expected hash: ${hash2}, but got ${hash1}");
+			throw new AuthException("User account password mismatch");
+		}
+		
+		// login success
+		// if authOnly == false, will replace the previous session
+		// that will kick-off previous user
+		// generate session token
+		UserSession usession = generateUserSession(user);
+		if(log.isDebugEnabled()) log.debug("generated new session token: ${usession.token}")
+
+		if(!authOnly){
+			for(UserSession us in sessions.values()){
+				if(us.username.equals(username)){
+					// found existing session
+					sessions.remove(us.token);
+					log.debug("removed previous session token: ${us.token}")
+					break;
+				}
+			}
+			sessions.put(usession.token, usession);
+		}
+		return usession.cloneone();
 	}
 
 	
@@ -169,7 +174,7 @@ class UserService {
 	 * Login user with phone/password pair
 	 * @return session token if auth succeed
 	 */
-	public UserSession loginByPhone(String phone, String password, boolean authOnly){
+	public UserSession loginByPhone(String phone, String password, boolean authOnly) throws AuthException{
 		// search user by phone
 		User user = User.findByPhone(phone);
 		if(user){
@@ -237,6 +242,7 @@ class UserService {
 		UserSession usession = new UserSession();
 		usession.username = user.name;
 		usession.token = hashSessionToken(user.name, usession.timestamp,user.sessionSalt);
+		usession.type = user.type;
 		return usession;
 	}
 	
@@ -251,10 +257,17 @@ class UserService {
 	public static class UserSession{
 		String username;
 		String token;
+		Integer type;
 		long timestamp = System.currentTimeMillis();
 		
 		public UserSession cloneone(){
-			return new UserSession(username:username, token:token, timestamp:timestamp);
+			return new UserSession(username:username, token:token, timestamp:timestamp,type:type);
+		}
+	}
+	
+	public static class AuthException extends Exception{
+		public AuthException(String message){
+			super(message);
 		}
 	}
 	

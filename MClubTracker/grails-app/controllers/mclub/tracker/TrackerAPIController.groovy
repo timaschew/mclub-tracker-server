@@ -355,8 +355,8 @@ class TrackerAPIController {
 			return;
 		}
 		
-		// create user and device
-		User u = new User(name:username, displayName:display_name, phone:phone, type:User.USER_TYPE_USER, creationDate:new java.util.Date(),avatar:'',settings:'');
+		// create user but disabled by default.
+		User u = new User(name:username, displayName:display_name, phone:phone, type:User.USER_TYPE_DISABLED, creationDate:new java.util.Date(),avatar:'',settings:'');
 		if(!userService.createUserAccount(u, password)){
 			log.warn("Error creating user account" + u.errors);
 			result = APIResponse.ERROR("Error creating user account");
@@ -373,7 +373,12 @@ class TrackerAPIController {
 			return;
 		}
 		
-		//  now performing login
+		result = APIResponse.SUCCESS("Device register success");
+		result['username'] = username;
+		log.info("Device ${udid}/${phone} registered OK, username: ${username}");
+		
+		/*
+		//  Note: for hobby system, we could by default enable user and perform login here;
 		String token = userService.login(username, password)?.token;
 		if(token){
 			result = APIResponse.SUCCESS("Device registreed and login success");
@@ -385,6 +390,8 @@ class TrackerAPIController {
 			log.error("Error login user with automatically created user account, username:${username}, phone:${phone}, udid:${udid}");
 			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed");
 		}
+		*/
+		
 		render result as JSON;
 	}
 	
@@ -407,26 +414,32 @@ class TrackerAPIController {
 		
 		def result;
 		def uSession;
-		if(mclub.user.AuthUtils.isMobilePhoneNumber(username)){
-			uSession = userService.loginByPhone(username, password,false);
-		}else{
-			uSession = userService.login(username,password,false);
+		String authErrMsg;
+		try{
+			if(mclub.user.AuthUtils.isMobilePhoneNumber(username)){
+				uSession = userService.loginByPhone(username, password,false);
+			}else{
+				uSession = userService.login(username,password,false);
+			}
+		}catch(Exception e){
+			authErrMsg = e.getMessage();
 		}
 		if(uSession && uSession.token){
+			//NOTE: param:username might by phone number!!
 			// if udid is specified, save it and associate with current user.
 			if(udid){
 				TrackerDevice device = TrackerDevice.findByUdid(udid);
 				if(!device){
 					// create a new one
-					device = new TrackerDevice(udid:udid, username:username, status:0);
+					device = new TrackerDevice(udid:udid, username:uSession.username, status:0);
 					if(device.save(flush:true)){
-						log.info("New device ${udid} registered by logged in user ${username}")
+						log.info("New device ${udid} registered by logged in user ${username}/${uSession.username}")
 					}else{
 						log.warn("Failed to save device, ${device.errors}");
 					}
 				}else{
 					// device already exists, need to check whether it's the same user that associated with
-					if(!username.equals(device.username)){
+					if(!uSession.username.equals(device.username)){
 						// the device is associated with other users
 						result = APIResponse.ERROR("Device is binded to another user");
 						render result as JSON;
@@ -437,9 +450,10 @@ class TrackerAPIController {
 			}
 			result = APIResponse.SUCCESS("Login success");
 			result['token'] = uSession.token;
-			log.info("User " + username + " login ok");
+			result['username'] = uSession.username;
+			log.info("User ${username}/${uSession.username} login ok");
 		}else{
-			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed");
+			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed, ${authErrMsg}");
 		}
 		render result as JSON;
 	}
