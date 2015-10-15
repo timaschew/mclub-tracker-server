@@ -10,12 +10,15 @@ class TrackerDeviceController {
         redirect(action: "list", params: params)
     }
 
-    def list(Integer max) {
+    def list(Integer max, Integer type) {
         params.max = Math.min(max ?: 10, 100)
 		
 		if(params.username){
 			// filter by username
 			def r = TrackerDevice.findAllByUsername(params.username);
+			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: r?.size()]
+		}else if(type != null){
+			def r = TrackerDevice.findAllByStatus(type);
 			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: r?.size()]
 		}else{
         	return [trackerDeviceInstanceList: TrackerDevice.list(params), trackerDeviceInstanceTotal: TrackerDevice.count()]

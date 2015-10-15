@@ -47,7 +47,7 @@ class SecurityFilters {
 					}
 				}
 				
-				log.info("No token found in request");
+				log.info("No token found in request, params:${params}");
 				def r = [code:2,message:'Session expired'];
 				render r as JSON;
 				return false
