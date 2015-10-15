@@ -15,11 +15,13 @@ class TrackerDeviceController {
 		
 		if(params.username){
 			// filter by username
-			def r = TrackerDevice.findAllByUsername(params.username);
-			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: r?.size()]
+			def r = TrackerDevice.findAllByUsername(params.username, params);
+			def c = TrackerDevice.countByUsername(params.username);
+			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: c]
 		}else if(type != null){
-			def r = TrackerDevice.findAllByStatus(type);
-			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: r?.size()]
+			def r = TrackerDevice.findAllByStatus(type,params);
+			def c = TrackerDevice.countByStatus(type);
+			return [trackerDeviceInstanceList: r, trackerDeviceInstanceTotal: c,trackerDeviceType:type]
 		}else{
         	return [trackerDeviceInstanceList: TrackerDevice.list(params), trackerDeviceInstanceTotal: TrackerDevice.count()]
 		}
