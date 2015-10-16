@@ -77,6 +77,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		getTrackerDataService()?.removeChangeListener(this);
 		grailsApplication = null;
 		log.info "LivePositionWebsocketServer destroyed";
 	}
@@ -138,7 +139,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 	
 	@OnError
 	public void handleError(Session clientSession, Throwable t) {
-		log.error("websocket error", t);
+		log.error("websocket error, " + t.getMessage());
 		closeSession(clientSession);
 	}
 
@@ -152,6 +153,8 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		sessions.remove(clientSession.getId());
 	}
 	
+	static long ts = 0;
+	
 	@Override
 	public void onPositionChanged(PositionData position) {
 		//log.trace("onPositionChange called, sessions: ${sessions}");
@@ -164,6 +167,12 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		//def val = getTrackerService().getDeviceJsonData(position.udid);
 		def val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
 		def txt = val as JSON;
+		
+		
+		if(System.currentTimeMillis() - ts > 15000){
+			log.debug("Pushing position changes to ${sessions.size()} clients");
+			ts = System.currentTimeMillis();
+		}
 		for(SessionEntry sessionEntry : sessions.values()){
 			DeviceFilterCommand filter = sessionEntry.filter;
 			if(filter && filter.accept(position)){

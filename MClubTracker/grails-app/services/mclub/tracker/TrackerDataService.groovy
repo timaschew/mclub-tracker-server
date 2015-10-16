@@ -242,7 +242,7 @@ class TrackerDataService {
 	@PostConstruct
 	public void start(){
 		notifyThread = java.util.concurrent.Executors.newFixedThreadPool(1);
-		log.info "TrackerDataSrvice initialized"
+		log.info "TrackerDataService initialized"
 	}
 	
 	@PreDestroy

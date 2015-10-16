@@ -107,6 +107,8 @@ log4j = {
 		   
 	debug  perfAppender: 'perf.log',
 		   additivity:false
+		   
+	debug 'mclub.tracker.LivePositionWebsocketServer'
 	
 	environments {
 		development {
