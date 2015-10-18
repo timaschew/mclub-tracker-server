@@ -12,6 +12,8 @@ import javax.annotation.PreDestroy
 
 import mclub.util.DateUtils
 import mclub.sys.ConfigService
+import mclub.sys.MessageListener
+import mclub.sys.MessageService
 import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -21,6 +23,8 @@ class TrackerDataService {
 	GrailsApplication grailsApplication;
 	TrackerCacheService trackerCacheService;
 	ConfigService configService;
+	MessageService messageService;
+	
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
 	
 	static {
@@ -212,50 +216,20 @@ class TrackerDataService {
 		//return count;
 	}
 
-	/**
-	 * Data change event listeners
-	 */
-	Set<PositionChangeListener> changeListeners = new HashSet<PositionChangeListener>();
-	
-	public void addChangeListener(PositionChangeListener listener){
-		changeListeners.add(listener);
-	}
-	
-	public void removeChangeListener(PositionChangeListener listener){
-		changeListeners.remove(listener);
-	}
-	
 	/*
-	 * notify in another thread
+	 * call the message bus to notify the position changes.
 	 */
-	void notifyPositionChanges(final PositionData position){
-		notifyThread.execute(new Runnable(){
-			public void run(){
-				for(PositionChangeListener l : changeListeners){
-					l.onPositionChanged(position);
-				}
-			}
-		});
+	private void notifyPositionChanges(PositionData position){
+		messageService.postMessage(position);
 	}
 
-	ExecutorService notifyThread;
 	@PostConstruct
 	public void start(){
-		notifyThread = java.util.concurrent.Executors.newFixedThreadPool(1);
 		log.info "TrackerDataService initialized"
 	}
 	
 	@PreDestroy
 	public void stop(){
-		try{
-			notifyThread?.shutdown();
-		}catch(Exception e){
-		}
-		notifyThread = null;
 		log.info "TrackerDataSrvice destroyed"
 	}
-}
-
-public interface PositionChangeListener{
-	public void onPositionChanged(PositionData position);
 }

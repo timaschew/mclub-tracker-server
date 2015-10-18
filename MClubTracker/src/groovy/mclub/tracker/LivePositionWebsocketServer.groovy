@@ -1,10 +1,9 @@
 package mclub.tracker
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import grails.converters.JSON
 import grails.util.Environment
-import grails.web.JSONBuilder
+
+import java.util.concurrent.ConcurrentHashMap
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
@@ -16,9 +15,13 @@ import javax.websocket.OnClose
 import javax.websocket.OnError
 import javax.websocket.OnMessage
 import javax.websocket.OnOpen
+import javax.websocket.RemoteEndpoint
 import javax.websocket.Session
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
+
+import mclub.sys.MessageListener
+import mclub.sys.MessageService
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
@@ -27,7 +30,7 @@ import org.slf4j.LoggerFactory
 
 @WebListener
 @ServerEndpoint("/live0")
-public class LivePositionWebsocketServer implements ServletContextListener, PositionChangeListener{
+public class LivePositionWebsocketServer implements ServletContextListener, MessageListener{
 	private final Logger log = LoggerFactory.getLogger(getClass().name);
 	private static GrailsApplication grailsApplication;
 	
@@ -46,6 +49,10 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		return grailsApplication?.getMainContext().getBean(PubSubService.class);
 	}
 	
+	private MessageService getMessageService(){
+		return grailsApplication?.getMainContext().getBean(MessageService.class);
+	}
+	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
 		ServletContext servletContext = event.servletContext
@@ -60,11 +67,11 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 			grailsApplication = ctx.grailsApplication
 
 			def config = grailsApplication.config
-			int sessionIdleTimeout = config.liveposition.session_idle_timeout ?: 0
+			long sessionIdleTimeout = config.liveposition.session_idle_timeout ?: 15000 // idle timeout is 15s
 			serverContainer.defaultMaxSessionIdleTimeout = sessionIdleTimeout
 			
 			// register data changes
-			getTrackerDataService()?.addChangeListener(this);
+			getMessageService()?.addListener(this);
 			
 			sessions.clear();
 			// get services
@@ -77,7 +84,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		getTrackerDataService()?.removeChangeListener(this);
+		getMessageService()?.removeListener(this);
 		grailsApplication = null;
 		log.info "LivePositionWebsocketServer destroyed";
 	}
@@ -152,11 +159,15 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		}
 		sessions.remove(clientSession.getId());
 	}
-	
+
 	static long ts = 0;
-	
 	@Override
-	public void onPositionChanged(PositionData position) {
+	public void onMessageReceived(Object message){
+		if(!(message instanceof PositionData)){
+			return;
+		}
+		
+		PositionData position = (PositionData)message;
 		//log.trace("onPositionChange called, sessions: ${sessions}");
 		// TODO filter out sessions according to the subscription record
 		if(sessions.isEmpty()){
@@ -168,6 +179,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 		def val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
 		def txt = val as JSON;
 		
+		String str = txt.toString();
 		
 		if(System.currentTimeMillis() - ts > 15000){
 			log.debug("Pushing position changes to ${sessions.size()} clients");
@@ -178,7 +190,9 @@ public class LivePositionWebsocketServer implements ServletContextListener, Posi
 			if(filter && filter.accept(position)){
 				Session clientSession = sessionEntry.session;
 				try{
-					clientSession.basicRemote.sendText(txt.toString());
+					RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
+					remote.setSendTimeout(5000);
+					remote.sendText(str);
 				}catch(Exception e){
 					// ignore
 					log.warn("Error pushing position changes, ${e.getMessage()}. Remote ip: ");
