@@ -7,50 +7,21 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import grails.transaction.Transactional
+import mclub.sys.TaskService
 import mclub.user.User
 import static mclub.user.AuthUtils.*;
 
-class UserService {
+public class UserService implements Runnable{
 	
-	ConcurrentHashMap<String,UserSession> sessions = new ConcurrentHashMap<String,UserSession>();
-	ExecutorService sessionCleanupThread;
+	ConcurrentHashMap<String,UserSession> userSessionStore = new ConcurrentHashMap<String,UserSession>();
 	private static final long SESSION_EXPIRE_TIME_SEC = 48 * 60 * 60; // session expires in 48 hours of idle by default
 	private static final long SESSION_CHECK_INTERVAL_MS = 3000; 
-	private static final Object sleepLock = new Object();
-	volatile boolean runFlag = false;
+	TaskService taskService;
 	
 	@PostConstruct
 	public void start(){
-		// start the session check thread
-		runFlag = true;
-		sessionCleanupThread = java.util.concurrent.Executors.newFixedThreadPool(1);
-		sessionCleanupThread.execute(new Runnable(){
-			public void run(){
-				while(runFlag){
-					try{
-						Set keys = new HashSet(sessions.keySet());
-						long t = System.currentTimeMillis();
-						for(String key in keys){
-							UserSession us = sessions.get(key);
-							if(UserService.this.isSessionExpired(us,t)){
-								// session expired;
-								sessions.remove(key);
-								log.info("Session ${key} expired")
-							}
-						}
-					}finally{
-						try{
-							synchronized(sleepLock){
-								sleepLock.wait(SESSION_CHECK_INTERVAL_MS);
-							}
-							//Thread.sleep(SESSION_CHECK_INTERVAL_MS);
-						}catch(Exception e){
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		});
+		// start the session check task
+		taskService.execute(this, SESSION_CHECK_INTERVAL_MS);
 
 		// QUICK-AND-DIRTY solution: Perform a delay data initialize due to some dependency issues.
 		new Thread(new java.lang.Runnable(){
@@ -65,16 +36,30 @@ class UserService {
 
 	@PreDestroy
 	public void stop(){
-		runFlag = false;
-		synchronized(sleepLock){
-			sleepLock.notifyAll();
-		}
-		try{
-			sessionCleanupThread?.shutdown();
-		}catch(Exception e){
-		}
-		sessionCleanupThread = null;
 		log.info "UserService destroyed"
+	}
+
+	/**
+	 * Called by the task service reguarlly.	
+	 */
+	public void run(){
+		// check the session
+		doSessionCheckTask();
+	}
+	
+	private void doSessionCheckTask(){
+		// Copy the keys first to avoid concurrent modificaiton issue.
+		//log.debug("do session check task")
+		Set keys = new HashSet(userSessionStore.keySet());
+		long t = System.currentTimeMillis();
+		for(String key in keys){
+			UserSession us = userSessionStore.get(key);
+			if(isSessionExpired(us,t)){
+				// session expired;
+				userSessionStore.remove(key);
+				log.info("Session ${key} expired")
+			}
+		}
 	}
 	
 	@Transactional
@@ -156,15 +141,15 @@ class UserService {
 		if(log.isDebugEnabled()) log.debug("generated new session token: ${usession.token}")
 
 		if(!authOnly){
-			for(UserSession us in sessions.values()){
+			for(UserSession us in userSessionStore.values()){
 				if(us.username.equals(username)){
 					// found existing session
-					sessions.remove(us.token);
+					userSessionStore.remove(us.token);
 					log.debug("removed previous session token: ${us.token}")
 					break;
 				}
 			}
-			sessions.put(usession.token, usession);
+			userSessionStore.put(usession.token, usession);
 		}
 		return usession.cloneone();
 	}
@@ -219,11 +204,11 @@ class UserService {
 	 * @return true if authorize is granted.
 	 */
 	public UserSession checkSessionToken(String sessionToken){
-		UserSession us = sessions.get(sessionToken);
+		UserSession us = userSessionStore.get(sessionToken);
 		if(us){
 			long t = System.currentTimeMillis();
 			if(isSessionExpired(us,t)){
-				sessions.remove(sessionToken);
+				userSessionStore.remove(sessionToken);
 				return null;
 			}
 			us.timestamp = t;
@@ -249,6 +234,7 @@ class UserService {
 	private boolean isSessionExpired(UserSession usession, long t){
 		return usession && ((t - usession.timestamp) / 1000 > SESSION_EXPIRE_TIME_SEC)
 	}
+	
 	/**
 	 * User session entity
 	 * @author shawn
