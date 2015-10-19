@@ -108,7 +108,7 @@ public class Gps103TrackerServer extends TrackerServer{
         // Parse message
         Matcher parser = pattern.matcher(sentence);
         if (!parser.matches()) {
-            log.info("Parsing error");
+            log.info("Parsing error, message: " + sentence);
             return null;
         }
 
