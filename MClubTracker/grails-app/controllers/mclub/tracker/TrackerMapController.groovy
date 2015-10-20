@@ -67,7 +67,7 @@ class TrackerMapController {
 	def test(){
 		TrackerMap map = TrackerMap.findByUniqueId('foobar');
 		if(!map){
-			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]');
+			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]', type:0);
 			map.save(flush:true);
 			if(map.errors){
 				render text:map.errors.toString();
