@@ -3,7 +3,7 @@ import java.util.Map;
 
 import grails.converters.JSON
 import mclub.sys.ConfigService
-import mclub.tracker.DeviceFilterCommand
+import mclub.tracker.TrackerDeviceFilter
 import mclub.user.User
 import mclub.user.UserService;
 import mclub.user.UserService.UserSession
@@ -236,21 +236,39 @@ class TrackerAPIController {
 	 * @param udid
 	 * @return FeatureCollection in GeoJSON of the desired devices latest position.
 	 */
-	def geojson(DeviceFilterCommand filter){
-		if(filter.udid == null && params.id){
-			filter.udid = params.id;
-			filter.validate();
-		}
-		if(filter.hasErrors()){
-			render text:"Invalid parameters";
-			return;
+	def geojson(TrackerDeviceFilter filter){
+		def allDevices = [];
+		if(params.map){
+			// load device by map id
+			TrackerMap map = TrackerMap.findByUniqueId(params.map);
+			if(map){
+				// load the tracker filters
+				def filters = map.loadFilters();
+				for(TrackerDeviceFilter f : filters){
+					def devs = trackerService.findTrackerDevices(f);
+					if(devs?.size() > 0){
+						allDevices.addAll(devs);
+					}
+				}
+			}
+		}else{
+			if(filter.udid == null && params.id){
+				filter.udid = params.id;
+				filter.validate();
+			}
+			if(filter.hasErrors()){
+				render text:"Invalid parameters";
+				return;
+			}
+			// load filters
+			allDevices = trackerService.findTrackerDevices(filter);
 		}
 		
-		def featureCollection = trackerService.listDeviceFeatureCollection(filter);
+		def featureCollectionOfGeoJSON = trackerService.buildGeojsonFeatureCollection(allDevices);
 		// Allow browser XSS
 		response.setHeader('Access-Control-Allow-Origin',"*")
 		response.setHeader('X-Powered-By', "BG5HHP")
-		render featureCollection as JSON;
+		render featureCollectionOfGeoJSON as JSON;
 	}
 	
 	/**

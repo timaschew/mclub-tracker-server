@@ -127,9 +127,12 @@ class TrackerService {
 	/////////////////////////////////////////////////////////////////
 	// GEOJSON/JSON Data builder
 	/////////////////////////////////////////////////////////////////
-	public Map<String,Object> listDeviceFeatureCollection(DeviceFilterCommand filter){
-		def devices = filterTrackerDevices(filter);
-		
+	/**
+	 * Facade call for controllers to build the whole GEOJSON
+	 * @param devices
+	 * @return
+	 */
+	public Map<String,Object> buildGeojsonFeatureCollection(Collection<TrackerDevice> devices){
 		def featureCollection = [:];
 		def features = [];
 		devices?.each{ dev->
@@ -145,7 +148,7 @@ class TrackerService {
 		return featureCollection;
 	}
 	
-	public Collection<TrackerDevice> filterTrackerDevices(DeviceFilterCommand cmd){
+	public Collection<TrackerDevice> findTrackerDevices(TrackerDeviceFilter cmd){
 		if("all".equalsIgnoreCase(cmd.udid)){
 			cmd.udid = null;
 		}
@@ -549,36 +552,4 @@ class TrackerService {
 		return "tk-${device.id}"
 	}
 }
-
-@Validateable(nullable=true)
-public class DeviceFilterCommand{
-	static constraints = {
-		udid blank:false, nullable:false
-	}
-	String udid;
-	Integer type;
-	Double lat1,lon1,lat2,lon2;
-	Date activeTime;
-	
-	public boolean accept(PositionData positionData){
-		
-		// UDID available
-		if(udid){
-			if(udid.equalsIgnoreCase("ALL") ){
-				return true;
-			//} else if(udid.equalsIgnoreCase(positionData.udid)){
-			//	return true;
-			} else if(positionData.udid.startsWith(udid)){
-				return true;
-			}
-		}
-		
-		// just only have the type
-		if(udid == null && type > 0){
-			return type == positionData.deviceType;
-		}
-		return false;
-	}
-}
-
 

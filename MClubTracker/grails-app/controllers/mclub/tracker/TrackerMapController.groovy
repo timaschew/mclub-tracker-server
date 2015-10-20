@@ -63,17 +63,61 @@ class TrackerMapController {
 		}
 		return false;
 	}
+	
+	def test(){
+		TrackerMap map = TrackerMap.findByUniqueId('foobar');
+		if(!map){
+			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]');
+			map.save(flush:true);
+			if(map.errors){
+				render text:map.errors.toString();
+				return;
+			}
+		}
+		render text:'OK'
+	}
+	
 	/**
 	 * Tricky index that redirect according to hard-coded domain name	
 	 * @return
 	 */
-    def index() {
+    def index(String id) {
 		String serverName = request.getServerName();
 		if(serverName && serverName.indexOf("nc.semitno".reverse()) != -1){
 			// for on times domain, forward to the mclub map
 			forward(action:'mclub');
-		}else{
+			return;
+		}
+		
+		// for APRS map request
+		if(id == null || id.equalsIgnoreCase('aprs')){
 			forward(action:'aprs')
+			return;
+		}
+		
+		if('test'.equals(id)){
+			forward(action:'test');
+			return;
+		}
+		
+		// For customized map
+		TrackerMap map = TrackerMap.findByUniqueId(id);
+		if(map){
+			// just pass the map id to action:geojson
+			MapConfig mapConfig = new MapConfig(title:"Tracker Map");
+			if(map.name) mapConfig.title = "${map.name} Map";
+			mapConfig.serviceURL = generateMapLiveServiceURL([map:map.uniqueId]);// generate the websocket url with live0?map=xxx
+			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[map:map.uniqueId]);// generate the geojson?map=xxx
+			// TODO center the map ?
+			if(log.isInfoEnabled()){
+				// detect remote client location;
+				detectRemoteClientLocation();
+			}
+			mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
+			render view:"map", model:[mapConfig:mapConfig];
+			//render (text:'Not implemented yet', status:501);
+		}else{
+			render(text:'map not found', status:404)
 		}
 	}
 	
@@ -88,8 +132,8 @@ class TrackerMapController {
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 			
-			DeviceFilterCommand filter = new DeviceFilterCommand(udid:id);
-			def devices = trackerService.filterTrackerDevices(filter);
+			TrackerDeviceFilter filter = new TrackerDeviceFilter(udid:id);
+			def devices = trackerService.findTrackerDevices(filter);
 			if(devices?.size() > 0){
 				def dev = devices[0];
 				if(dev.latestPositionId){

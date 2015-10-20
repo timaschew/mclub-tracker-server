@@ -94,22 +94,46 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 	public void handleOpen(Session clientSession, EndpointConfig config) {
 		SessionEntry sessionEntry = new SessionEntry();
 		sessionEntry.session = clientSession;
+		TrackerDeviceFilter  filter;
 		Map<String,List<String>> params = clientSession.getRequestParameterMap();
 		if(params.size() > 0){
-			DeviceFilterCommand  filter = new DeviceFilterCommand();
-			if(params.get("udid")){
-				filter.udid = params["udid"][0];
-			}
-			if(params.get("type")){
-				String t = params["type"][0];
-				try{filter.type = Integer.parseInt(t);}catch(Exception e){}
+			//TODO - check token for excessive usage
+			String token = null;
+			if(params.get('token')){
+				token = params.get('token')[0];
 			}
 			
-			if(filter.udid || filter.type){
-				sessionEntry.filter = filter;
+			//Process the id and token parameters from URL
+			String mapId = null;
+			if(params.get('map')){
+				mapId = params.get('map')[0];
+			}
+			if(mapId){
+				// FIXME - load map by id and construct the filter;
+				TrackerMap map = TrackerMap.findByUniqueId(mapId);
+				if(map){
+					def filters = map.loadFilters();
+					filter = new CompisiteTrackerDeviceFilter(filters:filters);
+					sessionEntry.filter = filter;
+				}else{
+					log.debug("No map filter found for id: ${mapId}");
+				}
+			}else{
+				// compatible with old behavior
+				filter = new TrackerDeviceFilter();
+				if(params.get("udid")){
+					filter.udid = params["udid"][0];
+				}
+				if(params.get("type")){
+					String t = params["type"][0];
+					try{filter.type = Integer.parseInt(t);}catch(Exception e){}
+				}
+				
+				if(filter.udid || filter.type){
+					sessionEntry.filter = filter;
+				}
 			}
 		}
-				
 		sessions.put(clientSession.getId(), sessionEntry);
 		log.debug "websocket session[${clientSession.id}] opened"
 	}
@@ -186,7 +210,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 			ts = System.currentTimeMillis();
 		}
 		for(SessionEntry sessionEntry : sessions.values()){
-			DeviceFilterCommand filter = sessionEntry.filter;
+			TrackerDeviceFilter filter = sessionEntry.filter;
 			if(filter && filter.accept(position)){
 				Session clientSession = sessionEntry.session;
 				try{
@@ -195,7 +219,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 					remote.sendText(str);
 				}catch(Exception e){
 					// ignore
-					log.warn("Error pushing position changes, ${e.getMessage()}. Remote ip: ");
+					log.warn("Error pushing position changes, ${e.getMessage()}. Remote ip: UNSUPPORTED");
 					closeSession(clientSession);
 				}
 			}
@@ -204,7 +228,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 	
 	public static class SessionEntry{
 		Session session;
-		DeviceFilterCommand filter;
+		TrackerDeviceFilter filter;
 	}
 		
 }

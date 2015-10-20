@@ -9,13 +9,10 @@ class UrlMappings {
 //			}
 //		}
 
-		"/map"(controller:"trackerMap", action:'index'){
-		
-		}
+		"/map/$id?"(controller:"trackerMap", action:'index'){}
+		"/map/aprs/$id?"(controller:"trackerMap", action:'aprs'){}
+		"/map/mclub/$id?"(controller:"trackerMap", action:'mclub'){}
 
-		"/map/$action/$id?"(controller:"trackerMap"){
-			
-		}
 
 		// For compatible with the application
 		"/mtracker/api/$action/$id?"(controller:"trackerAPI"){
