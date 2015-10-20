@@ -4,9 +4,13 @@ import grails.util.Environment
 import mclub.sys.ConfigService;
 import mclub.user.User;
 import mclub.sys.IpService;
+
 import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 
 class TrackerMapController {
+	
+	private static String KEY_APRS_MAP_MIRROR = "aprs.map.mirror";
+	
 	// Inject link generator
 	LinkGenerator grailsLinkGenerator
 	ConfigService configService;
@@ -51,6 +55,14 @@ class TrackerMapController {
 //		}
 	}
 
+	private boolean checkAprsMapMirrorEnabled(){
+		String aprsMapMirrorLink = configService.getConfig(KEY_APRS_MAP_MIRROR); 
+		if(aprsMapMirrorLink){
+			redirect(url:aprsMapMirrorLink);
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Tricky index that redirect according to hard-coded domain name	
 	 * @return
@@ -59,13 +71,17 @@ class TrackerMapController {
 		String serverName = request.getServerName();
 		if(serverName && serverName.indexOf("nc.semitno".reverse()) != -1){
 			// for on times domain, forward to the mclub map
-			forward action:'mclub'
+			forward(action:'mclub');
 		}else{
-			forward action:'aprs'
+			forward(action:'aprs')
 		}
 	}
 	
 	def aprs(String id, String lat, String lon){
+		if(checkAprsMapMirrorEnabled()){
+			return;
+		}
+		
 		MapConfig mapConfig = new MapConfig(title:"APRS Map");
 			
 		if(id){
