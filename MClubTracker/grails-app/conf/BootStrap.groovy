@@ -1,11 +1,9 @@
-import java.util.Date;
-
-import mclub.tracker.TrackerDevice
-import mclub.tracker.TrackerPosition
-import mclub.util.GrailsApplicationHolder;
+import mclub.sys.UpgradeService
 
 class BootStrap {
+	UpgradeService upgradeService;
     def init = { servletContext ->
+		upgradeService.performUpgrade();
     }
 	
     def destroy = {
