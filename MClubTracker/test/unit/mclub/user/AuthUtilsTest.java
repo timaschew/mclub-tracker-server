@@ -1,9 +1,17 @@
 package mclub.user;
 
+import static mclub.user.AuthUtils.generateSalt;
+import static mclub.user.AuthUtils.hashPassword;
+import static mclub.user.AuthUtils.hashSessionToken;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
-import static mclub.user.AuthUtils.*;
 
 public class AuthUtilsTest {
 	
@@ -49,6 +57,19 @@ public class AuthUtilsTest {
 		r = AuthUtils.extractAPRSCall(s);
 		assertNull(r);
 		
+	}
+	
+	@Test
+	public void test_generate_shortsalt_collision(){
+		Set<String> results = new HashSet<String>();
+		for(int i = 0;i < 1000000;i++){
+			String s = AuthUtils.generateSalt(7).toLowerCase();
+			if(results.contains(s)){
+				fail("Got collisions after " + i + " rounds of iterations");
+			}else{
+				results.add(s);
+			}
+		}
 	}
 }
 
