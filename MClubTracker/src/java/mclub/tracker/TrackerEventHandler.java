@@ -48,13 +48,31 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
     private void processSinglePosition(PositionData position) {
         if (position == null) {
-        	if(log.isDebugEnabled())
-        		log.debug("null message");
-        } else {
+        	log.debug("drop null position message");
+        	return;
+        }else if(position.isValid() == null || !position.isValid()){
+        	//NOTE - device may reports status message that contains neither GPS info nor valid flag 
+        	log.debug("drop invalid position message: ");
         	if(log.isDebugEnabled()){
         		log.debug(
                     "udid: " + position.getUdid() +
-                    ", valid: " + position.getValid() +
+                    ", valid: " + position.isValid() +
+                    ", time: " + position.getTime() +
+                    ", latitude: " + position.getLatitude() +
+                    ", longitude: " + position.getLongitude() +
+                    ", altitude: " + position.getAltitude() +
+                    ", speed: " + position.getSpeed() +
+                    ", course: " + position.getCourse() +
+                    ", power: " + position.getPower() + 
+                    ", ext_info:" + position.getExtendedInfo());
+        	}
+        	return;
+        }else{
+        	log.debug("received position message: ");
+        	if(log.isDebugEnabled()){
+        		log.debug(
+                    "udid: " + position.getUdid() +
+                    ", valid: " + position.isValid() +
                     ", time: " + position.getTime() +
                     ", latitude: " + position.getLatitude() +
                     ", longitude: " + position.getLongitude() +
@@ -94,13 +112,13 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        log.info("Closing connection by exception");
+        log.info("Closing connection by exception, " + e.getChannel(),e.getCause());
         e.getChannel().close();
     }
 
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
-        log.info("Closing connection by timeout");
+        log.info("Closing connection by timeout, " + e.getChannel());
         e.getChannel().close();
     }
 }

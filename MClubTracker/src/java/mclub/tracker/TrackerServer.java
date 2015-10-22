@@ -242,6 +242,7 @@ public abstract class TrackerServer {
      * Start server
      */
     public void start() {
+    	log.info("Starting " + this + " ...");
         InetSocketAddress endpoint;
         if (address == null) {
             endpoint = new InetSocketAddress(port);
@@ -267,6 +268,7 @@ public abstract class TrackerServer {
      * Stop server
      */
     public void stop() {
+    	log.info("Stopping " + this + " ...");
         ChannelGroupFuture future = getChannelGroup().close();
         future.awaitUninterruptibly();
         

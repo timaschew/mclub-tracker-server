@@ -60,7 +60,7 @@ public class PositionData {
 		this.time = time;
 	}
 
-	public Boolean getValid() {
+	public Boolean isValid() {
 		return valid;
 	}
 
