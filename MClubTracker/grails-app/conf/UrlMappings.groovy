@@ -9,9 +9,9 @@ class UrlMappings {
 //			}
 //		}
 
-		"/map/$id?"(controller:"trackerMap", action:'index'){}
-		"/map/aprs/$id?"(controller:"trackerMap", action:'aprs'){}
-		"/map/mclub/$id?"(controller:"trackerMap", action:'mclub'){}
+		"/map/$id?"(controller:"map", action:'index'){}
+		"/map/aprs/$id?"(controller:"map", action:'aprs'){}
+		"/map/mclub/$id?"(controller:"map", action:'mclub'){}
 
 
 		// For compatible with the application
@@ -44,7 +44,11 @@ class UrlMappings {
 			
 		}
 
-		"/"(controller:'trackerMap',action:'index')
+		"/admin/map/$action/$id?"(controller:"trackerMap"){
+		
+		}
+
+		"/"(controller:'map',action:'index')
 
 //		"/"(view:"/index")
 		
