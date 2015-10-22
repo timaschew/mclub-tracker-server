@@ -112,7 +112,11 @@ public class TrackerEventHandler extends IdleStateAwareChannelHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        log.info("Closing connection by exception, " + e.getChannel(),e.getCause());
+    	if(log.isDebugEnabled()){
+    		log.debug("Closing connection by exception, " + e.getChannel(),e.getCause());
+    	}else{
+    		log.info("Closing connection by exception, " + e.getChannel());
+    	}
         e.getChannel().close();
     }
 
