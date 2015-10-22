@@ -39,8 +39,8 @@ class TrackerDeviceController {
 		def trackerDeviceInstance
 		
 		// check if device exists with udid
-		def udid = request.udid;
-		if(udid){
+		def udid = params.udid;
+		if(udid?.length() > 0){
 			trackerDeviceInstance = TrackerDevice.findByUdid(udid);
 			if(trackerDeviceInstance){
 				// exists, bail out
