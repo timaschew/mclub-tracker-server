@@ -35,7 +35,24 @@ class TrackerDeviceController {
 
     def save() {
 		// data binding changes as per http://grails.github.io/grails-doc/2.5.x/guide/upgradingFrom23.html
-        def trackerDeviceInstance = new TrackerDevice();
+		
+		def trackerDeviceInstance
+		
+		// check if device exists with udid
+		def udid = request.udid;
+		if(udid){
+			trackerDeviceInstance = TrackerDevice.findByUdid(udid);
+			if(trackerDeviceInstance){
+				// exists, bail out
+				trackerDeviceInstance = new TrackerDevice();
+				trackerDeviceInstance.properties = request;
+				flash.message = "Device with id ${udid} already exsits!";
+				render(view: "create", model: [trackerDeviceInstance: trackerDeviceInstance])
+				return;
+			}
+		}
+		
+        trackerDeviceInstance = new TrackerDevice();
 		trackerDeviceInstance.properties = request;
         if (!trackerDeviceInstance.save(flush: true)) {
             render(view: "create", model: [trackerDeviceInstance: trackerDeviceInstance])
