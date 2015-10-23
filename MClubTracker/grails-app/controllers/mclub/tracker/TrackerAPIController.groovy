@@ -189,13 +189,21 @@ class TrackerAPIController {
 			log.warn("Session not found in request, check SecurityFilter configurations!")
 			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
 			return;
-		}		
-		String username = usession.username;
+		}
 		
+		String username = usession.username;
 		if(!udid){
 			render APIResponse.ERROR("Missing parameters: udid") as JSON
 			return;
 		}
+
+		if(usession.type < 2){
+			// disabled account or guest has no permission to update position.
+			log.warn("User ${username} (type=${usession.type}) is not allowed to update position!")
+			render APIResponse.ERROR(APIResponse.OPERATION_FAIL_ERROR,"No allowed") as JSON
+			return;
+		}
+
 		
 		//token/call -> username -> device -> position
 		PositionData pos = new PositionData();
