@@ -87,6 +87,12 @@ log4j = {
 					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
 					file: '/tmp/mtracker_perf.log'
+					
+		rollingFile name: 'gpsAppender',
+					maxFileSize: 10240000,
+					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
+					file: '/tmp/mtracker_gps.log'
+
 	}
 	
 
@@ -108,7 +114,12 @@ log4j = {
 	debug  perfAppender: 'perf.log',
 		   additivity:false
 		   
-	debug 'mclub.tracker.LivePositionWebsocketServer'
+	debug  gpsAppender: 'gps.log',
+		   additivity:false
+
+		   
+	debug 'mclub.tracker.LivePositionWebsocketServer',
+	      'mclub.tracker.protocol.Gt06TrackerServer'
 	
 	environments {
 		development {
@@ -146,7 +157,7 @@ tracker.t55.enabled = false
 tracker.t55.port = 5005
 
 // enables tracker log
-tracker.logger.enabled = true
+tracker.logger.enabled = false
 tracker.geocode.enabled = false
 
 // enable APRS receiver

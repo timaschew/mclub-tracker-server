@@ -158,7 +158,7 @@ public abstract class TrackerServer {
      * Logging using global logger
      */
     protected class StandardLoggingHandler extends LoggingHandler {
-
+    	private Logger gpsLog = LoggerFactory.getLogger("gps.log");
         @Override
         public void log(ChannelEvent e) {
             if (e instanceof MessageEvent) {
@@ -176,7 +176,7 @@ public abstract class TrackerServer {
                     msg.append(")");
                 }
 
-                log.debug(msg.toString());
+                gpsLog.debug(msg.toString());
             } else if (e instanceof ExceptionEvent) {
                 ExceptionEvent event = (ExceptionEvent) e;
                 log.warn(event.getCause().toString());
