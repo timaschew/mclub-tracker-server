@@ -1,32 +1,63 @@
 package mclub.tracker.protocol;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import mclub.tracker.protocol.helper.ChannelBufferTools;
+import mclub.tracker.protocol.helper.Checksum;
+
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 public class Gt06TrackerServerTest {
 
-	 @Test
-	    public void testDecode() throws Exception {
-		 
-		 Gt06TrackerServer.Gt06ProtocolDecoder decoder = new Gt06TrackerServer.Gt06ProtocolDecoder();
-	        assertNull(decoder.decode(null, null, "(090411121854BP0000001234567890HSO"));
+    private String concatenateStrings(String... strings) {
+        StringBuilder builder = new StringBuilder();
+        for (String s : strings) {
+            builder.append(s);
+        }
+        return builder.toString();
+    }
 
-	        assertNotNull(decoder.decode(null, null,
-	                "(035988863964BP05000035988863964110524A4241.7977N02318.7561E000.0123536356.5100000000L000946BB"));
+    protected ChannelBuffer binary(String... data) {
+        return binary(ByteOrder.BIG_ENDIAN, data);
+    }
 
-	        assertNotNull(decoder.decode(null, null,
-	                "(013632782450BP05000013632782450120803V0000.0000N00000.0000E000.0174654000.0000000000L00000000"));
+    protected ChannelBuffer binary(ByteOrder endianness, String... data) {
+        return ChannelBuffers.wrappedBuffer(
+                endianness, ChannelBufferTools.convertHexString(concatenateStrings(data)));
+    }
 
-	        assertNotNull(decoder.decode(null, null,
-	                "(013666666666BP05000013666666666110925A1234.5678N01234.5678W000.002033490.00000000000L000024DE"));
-	        
-	        assertNotNull(decoder.decode(null, null,
-	                "(013666666666BO012110925A1234.5678N01234.5678W000.0025948118.7200000000L000024DE"));
+	@Test
+	public void testDecode() throws Exception {
 
-	        assertNotNull(decoder.decode(null, null,
-	                "\n\n\n(088045133878BR00130228A5124.5526N00117.7152W000.0233614352.2200000000L01B0CF1C"));
+		Gt06TrackerServer.Gt06ProtocolDecoder decoder = new Gt06TrackerServer.Gt06ProtocolDecoder();
+		
+		//assertNotNull(decoder.decode(null, null, binary("787805120135dd520d0a")));
+		assertNull(decoder.decode(null,null,binary("78780d01035548802012515100036bf70d0a")));
+		assertEquals("355488020125151",decoder.getDeviceId());
+		
+		Object o = decoder
+				.decode(null, null,
+						binary("78781f120f0a17143037ca033d362a0ce3ebfa16347201cc0058140071c4013b0c0a0d0a"));
+		assertNotNull(o);
 
-	    }
+		// 7878 0d01 0355 4880 2012 5151 000b e7bf 0d0a
+	}
+
+	@Test
+	public void testCRC() {
+		// '0501000b' --> 7686
+		// 0d01 0355 4880 2012 5151 000b --> e7bf
+		short i = 0x80;
+		byte b[] = { 0x0d, 0x01, 0x03, 0x55, 0x48, (byte) (i & 0xff), 0x20,
+				0x12, 0x51, 0x51, 0x00, 0x0b };
+		int crc = Checksum.crc16(Checksum.CRC16_X25, ByteBuffer.wrap(b));
+		assertEquals(0xe7bf, crc);
+	}
 
 }

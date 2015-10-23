@@ -97,40 +97,46 @@ public class Gt06TrackerServer extends TrackerServer {
 			int dataLength = length - 5;
 
 			int type = buf.readUnsignedByte();
-			try{
-			if (type == MSG_LOGIN) {
+			try {
+				if (type == MSG_LOGIN) {
 
-				String imei = ChannelBuffers.hexDump(buf.readBytes(8))
-						.substring(1);
-				buf.readUnsignedShort(); // type
+					String imei = ChannelBuffers.hexDump(buf.readBytes(8))
+							.substring(1);
+					buf.readUnsignedShort(); // type
 
-				// Timezone offset
-				if (dataLength > 10) {
-					int extensionBits = buf.readUnsignedShort();
-					int hours = (extensionBits >> 4) / 100;
-					int minutes = (extensionBits >> 4) % 100;
-					int offset = (hours * 60 + minutes) * 60;
-					if ((extensionBits & 0x8) != 0) {
-						offset = -offset;
+					// Timezone offset
+					if (dataLength > 10) {
+						int extensionBits = buf.readUnsignedShort();
+						int hours = (extensionBits >> 4) / 100;
+						int minutes = (extensionBits >> 4) % 100;
+						int offset = (hours * 60 + minutes) * 60;
+						if ((extensionBits & 0x8) != 0) {
+							offset = -offset;
+						}
+						if (!forceTimeZone) {
+							timeZone.setRawOffset(offset);
+						}
 					}
-					if (!forceTimeZone) {
-						timeZone.setRawOffset(offset);
+
+					if (identify(imei, channel)) {
+						log.info("Device " + imei + " logged in");
+						buf.skipBytes(buf.readableBytes() - 6);
+						sendResponse(channel, type, buf.readUnsignedShort());
 					}
+					return null;
+					
 				}
-
-				if (identify(imei, channel)) {
-					buf.skipBytes(buf.readableBytes() - 6);
-					sendResponse(channel, type, buf.readUnsignedShort());
+				
+				// Bail out if device id is unknown
+				if (!hasDeviceId()) {
+					return null;
 				}
-
-			} else if (hasDeviceId()) {
-
+				
 				if (isSupported(type)) {
-
 					PositionData position = new PositionData();
 					position.setUdid(getDeviceId());
 
-					// position.setProtocol("GT-06");
+					position.addExtendedInfo("protocol", "GT-06");
 
 					if (hasGps(type)) {
 						decodeGps(position, buf);
@@ -147,7 +153,8 @@ public class Gt06TrackerServer extends TrackerServer {
 						decodeStatus(position, buf);
 					}
 
-					if (type == MSG_GPS_LBS_1 && buf.readableBytes() == 4 + 6) {
+					if (type == MSG_GPS_LBS_1
+							&& buf.readableBytes() == 4 + 6) {
 						position.addExtendedInfo(Event.KEY_ODOMETER,
 								buf.readUnsignedInt());
 					}
@@ -162,18 +169,19 @@ public class Gt06TrackerServer extends TrackerServer {
 					return position;
 
 				} else {
-					// unsupported
+					// unsupported packet
+					log.info("Unsupported packet: " + ChannelBuffers.hexDump(buf));
 					buf.skipBytes(dataLength);
-					if (type != MSG_COMMAND_0 && type != MSG_COMMAND_1
-							&& type != MSG_COMMAND_2) {
+					if (type != MSG_COMMAND_0 && type != MSG_COMMAND_1 && type != MSG_COMMAND_2) {
 						sendResponse(channel, type, buf.readUnsignedShort());
 					}
-
 				}
-			}
 
-			}catch(Exception e){
-				log.warn("Error parse message",e);
+			} catch (Exception e) {
+				if (log.isDebugEnabled())
+					log.warn("Error parse message", e);
+				else
+					log.warn("Error parse message: " + e.getMessage());
 			}
 
 			return null;
@@ -264,6 +272,8 @@ public class Gt06TrackerServer extends TrackerServer {
 			position.setCourse(Double.parseDouble("" + BitUtil.to(flags, 10)));
 			position.setValid(BitUtil.check(flags, 12));
 
+			position.setAltitude(-1d);
+			
 			if (!BitUtil.check(flags, 10)) {
 				latitude = -latitude;
 			}
@@ -318,7 +328,7 @@ public class Gt06TrackerServer extends TrackerServer {
 			return udid != null;
 		}
 
-		private String getDeviceId() {
+		String getDeviceId() {
 			return udid;
 		}
 
@@ -327,24 +337,28 @@ public class Gt06TrackerServer extends TrackerServer {
 			return true;
 		}
 
-	} // end of class Gt06ProtocolDecoder	
-
+	} // end of class Gt06ProtocolDecoder
 	
+	/**
+	 * Frame decoder
+	 */
 	static class Gt06FrameDecoder extends FrameDecoder {
-
+		private static Logger log = LoggerFactory.getLogger(Gt06FrameDecoder.class);
 	    @Override
 	    protected Object decode(
 	            ChannelHandlerContext ctx,
 	            Channel channel,
 	            ChannelBuffer buf) throws Exception {
-try{
+
 	        // Check minimum length
 	        if (buf.readableBytes() < 5) {
 	            return null;
 	        }
 
 	        int length = 2 + 2; // head and tail
-
+	        
+	        if(log.isDebugEnabled()) log.debug("frame: " + ChannelBuffers.hexDump(buf));
+	        
 	        if (buf.getByte(buf.readerIndex()) == 0x78) {
 	            length += 1 + buf.getUnsignedByte(buf.readerIndex() + 2);
 	        } else {
@@ -355,11 +369,9 @@ try{
 	        if (buf.readableBytes() >= length) {
 	            return buf.readBytes(length);
 	        }
-}catch(Exception e){
-	log.warn("Error decode frame",e);
-}
+
 	        return null;
 	    }
-
-	}
+	} // end of class Gt06FrameDecoder
+	
 }
