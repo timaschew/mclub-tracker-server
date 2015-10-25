@@ -172,10 +172,8 @@ public class Gps103TrackerServer extends TrackerServer{
 
         // Altitude
         position.setAltitude(-1d);
-
         // Speed
         position.setSpeed(Double.valueOf(parser.group(index++)));
-
         // Course
         String course = parser.group(index++);
         if (course != null) {
@@ -188,8 +186,23 @@ public class Gps103TrackerServer extends TrackerServer{
         Map<String,Object> extendedInfo = position.getExtendedInfo();
         extendedInfo.put("protocol", "gps103");
         // Alarm message
-        if(alarm != null)
-        	extendedInfo.put("alarm", alarm);
+        if(alarm != null){
+        	if(alarm.indexOf("help me") != -1){
+        		// it's emergency
+        		position.setMessageType(2/*MESSAGE_TYPE_EMERGENCY*/);
+        		position.setMessage(alarm);
+        	}else if(alarm.equalsIgnoreCase("tracker")){
+        		// do nothing
+        	}else if(alarm.equalsIgnoreCase("speed")){
+        		position.setMessageType(1/*MESSAGE_TYPE_ALERT*/);
+        		position.setMessage("Over Speed!");
+        	}else if(alarm.equalsIgnoreCase("low battery")){
+        		position.setMessageType(1/*MESSAGE_TYPE_ALERT*/);
+        		position.setMessage("Low Battery!");
+        	}else{
+        		position.setMessage(alarm);
+        	}
+        }
         
         return position;
     }
@@ -203,7 +216,7 @@ public class Gps103TrackerServer extends TrackerServer{
             "(\\d+)," +                         // IMEI
             "([^,]+)," +                        // Alarm
             "(\\d{2})/?(\\d{2})/?(\\d{2})\\s?" + // Local Date
-            "(\\d{2}):?(\\d{2})," +             // Local Time
+            "(\\d{2}):?(\\d{2})\\d{0,2}," +             // Local Time
             "[^,]*," +
             "[FL]," +                           // F - full / L - low
             "(\\d{2})(\\d{2})(\\d{2})\\.(\\d{3})," + // Time UTC (HHMMSS.SSS)
@@ -213,7 +226,7 @@ public class Gps103TrackerServer extends TrackerServer{
             "(\\d{3})(\\d{2}\\.\\d{4})," +      // Longitude (DDDMM.MMMM)
             "([EW])?," +
             "(\\d+\\.?\\d*)," +                 // Speed
-            "(\\d+\\.\\d+)?" +                  // Course
+            "(\\d+\\.?\\d*)?" +                  // Course
             ".*");
     
 }

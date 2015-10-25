@@ -99,9 +99,12 @@ public class Gps103ProtocolDecoderTest {
 		        .decode(null, null,
 		                "imei:353451049926460,tracker,1208042043,123456 99008026,F,124336.000,A,3509.8668,N,03322.7636,E,0.00,,"));
 
+		PositionData pos = null;
+
 		// SOS alarm
-		assertNotNull(decoder.decode(null, null,
-		        "imei:359586015829802,help me,0809231429,13554900601,F,062947.294,A,2234.4026,N,11354.3277,E,0.00,"));
+		pos = (PositionData)decoder.decode(null, null,
+		        "imei:359586015829802,help me,0809231429,13554900601,F,062947.294,A,2234.4026,N,11354.3277,E,0.00,");
+		assertNotNull(pos);
 
 		// Low battery alarm
 		assertNotNull(decoder
@@ -127,10 +130,50 @@ public class Gps103ProtocolDecoderTest {
 		        "imei:863070010423167,tracker,1211051951,63360926,F,115123.000,A,2220.6322,N,11407.5313,E,0.00,,"));
 
 		assertNotNull(decoder.decode(null, null,
-		        "imei:863070010423167,tracker,1211060621,,F,062152.000,A,2220.6914,N,11407.5506,E,15.85,347.84,"));
-
-		assertNotNull(decoder.decode(null, null,
 		        "imei:863070012698733,tracker,1303092334,,F,193427.000,A,5139.0369,N,03907.2791,E,0.00,,"));
+
+
+		pos = (PositionData)decoder.decode(null, null,
+		        "imei:863070010423167,tracker,1211060621,,F,062152.000,A,2220.6914,N,11407.5506,E,15.85,347.84,");
+		assertNotNull(pos);
+
+
+	}
+
+	@Test
+	public void testDecode2() throws Exception {
+		Gps103TrackerServer decoder = new Gps103TrackerServer(new MockNettyBootstrap(),"",new MockTrackerService(),new MockConfigService());
+		PositionData pos = null;
+		
+		// logon
+		pos = (PositionData)decoder.decode(null,null,
+				"##,imei:868683020378349,A;");
+		assertNull(pos);
+
+		// heartbeat
+		pos = (PositionData)decoder.decode(null,null,
+				"868683020378349;");
+		assertNull(pos);
+
+		// No GPS signal
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,151025172744,,L,,,5717,,860e,,,;");
+		assertNull(pos);
+
+		// Normal Position
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,151025165516,,F,085513.000,A,3016.9793,N,12001.3847,E,0.00,0;");
+		assertNotNull(pos);
+
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,151025165516,,F,085513.000,A,3016.9793,N,12001.3847,E,0.00,0;");
+		assertNotNull(pos);
+		
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,151025171614,,F,091612.000,A,3017.7145,N,12006.4231,E,9.25,178.57;");
+		assertNotNull(pos);
+		
+
 	}
 
 }

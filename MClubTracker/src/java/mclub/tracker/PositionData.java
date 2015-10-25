@@ -156,6 +156,22 @@ public class PositionData {
 		this.coordinateType = coordinateType;
 	}
 
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public Integer getMessageType() {
+		return messageType;
+	}
+
+	public void setMessageType(Integer messageType) {
+		this.messageType = messageType;
+	}
+
 	@Override
 	public String toString() {
 		return "PositionData [username=" + username + ", udid=" + udid
