@@ -9,6 +9,7 @@ import javax.annotation.PreDestroy;
 import mclub.sys.ConfigService;
 import mclub.tracker.protocol.Gps103TrackerServer;
 import mclub.tracker.protocol.Gt06TrackerServer;
+import mclub.tracker.protocol.H02TrackerServer;
 import mclub.tracker.protocol.T55TrackerServer;
 import mclub.tracker.protocol.Tk102TrackerServer;
 import mclub.tracker.protocol.Tk103TrackerServer;
@@ -60,7 +61,22 @@ public class TrackerServerManager {
 		initGps103Server();
 		initT55Server();
 		initGt06Server();
+		initH02Server();
 	}
+
+	private void initH02Server() {
+		String protocol = "h02";
+		if (!isProtocolEnabled(protocol)){
+			return;
+		}
+		try{
+			TrackerServer server = new H02TrackerServer(new ServerBootstrap(), protocol, trackerDataService,configService);
+	        serverList.add(server);
+		}catch(Exception e){
+			log.error("Error initialize " + protocol + " server, " + e.getMessage(),e);
+		}
+    }
+
 	
 	private void initTk102Server() {
 		String protocol = "tk102";
