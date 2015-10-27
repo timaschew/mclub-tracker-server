@@ -12,6 +12,9 @@ class UrlMappings {
 		"/map/$id?"(controller:"map", action:'index'){}
 		"/map/aprs/$id?"(controller:"map", action:'aprs'){}
 
+		"/map/all"(controller:"map", action:'all'){}
+		"/map/mclub"(controller:"map", action:'all'){}
+		
 		// For compatible with the application
 		"/mtracker/api/$action/$id?"(controller:"trackerAPI"){
 		
