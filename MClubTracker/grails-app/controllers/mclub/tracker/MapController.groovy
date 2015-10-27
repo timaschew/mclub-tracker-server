@@ -64,43 +64,44 @@ class MapController {
 		return false;
 	}
 	
-	def test(){
-		TrackerMap map = TrackerMap.findByUniqueId('foobar');
-		if(!map){
-			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]', type:0);
-			map.save(flush:true);
-			if(map.errors){
-				render text:map.errors.toString();
-				return;
-			}
-		}
-		render text:'OK'
-	}
-	
 	/**
 	 * Tricky index that redirect according to hard-coded domain name	
 	 * @return
 	 */
     def index(String id) {
-		String serverName = request.getServerName();
-		if(serverName && serverName.indexOf("nc.semitno".reverse()) != -1){
-			// for on times domain, forward to the mclub map
-			forward(action:'mclub');
-			return;
-		}
-		
 		// for APRS map request
 		if(id == null || id.equalsIgnoreCase('aprs')){
-			forward(action:'aprs')
+			// check domain name and forward
+			String serverName = request.getServerName();
+			if(serverName && serverName.indexOf("nc.semitno".reverse()) == -1){
+				forward(action:'aprs');
+				return;
+			}
+		}
+
+		// special case
+		if(id == null){
+			render(text:"The mClub Map")
 			return;
 		}
-		
 		if('test'.equals(id)){
 			forward(action:'test');
 			return;
 		}
 		
-		// For customized map
+		// The mClub Map part
+		// Check session first
+		User user = session['user'];
+		if(!user){
+			String returnURL = grailsLinkGenerator.link(params:params,absolute:true);
+			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
+			return ;
+		}
+		if(user.type == User.USER_TYPE_DISABLED){
+			render(text:"No permission", status:403);
+			return;
+		}
+		
 		TrackerMap map = TrackerMap.findByUniqueId(id);
 		if(map){
 			// just pass the map id to action:geojson
@@ -121,7 +122,10 @@ class MapController {
 		}
 	}
 	
-	def aprs(String id, String lat, String lon){
+	/*
+	 * The APRS Map
+	 */
+	def aprs(String id /*device id*/, String lat, String lon){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
@@ -194,14 +198,21 @@ class MapController {
 		}
 		return ipLoc;
 	}
-	
-	def mclub(String id, String lat, String lon){
+
+	/*
+	 * DEBUG MAP	
+	 */
+	def all(String id){
 		// Need user login
 		User user = session['user'];
 		if(!user){
-			String returnURL = grailsLinkGenerator.link(action:'mclub',params:params,absolute:true);
+			String returnURL = grailsLinkGenerator.link(params:params,absolute:true);
 			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
 			return ;
+		}
+		if(user.type < User.USER_TYPE_ADMIN){
+			render(text:"No permission", status:403);
+			return;
 		}
 		
 		MapConfig mapConfig = new MapConfig(title:"mClub Map");
@@ -214,6 +225,32 @@ class MapController {
 		}
 		mapConfig.mapZoomLevel = 11;
 		render view:"map", model:[mapConfig:mapConfig];
+	}
+	
+	/*
+	 * Test only
+	 */
+	def test(){
+		User user = session['user'];
+		if(!user){
+			String returnURL = grailsLinkGenerator.link(action:'test',params:params,absolute:true);
+			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
+			return ;
+		}
+		if(user.type != User.USER_TYPE_ADMIN){
+			render(text:"No permission", status:403);
+			return;
+		}
+		TrackerMap map = TrackerMap.findByUniqueId('foobar');
+		if(!map){
+			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]', type:0);
+			map.save(flush:true);
+			if(map.errors){
+				render text:map.errors.toString();
+				return;
+			}
+		}
+		render text:'OK'
 	}
 }
 

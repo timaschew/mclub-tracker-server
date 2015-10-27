@@ -11,14 +11,11 @@ class UrlMappings {
 
 		"/map/$id?"(controller:"map", action:'index'){}
 		"/map/aprs/$id?"(controller:"map", action:'aprs'){}
-		"/map/mclub/$id?"(controller:"map", action:'mclub'){}
-
 
 		// For compatible with the application
 		"/mtracker/api/$action/$id?"(controller:"trackerAPI"){
 		
 		}
-
 				
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
