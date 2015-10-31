@@ -156,7 +156,7 @@ class TrackerService {
 		if(cmd.activeTime == null){
 			// by default we'll only show active positions in last 30 minutes
 			Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
-			if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+			if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
 			cmd.activeTime = new java.util.Date(System.currentTimeMillis() - maximumShowPositionInterval);
 		}
 		
@@ -469,7 +469,7 @@ class TrackerService {
 	private Collection buildDeviceFeatures(TrackerDevice device){
 		// check whether position is expired - DUPLICATED!
 		Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
-		if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+		if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
 		if((System.currentTimeMillis() - device.latestPositionTime?.time) > maximumShowPositionInterval){
 			// evict expired device features from cache and returns null;
 			trackerCacheService.removeDeviceFeature(device.udid);
