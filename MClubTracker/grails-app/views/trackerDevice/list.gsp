@@ -1,5 +1,6 @@
 
 <%@ page import="mclub.tracker.TrackerDevice" %>
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -39,7 +40,16 @@
 				<g:each in="${trackerDeviceInstanceList}" status="i" var="trackerDeviceInstance">
 					<tr class="${(i % 2) == 0 ? 'even' : 'odd'}">
 						<td><g:link action="show" id="${trackerDeviceInstance.id}">${fieldValue(bean: trackerDeviceInstance, field: "udid")}</g:link></td>
-						<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td>
+						<%
+							// load the username
+							def user = mclub.user.User.findByName(trackerDeviceInstance.username);
+						%>
+						<%--<td>${fieldValue(bean: trackerDeviceInstance, field: "username")}</td> --%>
+						<%if(user){%>
+						<td><g:link action="show" controller="user" id="${user.id}">${user.displayName}</g:link></td>
+						<%}else{%>
+						<td>${trackerDeviceInstance.username}</td>
+						<%}%>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "status")}</td>
 						<td><g:link controller="trackerPosition" action="show" id="${trackerDeviceInstance.latestPositionId}">${fieldValue(bean: trackerDeviceInstance, field: "latestPositionId")}</g:link></td>
 						<td>${fieldValue(bean: trackerDeviceInstance, field: "latestPositionTime")}</td>
