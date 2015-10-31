@@ -13,12 +13,13 @@ class TrackerMap {
 		uniqueId 	unique: true
 		name 		blank:true, nullable:true
 		filterJSON 	blank:true, nullable:true
-		username		blank:true, nullable:true
+		username	blank:true, nullable:true
 	}
 
 	static mapping = { 
 		uniqueId		index:'idx_trackermap_uniqueid'
-		username		index:'idx_trackermap_username' 
+		username		index:'idx_trackermap_username'
+		filterJSON		type:'text'
 	}
 
 	String uniqueId; // auto generated random id
