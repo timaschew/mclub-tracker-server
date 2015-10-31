@@ -362,10 +362,10 @@ class TrackerService {
 		Integer minimalPositionUpdateInterval = configService.getConfigInt("tracker.minimalPositionUpdateInterval");
 		if(!minimalPositionUpdateInterval) minimalPositionUpdateInterval = 5000L;
 		Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
-		if(!maximumShowPositionInterval) maximumShowPositionInterval == mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+		if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
 		int maxPointsOfLine = maximumShowPositionInterval / minimalPositionUpdateInterval; // (30 * 60 * 1000 / 5000 = 360)
 		
-		Date lineTime = new Date(System.currentTimeMillis() - (45 * 60 * 1000));
+		Date lineTime = new Date(System.currentTimeMillis() - maximumShowPositionInterval /*(30 * 60 * 1000)*/);
 		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:maxPointsOfLine]);
 		positions = shrinkTrackPositions(positions);
 		int positionCount = positions?.size();
