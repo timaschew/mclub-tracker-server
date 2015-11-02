@@ -27,7 +27,24 @@
 				padding:0px 0px 0px 0px;
 				font: 10px arial,sans-serif;      
             }
+            .hamclub-copyrights{
+            	margin-left:50%;
+            	position: absolute;
+    			right: 15px;
+			    height: 16px;
+			    bottom: 0;
+			    font-size: 11px;
+			    line-height: 16px;
+			    font-family: Arial,sans-serif;
+			    z-index: 160;    
+            }
         </style>
+        <script language="javascript" type="text/javascript">
+			if(top.location!=self.location){
+				// PLEASE DON'T INCLUDE ME!
+				top.location="http://hamclub.net";
+			}
+		</script>
     </head>
     
     <body>
@@ -85,12 +102,21 @@
 
                 var map = new AMap.Map('mapContainer', {
                     resizeEnable: true,
-                    center: [120.20, 30.24],
-                    zoom: 11
+                    //center: [120.20, 30.24],
+                    //zoom: 11
                 });
+
+                /*
+                var customLayer = new AMap.CustomLayer({
+                    map:map,
+                    opacity:1
+                });
+                customLayer.show();
+                */
 
                 var infoWindow = new AMap.InfoWindow({
                     // isCustom: true
+                	closeWhenClickMap:true,
                 });
 
                 // Add map toolbar controller
@@ -140,11 +166,11 @@
                 var PointRender = {
                     pointsMap: {},
                     render: function(point, tag) {
-                        if (!point) {
+                        if (!point || !tag) {
                             return;
                         };
-                        var marker;
-                        if (typeof tag == "undefined" || typeof this.pointsMap[tag] == "undefined") {
+                        var marker = this.pointsMap[tag];
+                        if (typeof marker == "undefined") {
                             marker = new AMap.Marker({
                                 icon: "http://webapi.amap.com/images/marker_sprite.png",
                                 topWhenClick:true,
@@ -155,10 +181,8 @@
                                 this.pointsMap[tag] = marker;
                             }
                         } else {
-                            marker = this.pointsMap[tag];
-                            marker && marker.setPosition(point);
+                            marker.moveTo(point,1000);
                         }
-                        //map.setFitView();
                         return marker;
                     },
                 };
@@ -373,6 +397,8 @@
                 
             });
         </script>
+        
+        <div class="hamclub-copyrights">BG5HHP@HAMCLUB.net ©2015</div>
     </body>
 
 </html>
