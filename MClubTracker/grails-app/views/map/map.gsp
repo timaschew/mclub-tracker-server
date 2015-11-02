@@ -320,37 +320,87 @@
                     };
                 };
 
-                var connectService = function(){
-                    var wsUri = serviceURL;
-                    websocket = new WebSocket(wsUri);
-                    websocket.onopen = function(e) {
-                        // alert("CONNECTED")
-                    };
-                    websocket.onclose = function(e) {
-                        // alert("DISCONNECTED"); 
-                    };
-                    websocket.onmessage = function(e) { 
-                        //parseGEOJSON($.parseJSON(e.data));
-                        updateGEOJSON($.parseJSON(e.data))
-                        //websocket.close(); 
-                    };
-                    websocket.onerror = function(e) { 
-                        
-                    };
-
-                    function doSend(message) { 
-                        websocket.send(message); 
-                    }; 
+                var PushService = {
+                	websocket:null,
+                	connect:function(){
+                		if(this.websocket != null){
+                			return;
+                		}
+                		var self = this;
+                		try{
+                			this.websocket = new WebSocket(serviceURL);
+                    		this.websocket.onopen = function(e) {
+                    			//alert("PushService connected");
+                            };
+                            this.websocket.onclose = function(e) {
+                            	self.websocket = null;
+                            };
+                            this.websocket.onmessage = function(e) {
+                            	var json = e.data;
+                            	if(typeof json === 'string'){
+                            		// parse received json
+                            		try{
+                                    	parseGEOJSON($.parseJSON(json));
+                                	}catch(err){
+                                		//if(debug) console.log(json);
+                                	}
+                            	}
+                            };
+                            this.websocket.onerror = function(e) { 
+                            	self.disconnect();
+                            };
+                		}catch(err){
+                			//if(debug)console.log(err);
+                		}
+                	},
+                	
+                	disconnect:function(){
+                		if(this.websocket != null){
+                			this.websocket.close();
+                			this.websocket = null;                			
+                		}
+                	},
+                	
+                	ping:function(){
+                		this.send('PING');
+                	},
+                	
+                	send:function(message){
+                		if(this.websocket != null){
+                			this.websocket.send(message);
+                		}
+                	},
+                	
+                	isConnected:function(){
+                		return this.websocket != null;
+                	},
                 };
                 
-                var loadGeojson = function(){
+                var heartBeat = function(){
+                	//var start = new Date;
+                	setInterval(function() {
+                	    //$('.Timer').text((new Date - start) / 1000 + " Seconds");
+                	    //alert((new Date - start) / 1000 + " Seconds");
+                	    if(PushService.isConnected()){
+                	    	PushService.ping();
+                	    }else{
+                	    	//alert("Reconnecting websocket...");
+                	    	PushService.connect();
+                	    }
+                	}, 5000);
+                };
+
+                // init entry point
+               var init = function(){
                 	$.get(dataURL,function(data) {
                 		parseGEOJSON(data);
-                		connectService();
+                		PushService.connect();
+                		heartBeat();
                 	});                	
                 };
-                loadGeojson();
-                
+                init();
+                //window.addEventListener("load",init,false);
+
             });
 
         </script>

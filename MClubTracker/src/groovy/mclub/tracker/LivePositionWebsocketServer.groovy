@@ -109,7 +109,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 				mapId = params.get('map')[0];
 			}
 			if(mapId){
-				// FIXME - load map by id and construct the filter;
+				// Load map by id and construct the filter;
 				TrackerMap map = TrackerMap.findByUniqueId(mapId);
 				if(map){
 					def filters = map.loadFilters();
@@ -140,8 +140,17 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 	
 	@OnMessage
 	public void handleMessage(String message,Session clientSession) throws IOException {
-		log.debug "Received: " + message
-		clientSession.basicRemote.sendText("echo [" + clientSession.getId() + "]"  + message);
+		if(log.isDebugEnabled()){
+			log.debug "Received: " + message
+		}
+		String resp;
+		if("PING".equals(message)){
+			// this is a ping message;
+			resp = "PONG";
+		}else{
+			resp = "echo [" + clientSession.getId() + "]"  + message;
+		}
+		clientSession.basicRemote.sendText(resp);
 		
 		//TODO - read input as JSON and parse to {"filter":{"type":1,"udid":"xxxx"}};
 		/*
