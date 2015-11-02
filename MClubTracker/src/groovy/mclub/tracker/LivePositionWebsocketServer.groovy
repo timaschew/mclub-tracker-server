@@ -16,6 +16,7 @@ import javax.websocket.OnError
 import javax.websocket.OnMessage
 import javax.websocket.OnOpen
 import javax.websocket.RemoteEndpoint
+import javax.websocket.SendHandler
 import javax.websocket.Session
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpoint
@@ -154,6 +155,11 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 			RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
 			remote.setSendTimeout(5000);
 			remote.sendText(resp);
+//			remote.sendText(message, new SendHandler(){
+//				public void onResult(javax.websocket.SendResult result){
+//					
+//				}
+//			});
 		}catch(Exception e){
 			// ignore
 			log.warn("Error send message to client[${clientSession.getId()}], ${e.getMessage()}.");
@@ -234,9 +240,14 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 					remote.setSendTimeout(5000);
 					remote.sendText(str);
 				}catch(Exception e){
-					// ignore
 					log.warn("Error pushing position changes, ${e.getMessage()}. Remote ip: UNSUPPORTED");
-					closeSession(clientSession);
+					// For IllegalStateException, see https://bz.apache.org/bugzilla/show_bug.cgi?id=56026
+					if(e instanceof IllegalStateException){
+						// ignore the error
+					}else{
+						// or close the session
+						closeSession(clientSession);
+					}
 				}
 			}
 		}
