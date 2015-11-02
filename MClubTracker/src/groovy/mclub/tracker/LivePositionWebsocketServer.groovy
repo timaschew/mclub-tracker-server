@@ -227,13 +227,11 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		
 		String str = txt.toString();
 		
-		if(System.currentTimeMillis() - ts > 15000){
-			log.debug("Pushing position changes to ${sessions.size()} clients");
-			ts = System.currentTimeMillis();
-		}
+		int i = 0;
 		for(SessionEntry sessionEntry : sessions.values()){
 			TrackerDeviceFilter filter = sessionEntry.filter;
-			if(filter && filter.accept(position)){
+			if(filter!= null && filter.accept(position)){
+				i++;
 				Session clientSession = sessionEntry.session;
 				try{
 					RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
@@ -250,6 +248,10 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 					}
 				}
 			}
+		}// end of for
+		if(i > 0 && System.currentTimeMillis() - ts > 15000){
+			log.debug("Pushed position changes to ${i} of ${sessions.size()} clients");
+			ts = System.currentTimeMillis();
 		}
 	}
 	
