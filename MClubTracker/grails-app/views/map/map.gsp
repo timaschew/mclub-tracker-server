@@ -337,14 +337,12 @@
                             };
                             this.websocket.onmessage = function(e) {
                             	var json = e.data;
-                            	if(typeof json === 'string'){
-                            		// parse received json
-                            		try{
-                                    	parseGEOJSON($.parseJSON(json));
-                                	}catch(err){
-                                		//if(debug) console.log(json);
-                                	}
-                            	}
+                            	// parse received json
+                            	try{
+                                   updateGEOJSON($.parseJSON(json));
+                                }catch(err){
+                                	//if(debug) console.log(json);
+                                }
                             };
                             this.websocket.onerror = function(e) { 
                             	self.disconnect();
