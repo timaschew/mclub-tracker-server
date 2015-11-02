@@ -150,7 +150,14 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		}else{
 			resp = "echo [" + clientSession.getId() + "]"  + message;
 		}
-		clientSession.basicRemote.sendText(resp);
+		try{
+			RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
+			remote.setSendTimeout(5000);
+			remote.sendText(resp);
+		}catch(Exception e){
+			// ignore
+			log.warn("Error send message to client[${clientSession.getId()}], ${e.getMessage()}.");
+		}
 		
 		//TODO - read input as JSON and parse to {"filter":{"type":1,"udid":"xxxx"}};
 		/*
