@@ -21,6 +21,7 @@
                 border: 0px solid #666666;
                 color: #222222;
                 font: bold 12px arial,sans-serif;
+                opacity:0.6;
             }
             .marker-info{
 				padding:0px 0px 0px 0px;
@@ -147,10 +148,10 @@
                         var polylineoptions = {
                         	path: points,
                             strokeColor: "#3366FF", 
-                            strokeOpacity: 1,       
-                            strokeWeight: 5,        
+                            strokeOpacity: 0.8,       
+                            strokeWeight: 4,        
                             strokeStyle: "solid",   
-                            strokeDasharray: [10, 5]
+                            strokeDasharray: [100, 5]
                         };
                     	return new AMap.Polyline(polylineoptions);
                     },
@@ -235,13 +236,13 @@
                 		// Nasty code for Icons
                         var symbol = aprs['symbol'].split('_');
                 		var symbolIndex = parseInt(symbol[1]);
-                		var x = ((symbolIndex % 16) * (-21));
-                		var y = (Math.floor(symbolIndex / 16) * (-21)); 
+                		var x = ((symbolIndex % 16) * (-24));
+                		var y = (Math.floor(symbolIndex / 16) * (-24)); 
                         var markerIcon = new AMap.Icon({
-                        	size: [20,20],
+                        	size: [24,24],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	
-                        	image: "${createLink(uri:'/static/images/aprs/sym', absolute:false)}" + symbol[0] + ".png"
+                        	imageSize:[384,144],
+                        	image: "${createLink(uri:'/static/images/aprs/aprs-fi-sym', absolute:false)}" + symbol[0] + "@2x.png"
                         });
                         marker.setIcon(markerIcon);
                 	}else{
