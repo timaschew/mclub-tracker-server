@@ -117,7 +117,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 					filter = new CompisiteTrackerDeviceFilter(filters:filters);
 					sessionEntry.filter = filter;
 				}else{
-					log.debug("No map filter found for id: ${mapId}");
+					log.info("No map filter found for id: ${mapId}");
 				}
 			}else{
 				// compatible with old behavior
@@ -250,7 +250,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 			}
 		}// end of for
 		if(i > 0 && System.currentTimeMillis() - ts > 15000){
-			log.debug("Pushed position changes to ${i} of ${sessions.size()} clients");
+			log.info("Pushed position changes to ${i} of ${sessions.size()} clients");
 			ts = System.currentTimeMillis();
 		}
 	}

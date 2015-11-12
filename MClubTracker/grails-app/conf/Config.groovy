@@ -117,10 +117,11 @@ log4j = {
 	debug  gpsAppender: 'gps.log',
 		   additivity:false
 
-		   
+	/*	   
 	debug 'mclub.tracker.LivePositionWebsocketServer',
 	      'mclub.tracker.protocol.Gt06TrackerServer'
-	
+	*/
+		   
 	environments {
 		development {
 			debug   'grails.app'
