@@ -90,20 +90,23 @@ class MapController {
 		}
 		
 		// The mClub Map part
-		// Check session first
-		User user = session['user'];
-		if(!user){
-			String returnURL = grailsLinkGenerator.link(params:params,absolute:true);
-			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
-			return ;
-		}
-		if(user.type == User.USER_TYPE_DISABLED){
-			render(text:"No permission", status:403);
-			return;
-		}
-		
 		TrackerMap map = TrackerMap.findByUniqueId(id);
 		if(map){
+			// if map type is not public, check user session first
+			if(map.type != TrackerMap.TRACKER_MAP_TYPE_PUBLIC){
+				// check user session
+				User user = session['user'];
+				if(!user){
+					String returnURL = grailsLinkGenerator.link(params:params,absolute:true,id:id);
+					redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
+					return ;
+				}
+				if(user.type == User.USER_TYPE_DISABLED){
+					render(text:"No permission", status:403);
+					return;
+				}
+			}
+			
 			// just pass the map id to action:geojson
 			MapConfig mapConfig = new MapConfig(title:"Tracker Map");
 			if(map.name) mapConfig.title = "${map.name} Map";
