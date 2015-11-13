@@ -17,6 +17,7 @@ class TrackerDevice {
 		username blank:true,nullable:true
 		status blank:true,nullable:true
 		icon blank:true,nullable:true
+		comments blank:true,nullable:true
     }
 	
 	static mapping = {
@@ -33,4 +34,5 @@ class TrackerDevice {
 	Long latestPositionId; 	// for association with the position
 	Date latestPositionTime
 	String icon;			// name of the device icon, eg: APRS site symbol
+	String comments;		// the device comments, optional
 }

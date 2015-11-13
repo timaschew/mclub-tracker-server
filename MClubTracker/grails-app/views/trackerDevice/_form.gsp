@@ -31,3 +31,11 @@
 	</label>
 	<g:field name="status" type="number" value="${trackerDeviceInstance.status}"/>
 </div>
+
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'comments', 'error')} ">
+	<label for="comments">
+		<g:message code="trackerDevice.comments.label" default="Comments" />
+		
+	</label>
+	<g:textField name="comments" value="${trackerDeviceInstance.comments}"/>
+</div>

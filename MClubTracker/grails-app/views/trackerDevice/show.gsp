@@ -56,6 +56,12 @@
 					<span id="icon-label" class="property-label"><g:message code="trackerDevice.icon.label" default="Icon" /></span>
 					<span class="property-value" aria-labelledby="icon-label"><g:fieldValue bean="${trackerDeviceInstance}" field="icon"/></span>
 				</li>
+				
+				<li class="fieldcontain">
+					<span id="comments-label" class="property-label"><g:message code="trackerDevice.comments.label" default="Comments" /></span>
+					<span class="property-value" aria-labelledby="comments-label"><g:fieldValue bean="${trackerDeviceInstance}" field="comments"/></span>
+				</li>
+				
 			
 			</ol>
 			<g:form>
