@@ -274,11 +274,12 @@ class TrackerService {
 		
 		// Load marker symbol
 		if(device.icon){
+			markerFeatureProperties['marker-symbol'] = device.icon;
 			if(device.status == TrackerDevice.DEVICE_TYPE_APRS){
-				// prefix with APRS symbol
-				markerFeatureProperties['marker-symbol'] = "aprs_${device.icon}";
-			}else{
-				markerFeatureProperties['marker-symbol'] = device.icon;
+				//NOTE: Workaround for existing APRS devices with incorrect icon filename
+				if(device.icon.startsWith("1_") || device.icon.startsWith("2_")){
+					markerFeatureProperties['marker-symbol'] = "aprs_${device.icon}";
+				}
 			}
 		}else{
 			// check if device contains emergency messages

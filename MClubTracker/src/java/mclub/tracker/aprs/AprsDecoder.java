@@ -188,11 +188,11 @@ public class AprsDecoder extends OneToOneDecoder{
 	 */
 	private static String convertSymbolCharToFileName(char table, char index){
 		if(table == '/'){
-			return "1_" + String.format("%02d", index - '!');	
+			return "aprs_1_" + String.format("%02d", index - '!');	
 		}else if(table == '\\'){
-			return "2_" + String.format("%02d", index - '!');
+			return "aprs_2_" + String.format("%02d", index - '!');
 		}else{
-			return "1_29"; // '>', Car
+			return "aprs_1_29"; // '>', Car
 		}
 	}
 }
