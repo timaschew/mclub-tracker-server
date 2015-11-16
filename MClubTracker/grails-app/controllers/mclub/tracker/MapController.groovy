@@ -133,7 +133,7 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"APRS Map");
+		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net");
 			
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
