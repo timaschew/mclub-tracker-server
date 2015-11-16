@@ -198,7 +198,7 @@
 
                 var setupCustomMarker = function(marker, feature) {
                 	var message = feature['properties']['message'];
-                	var symbol = feature['properties']['marker-symbol'];
+                	var markerSymbol = feature['properties']['marker-symbol'];
                 	var speed = feature['properties']['speed'];
                 	var course = feature['properties']['course'];
                 	var aprs = feature['properties']['aprs'];
@@ -233,16 +233,17 @@
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
                 		
-                		// Nasty code for Icons
-                        var symbol = aprs['symbol'].split('_');
-                		var symbolIndex = parseInt(symbol[1]);
+                		// Nasty code for Icons 
+                        // var symbol = aprs['symbol'].split('_');
+                		var symbol = feature['properties']['marker-symbol'].split('_');
+                		var symbolIndex = parseInt(symbol[2]);
                 		var x = ((symbolIndex % 16) * (-24));
                 		var y = (Math.floor(symbolIndex / 16) * (-24)); 
                         var markerIcon = new AMap.Icon({
                         	size: [24,24],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
                         	imageSize:[384,144],
-                        	image: "${createLink(uri:'/static/images/aprs/aprs-fi-sym', absolute:false)}" + symbol[0] + "@2x.png"
+                        	image: "${createLink(uri:'/static/images/aprs/aprs-fi-sym', absolute:false)}" + symbol[1] + "@2x.png"
                         });
                         marker.setIcon(markerIcon);
                 	}else{
@@ -276,10 +277,10 @@
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
                         
-                        if(typeof symbol != "undefined"){
+                        if(typeof markerSymbol != "undefined"){
                             var markerIcon = new AMap.Icon({
-                                size: [24,24],
-                                imageSize: [24,24],
+                                size: [32,32],
+                                imageSize: [32,32],
                                 image : "${createLink(uri:'/static/images/map/', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
                             });
                             marker.setIcon(markerIcon);                        	

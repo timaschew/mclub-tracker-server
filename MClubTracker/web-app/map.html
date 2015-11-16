@@ -280,14 +280,14 @@
                         });
                 		
                 		// Nasty code for Icons
-                        var symbol = aprs['symbol'].split('_');
-                		var symbolIndex = parseInt(symbol[1]);
+                        var symbol = feature['properties']['marker-symbol'].split('_');
+                		var symbolIndex = parseInt(symbol[2]);
                 		var x = ((symbolIndex % 16) * (-24));
                 		var y = (Math.floor(symbolIndex / 16) * (-24)); 
                         var markerIcon = new AMap.Icon({
                         	size: [24,24],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	image: "images/aprs/aprs-fi-sym" + symbol[0] + "@2x.png",
+                        	image: "images/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
                         	imageSize:[384,144]
                         });
                         marker.setIcon(markerIcon);
@@ -323,9 +323,9 @@
                         if(typeof symbol != "undefined"){
                             var markerIcon = new AMap.Icon({
                                 //image : "http://webapi.amap.com/images/marker_sprite.png"
-                                size: [24,24],
+                                size: [32,32],
                             	image : "images/map/" + feature['properties']['marker-symbol'] + ".png",
-                            	imageSize: [24,24]
+                            	imageSize: [32,32]
                             });
                             marker.setIcon(markerIcon);                        	
                         }
