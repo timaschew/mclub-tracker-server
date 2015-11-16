@@ -323,8 +323,9 @@
                         if(typeof symbol != "undefined"){
                             var markerIcon = new AMap.Icon({
                                 //image : "http://webapi.amap.com/images/marker_sprite.png"
-                                size: [48,48],
-                            	image : "images/marker_" + feature['properties']['marker-symbol'] + ".png"
+                                size: [24,24],
+                            	image : "images/map/" + feature['properties']['marker-symbol'] + ".png",
+                            	imageSize: [24,24]
                             });
                             marker.setIcon(markerIcon);                        	
                         }

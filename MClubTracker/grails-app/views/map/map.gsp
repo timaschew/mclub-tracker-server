@@ -278,8 +278,9 @@
                         
                         if(typeof symbol != "undefined"){
                             var markerIcon = new AMap.Icon({
-                                size: [48,48],
-                                image : "${createLink(uri:'/static/images/map/marker_', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
+                                size: [24,24],
+                                imageSize: [24,24],
+                                image : "${createLink(uri:'/static/images/map/', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
                             });
                             marker.setIcon(markerIcon);                        	
                         }
