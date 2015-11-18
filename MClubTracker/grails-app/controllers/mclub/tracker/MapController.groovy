@@ -120,6 +120,8 @@ class MapController {
 			mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 			render view:"map", model:[mapConfig:mapConfig];
 			//render (text:'Not implemented yet', status:501);
+			
+			mapConfig.showLineDots = configService.getConfigBool("tracker.map.showLineDots"); 
 		}else{
 			render(text:'map not found', status:404)
 		}
@@ -165,6 +167,9 @@ class MapController {
 			mapConfig.mapZoomLevel = 8;
 		}
 		*/
+		
+		mapConfig.showLineDots = configService.getConfigBool("tracker.map.showLineDots");
+		
 		if(log.isInfoEnabled()){
 			// detect remote client location;
 			detectRemoteClientLocation();
@@ -264,4 +269,5 @@ class MapConfig{
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
 	String copyrights;
+	Boolean showLineDots = true; // by default will show line dots
 }

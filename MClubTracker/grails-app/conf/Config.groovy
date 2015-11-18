@@ -187,6 +187,8 @@ tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseco
 
 tracker.map.secure = false;
 
+tracker.map.showLineDots = true;  // by default will show the line dots
+
 // Enable/disable the social feature
 social.weibo.enabled = false
 

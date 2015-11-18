@@ -142,7 +142,7 @@
                     },
                 };
 
-                var renderLineDots = true;
+                var renderLineDots = <%=mapConfig.showLineDots%>
                 var LineStringRender = {
                     lineStringsMap: {},
                     createLine: function(points){
