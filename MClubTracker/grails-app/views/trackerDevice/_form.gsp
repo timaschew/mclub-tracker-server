@@ -32,6 +32,14 @@
 	<g:field name="status" type="number" value="${trackerDeviceInstance.status}"/>
 </div>
 
+<div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'icon', 'error')} ">
+	<label for="icon">
+		<g:message code="trackerDevice.icon.label" default="Icon" />
+		
+	</label>
+	<g:textField name="icon" value="${trackerDeviceInstance.icon}"/>
+</div>
+
 <div class="fieldcontain ${hasErrors(bean: trackerDeviceInstance, field: 'comments', 'error')} ">
 	<label for="comments">
 		<g:message code="trackerDevice.comments.label" default="Comments" />
