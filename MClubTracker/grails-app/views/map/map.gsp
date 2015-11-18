@@ -142,6 +142,7 @@
                     },
                 };
 
+                var renderLineDots = true;
                 var LineStringRender = {
                     lineStringsMap: {},
                     createLine: function(points){
@@ -150,28 +151,58 @@
                             strokeColor: "#3366FF", 
                             strokeOpacity: 0.8,       
                             strokeWeight: 4,        
-                            strokeStyle: "solid",   
+                            strokeStyle: "solid",
                             strokeDasharray: [100, 5]
                         };
-                    	return new AMap.Polyline(polylineoptions);
+                        // prepare the dots data
+                        var line = new AMap.Polyline(polylineoptions);
+
+                        if(renderLineDots){
+                            // assume points.length > 0
+                            var dotsData = new Array();
+                            for(i in points){
+                                var m = {lnglat:points[i]/*,name:tag + i*/};
+                                dotsData.push(m);
+                            }
+                            dotsData.shift();
+                            var dots = new AMap.MassMarks(dotsData,{
+                                url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+                                anchor: new AMap.Pixel(3, 7),
+                                size: new AMap.Size(5, 7),
+                                opacity:1.0,
+                                cursor:'pointer',
+                                alwaysRender:true,
+                                zooms:[11],
+                                zIndex: 999
+                            });
+                            /*
+                            var marksInfo = new AMap.Marker({
+                                content:'',
+                                map:map
+                            });
+                            marks.on('mouseover',function(e){
+                                marksInfo.setPosition(e.data.lnglat);
+                                marksInfo.setLabel({content:e.data.name});
+                            });
+                            */
+                            line.setExtData({dots:dots});                            
+                        }
+                        return line;
                     },
                     
                     render: function(points, tag) {
                         if (points.length == 0) {
                             return;
                         };
-                        var polyline;
-                        if (typeof tag == "undefined" || typeof this.lineStringsMap[tag] == "undefined") {
-                            polyline = this.createLine(points);
-                            polyline.setMap(map);
-                            if (tag) {
-                                this.lineStringsMap[tag] = polyline;
-                            };
-                        } else {
-                            polyline = this.lineStringsMap[tag];
-                            polyline && polyline.setOptions(polylineoptions);
+                        var polyline = this.createLine(points);
+                        if(typeof tag != "undefined"){
+                            this.lineStringsMap[tag] = polyline;
                         }
-                        //map.setFitView();
+                        polyline.setMap(map);
+                        var dots = polyline.getExtData().dots;
+                        if(typeof dots != 'undefined'){
+                            dots.setMap(map);
+                        }
                         return polyline;
                     },
                     
@@ -179,22 +210,28 @@
                     	if (typeof tag == "undefined"){
                     		return;
                     	}
-                    	var path = new Array(point);
+                    	var path = new Array(point); // this is one point
                     	var polyline = this.lineStringsMap[tag];
                     	if(typeof polyline == "undefined"){
                     		polyline = this.createLine(path);
                     		polyline.setMap(map);
                     		this.lineStringsMap[tag] = polyline;
                     	}else{
-                    		//path = path.concat(polyline.getPath());
+                    		// update the line
                     		path = polyline.getPath();
-                    		path.unshift(point);
+                    		path.unshift(point); // append current point to the top element of path array
                     		polyline.setPath(path);
+
+                            // update the dots
+                            var dots = polyline.getExtData().dots;
+                            if(typeof dots != 'undefined'){
+                                var dotsData = dots.getData();
+                                dotsData.unshift({lnglat:path[1]}); // the second dot in line
+                                dots.setData(dotsData);
+                            }                            
                     	}
-                    	//path.unshift(point); // append current point to the top element of path array
-                    	//polyline.show();
                     },
-                }
+                };
 
                 var setupCustomMarker = function(marker, feature) {
                 	var message = feature['properties']['message'];
