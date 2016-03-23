@@ -1,13 +1,15 @@
 package mclub.tracker
-import java.util.Map;
-
 import grails.converters.JSON
+import grails.validation.Validateable
 import mclub.sys.ConfigService
-import mclub.tracker.TrackerDeviceFilter
 import mclub.user.User
-import mclub.user.UserService;
+import mclub.user.UserService
 import mclub.user.UserService.UserSession
 import mclub.util.DateUtils
+
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.h2.util.MathUtils;
+import org.springframework.web.multipart.MultipartFile
 
 class TrackerAPIController {
 	TrackerService trackerService;
@@ -171,18 +173,88 @@ class TrackerAPIController {
 			];
 	}
 	
+	def upload_avatar() {
+		MultipartFile file = request.getFile("avatar")
+		file.transferTo(new File("/tmp/upload/avatar"))
+	}
+	
+	def update_position2(PositionUpdateCommand updateCommand){
+		if(updateCommand.hasErrors()){
+			render APIResponse.ERROR("Invalid parameters") as JSON
+			return;
+		}
+
+		// Check user session, SecurityFilter will set in request scope
+		UserSession usession = request['session'];
+		if(!usession){
+			log.warn("Session not found in request, check SecurityFilter configurations!")
+			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
+			return;
+		}
+		String username = usession.username;
+		if(usession.type < 2){
+			// disabled account or guest has no permission to update position.
+			log.warn("User ${username} (type=${usession.type}) is not allowed to update position!")
+			render APIResponse.ERROR(APIResponse.OPERATION_FAIL_ERROR,"No allowed") as JSON
+			return;
+		}
+
+		PositionData pos = new PositionData();
+		InvokerHelper.setProperties(pos,updateCommand.properties);
+		
+		// Messages
+		if(pos.message && !pos.messageType){
+			String m = pos.message.toLowerCase();
+			if(m.indexOf("emergency") >= 0)
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_EMERGENCY;
+			else if(m.indexOf("alert") >=0)
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_ALERT;
+			else
+				pos.messageType = TrackerPosition.MESSAGE_TYPE_NORMAL;
+		}
+		if(pos.message && pos.messageType > TrackerPosition.MESSAGE_TYPE_NORMAL){
+			log.warn("${pos.username} sends ALERT/EMERGENCY message: ${pos.message}");
+		}
+
+		// altitude/speed/course is required by the domain constraints but not mandatory in API parameters		
+		if(pos.altitude == null) pos.altitude = -1;
+		if(pos.speed == null) pos.speed = -1;
+		if(pos.course == null) pos.course = -1;
+		
+		// convert timestamp seconds to Time object
+		Long timestamp = updateCommand.timestamp;
+		if(timestamp!= null && (Math.abs(System.currentTimeMillis() - (timestamp * 1000)) < MAX_TIME_DRIFT) ){
+			pos.time = new Date(timestamp * 1000);
+		}else{
+			pos.time = new Date();
+		}
+		
+		pos.extendedInfo['protocol'] = 'http_api';
+		pos.valid = true;
+		
+		trackerDataService.updateTrackerPosition(pos);
+		
+		render APIResponse.OK() as JSON
+	}
+	
+	private static final long MAX_TIME_DRIFT = 30 * 1000;
+	
 	/**
 	 * HTTP Interface for device position update.
 	 * @param udid
 	 * @param positionData
 	 * @return
 	 */
-	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType/*PositionData positionData*/,String token, String message, Integer messageType){
+	def update_position(String udid, String lat, String lon,String speed, String course, Integer coordinateType, Long timestamp, String message, Integer messageType){
 		if(!lat || !lon){
 			render APIResponse.ERROR("Missing parameters: lat, lon") as JSON
 			return;
 		}
-		
+		if(!udid){
+			render APIResponse.ERROR("Missing parameters: udid") as JSON
+			return;
+		}
+
 		// Check user session - FIXME - use filter
 		UserSession usession = request['session'];
 		if(!usession){
@@ -192,18 +264,12 @@ class TrackerAPIController {
 		}
 		
 		String username = usession.username;
-		if(!udid){
-			render APIResponse.ERROR("Missing parameters: udid") as JSON
-			return;
-		}
-
 		if(usession.type < 2){
 			// disabled account or guest has no permission to update position.
 			log.warn("User ${username} (type=${usession.type}) is not allowed to update position!")
 			render APIResponse.ERROR(APIResponse.OPERATION_FAIL_ERROR,"No allowed") as JSON
 			return;
 		}
-
 		
 		//token/call -> username -> device -> position
 		PositionData pos = new PositionData();
@@ -214,7 +280,12 @@ class TrackerAPIController {
 		pos.altitude = 0.0;
 		pos.speed = speed?Double.parseDouble(speed):0.0;
 		pos.course = course?Double.parseDouble(course):0.0;
-		pos.time = new Date();
+		
+		if(timestamp!= null && (Math.abs(System.currentTimeMillis() - (timestamp * 1000)) < MAX_TIME_DRIFT) ){
+			pos.time = new Date(timestamp * 1000);
+		}else{
+			pos.time = new Date();
+		}
 		
 		pos.message = message; // position may contains messages
 		pos.messageType = messageType;
@@ -543,3 +614,26 @@ class TrackerAPIController {
 		
 	}
 }
+
+@Validateable(nullable=true)
+class PositionUpdateCommand{
+	static constraints = {
+		udid blank:false, nullable:false
+		latitude blank:false, nullable:false
+		longitude blank:false, nullable:false
+	};
+
+	String udid;		// Unique device ID
+	Double latitude;
+	Double longitude;
+	
+	Double altitude;
+	Double speed;		// Speed in KM/h
+	Double course;		// Course from 0 ~ 360
+	
+	Integer coordinateType;	// Coordinate type 0 means WGS84 1 means GCJ02
+	String message;			// Associated message
+	Integer messageType;
+	Long	timestamp;		// Timestamp in seconds
+}
+
