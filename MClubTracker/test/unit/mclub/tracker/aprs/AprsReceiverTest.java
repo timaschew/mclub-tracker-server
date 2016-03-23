@@ -201,4 +201,26 @@ public class AprsReceiverTest {
 		System.out.println("Formatted double: " + String.format("%.6f",d));
 		
 	}
+	
+	/*
+	BA5AC-3 · 居中 · 放大 · 信息
+	2014-07-13 08:08:15 - 2015-10-07 22:44:07
+	APRS/CWOP 气象 2015-10-07 22:44:07: 显示气象图表
+	温度 20.6°C 湿度 50% 气压 1010.3 mbar
+	风 0° 0.0 m/s (大风 0.0 m/s)
+	雨 0.0 mm/1h 0.0 mm/24h
+	Yuhang cangqian WX 8.8V ---ug
+	[WX51R via BR5AA-1*,WIDE1*,qAS,BA5DX-10]
+	*/
+	
+	@Test
+	public void testParseWeatherReport(){
+		//Complete Weather Report Format — with Lat/Long position, no Timestamp
+		String s = "BA5AC-3>WX51R,WIDE1-1,qAR,BA5AG-10:=3018.51N/12001.16E_000/000g000t078r000p000h53b10093Yuhang cangqian WX 8.8V ---ug";
+		PositionData pd = new AprsDecoder(null,null,null).decodeAPRS(s);
+		assertNotNull(pd);
+		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
+		System.out.println(aprsData.getComment());
+	}
+	
 }

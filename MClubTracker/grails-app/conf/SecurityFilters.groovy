@@ -38,7 +38,8 @@ class SecurityFilters {
 					token = request.JSON.token;
 					
 				if(token){
-					log.debug("got token: ${token}")
+					if(log.isDebugEnabled())
+						log.debug("got token: ${token}")
 					def userSession = userService.checkSessionToken(token);
 					if(userSession){
 						request['session'] = userSession;
@@ -48,7 +49,7 @@ class SecurityFilters {
 				}
 				
 				log.info("No token found in request, params:${params}");
-				def r = [code:2,message:'Session expired'];
+				def r = [code:2/*APIResponse.SESSION_EXPIRED_ERROR*/,message:'Session expired'];
 				render r as JSON;
 				return false
 			}
