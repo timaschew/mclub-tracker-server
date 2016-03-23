@@ -121,7 +121,7 @@ class MapController {
 			render view:"map", model:[mapConfig:mapConfig];
 			//render (text:'Not implemented yet', status:501);
 			
-			mapConfig.showLineDots = configService.getConfigBool("tracker.map.showLineDots"); 
+			mapConfig.showLineDots = detectShowLineDots();
 		}else{
 			render(text:'map not found', status:404)
 		}
@@ -168,7 +168,7 @@ class MapController {
 		}
 		*/
 		
-		mapConfig.showLineDots = configService.getConfigBool("tracker.map.showLineDots");
+		mapConfig.showLineDots = detectShowLineDots();
 		
 		if(log.isInfoEnabled()){
 			// detect remote client location;
@@ -232,6 +232,7 @@ class MapController {
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all', type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
 		}
 		mapConfig.mapZoomLevel = 11;
+		mapConfig.showLineDots = this.detectShowLineDots();
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	
@@ -259,6 +260,15 @@ class MapController {
 			}
 		}
 		render text:'OK'
+	}
+	
+	private boolean detectShowLineDots(){
+		String ua = request.getHeader("User-Agent");
+		if(log.isDebugEnabled()) log.debug("User Agent: " + ua);
+		if(ua != null && (ua.indexOf('iPhone') >0 || ua.indexOf('Android') > 0)){
+			return false;
+		}
+		return configService.getConfigBool("tracker.map.showLineDots");
 	}
 }
 
