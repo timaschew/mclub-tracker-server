@@ -16,16 +16,31 @@ class MapController {
 	ConfigService configService;
 	TrackerService trackerService;
 	IpService ipService;
-	
+
+	private boolean isSecureHttpEnabled(){
+		boolean forceSecure = configService.getConfigBool('tracker.map.forceSecure');
+		if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
+			forceSecure = false;
+		}
+		 if(forceSecure || request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"))){
+			 return true;
+		 }
+		return false;
+	}
+
+	private String generateMapAPIURL(){
+		if(isSecureHttpEnabled()){
+			return "https://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee";
+		}else{
+			return "http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee";
+		}
+	}
+
 	private String generateMapLiveServiceURL(Map<String,Object> params){
 		String link = grailsLinkGenerator.link(uri:'/live0',id:'all', params:params, absolute:true);
-		boolean secure = configService.getConfigBool('tracker.map.secure');
-		if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
-			secure = false;
-		}
-		
 		String wsLink = "";
-		if(secure){
+		if(isSecureHttpEnabled()){
+			// always use wss://20843
 			if(link.indexOf("https://") != -1){
 				wsLink = link.replace("https://","wss://");
 			} else if(link.indexOf("http://") != -1) {
@@ -35,24 +50,15 @@ class MapController {
 				wsLink = wsLink.replace(":20880", ":20843");
 			}
 		}else{
-			// unsure wss only works under development enviromnent;
+			// use wss or ws according to the request of http or https
 			if(link.indexOf("https://") != -1){
-				wsLink = link.replace("https://","ws://");
+				wsLink = link.replace("https://","wss://");
 			} else if(link.indexOf("http://") != -1) {
 				wsLink = link.replace("http://","ws://");
-			}
-			if(wsLink.indexOf(":20843") != -1){
-				wsLink = wsLink.replace(":20843", ":20880");
 			}
 		}
 		
 		return wsLink;
-		
-//		if(link.indexOf("https://") != -1){
-//			return link.replace("https://","wss://");
-//		} else {
-//			return link.replace("http://","ws://");	
-//		}
 	}
 
 	private boolean checkAprsMapMirrorEnabled(){
@@ -108,7 +114,7 @@ class MapController {
 			}
 			
 			// just pass the map id to action:geojson
-			MapConfig mapConfig = new MapConfig(title:"Tracker Map");
+			MapConfig mapConfig = new MapConfig(title:"Tracker Map", apiURL:generateMapAPIURL());
 			if(map.name) mapConfig.title = "${map.name} Map";
 			mapConfig.serviceURL = generateMapLiveServiceURL([map:map.uniqueId]);// generate the websocket url with live0?map=xxx
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[map:map.uniqueId]);// generate the geojson?map=xxx
@@ -135,7 +141,7 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net");
+		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", apiURL:generateMapAPIURL());
 			
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
@@ -223,7 +229,7 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"mClub Map");
+		MapConfig mapConfig = new MapConfig(title:"mClub Map",apiURL:generateMapAPIURL());
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id, type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id, type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
@@ -276,6 +282,7 @@ class MapConfig{
 	String title;
 	String serviceURL;
 	String dataURL;
+	String apiURL;
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
 	String copyrights;

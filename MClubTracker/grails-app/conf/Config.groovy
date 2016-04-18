@@ -117,11 +117,12 @@ log4j = {
 	debug  gpsAppender: 'gps.log',
 		   additivity:false
 
-	/*	   
+	/*
 	debug 'mclub.tracker.LivePositionWebsocketServer',
+		  'mclub.tracker.TalkBoxWebsocketServer',
 	      'mclub.tracker.protocol.Gt06TrackerServer'
 	*/
-		   
+
 	environments {
 		development {
 			debug   'grails.app'
@@ -185,7 +186,7 @@ tracker.aprs.filter = 'r/31.864128/109.930590/1600'
 tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
-tracker.map.secure = false;
+tracker.map.forceSecure = false;
 
 tracker.map.showLineDots = true;  // by default will show the line dots
 

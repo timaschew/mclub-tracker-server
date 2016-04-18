@@ -43,7 +43,7 @@
         <script language="javascript" type="text/javascript">
 			if(top.location!=self.location){
 				// PLEASE DON'T INCLUDE ME!
-				top.location="http://hamclub.net";
+				top.location="https://hamclub.net";
 			}
 		</script>
 		--%>
@@ -54,8 +54,9 @@
         </div>
         <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
         </script>
-        <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee">
+        <script type="text/javascript" src="${mapConfig.apiURL}">
         </script>
+
         <script type="text/javascript" >
             $(function() {
                 var dataURL = "<%=mapConfig.dataURL%>";
@@ -109,7 +110,7 @@
                         for (var i = 0; i < points.length; ++i) {
                             point = points[i],
                             marker = new AMap.Marker({
-                                icon: "http://webapi.amap.com/images/marker_sprite.png",
+                                icon: "https://webapi.amap.com/images/marker_sprite.png",
                                 position: new AMap.LngLat(point[0], point[1])
                             });
                             marker.setMap(map);
@@ -127,7 +128,7 @@
                         var marker = this.pointsMap[tag]
                         if (typeof marker == "undefined") {
                             marker = new AMap.Marker({
-                                icon: "http://webapi.amap.com/images/marker_sprite.png",
+                                icon: "https://webapi.amap.com/images/marker_sprite.png",
                                 topWhenClick:true,
                             });
                             marker.setPosition(point);
@@ -166,7 +167,7 @@
                             }
                             dotsData.shift();
                             var dots = new AMap.MassMarks(dotsData,{
-                                url: 'http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+                                url: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
                                 anchor: new AMap.Pixel(3, 7),
                                 size: new AMap.Size(5, 7),
                                 opacity:1.0,
