@@ -83,7 +83,7 @@ plugins {
 		compile ':asset-pipeline:2.1.5'
 
         // plugins needed at runtime but not for compilation
-		runtime ':hibernate:3.6.10.19' // ':hibernate4:4.3.8.1' for Hibernate 4
+		runtime ':hibernate:3.6.10.19' // ':hibernate4:4.3.10' for Hibernate 4
         runtime ":database-migration:1.4.0"
         runtime ":resources:1.2.14"
 		runtime ":jquery:1.11.1"
