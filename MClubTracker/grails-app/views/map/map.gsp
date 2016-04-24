@@ -249,14 +249,13 @@
                 		
                 		// Setup Info Content View
                 		// TODO - display power, gain,height
-                		// TODO - display speed and course
                         marker.on("click",function(e) {
                             infoWindow.setContent("");
                             
                             var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
                             s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
                             s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
-                            // spped and course
+                            // speed and course
                             if((typeof speed != "undefined")){
                             	s = s.concat("<div><b>",speed," km/h ");
                             	if((typeof course != "undefined")){
@@ -271,7 +270,7 @@
                             infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
                         });
                 		
-                		// Nasty code for Icons 
+                		// Nasty code for APRS Icons - Should read from aprs['symbol'] first ?
                         // var symbol = aprs['symbol'].split('_');
                 		var symbol = feature['properties']['marker-symbol'].split('_');
                 		var symbolIndex = parseInt(symbol[2]);

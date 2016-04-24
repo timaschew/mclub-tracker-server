@@ -87,15 +87,27 @@ class TrackerDataService {
 	 */
 	private TrackerDevice loadDeviceForAprsPosition(PositionData positionData){
 		TrackerDevice device = TrackerDevice.findByUdid(positionData.udid);
+		String aprsSymbol = positionData.extendedInfo['aprs']?.symbol;
 		if(!device){
 			device = new TrackerDevice(udid:positionData.udid, username:positionData.username, status:TrackerDevice.DEVICE_TYPE_APRS);
 			// load device icon from APRS symbol field
-			device.icon = positionData.extendedInfo['aprs']?.symbol; // see AprsData::symbol
+			device.icon = aprsSymbol; // see AprsData::symbol
 			if(!device.save(flush:true)){
 				log.warn("Error register APRS device ${positionData.udid}, ${device.errors}");
 				return null;
 			}else{
 				log.info("Registered new APRS device ${positionData.udid}");
+			}
+		}else{
+			// devices may change the symbol later, so check and update if necessary
+			// note - that means no customized symbol supported yet for aprs devices.
+			if(aprsSymbol && !(aprsSymbol.equals(device.icon))){
+				device.icon = aprsSymbol;
+				if(!device.save(flush:true)){
+					log.warn("Error update APRS device ${positionData.udid} icon ${aprsSymbol}, ${device.errors}");
+				}else{
+					log.info("Updated APRS device ${positionData.udid} icon ${aprsSymbol}");
+				}
 			}
 		}
 		return device;
