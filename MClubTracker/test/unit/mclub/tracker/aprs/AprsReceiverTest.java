@@ -222,5 +222,44 @@ public class AprsReceiverTest {
 		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
 		System.out.println(aprsData.getComment());
 	}
-	
+
+
+	@Test
+	public void testParseSomeInvalidPacket(){
+		String s = "BG5EOG-10>APVRT7,TCPIP*,qAC,T2XWT:!2930.50N/11954.56ErPHG1010144.3900MHz By AVRT7";
+		PositionData pd = new AprsDecoder(null,null,null).decodeAPRS(s);
+		assertNotNull(pd);
+		AprsData aprsData = (AprsData)pd.getExtendedInfo().get("aprs");
+		System.out.println(aprsData.getComment());
+	}
+
+	@Test
+	public void testParseBlacklist(){
+		assertTrue(deviceIsBlackListed("BG5123"));
+		assertTrue(deviceIsBlackListed("BG6123"));
+		assertFalse(deviceIsBlackListed("BG7123"));
+	}
+
+	private boolean deviceIsBlackListed(String udid){
+		if(udid == null) {
+			return false;
+		}
+		String[] bl = "BG5123,BG6*".trim().split(",");
+		if(bl == null) {
+			return false;
+		}
+		for(String b : bl){
+			b = b.trim().toUpperCase();
+			udid = udid.toUpperCase();
+			if(b.endsWith("*")){
+				b = b.substring(0,b.length()-1);
+				if(udid.startsWith(b)){
+					return true;
+				}
+			}else if(b.equals(udid)){
+				return true;
+			}
+		}
+		return false;
+	}
 }

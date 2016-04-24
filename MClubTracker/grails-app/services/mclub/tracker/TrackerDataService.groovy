@@ -112,7 +112,30 @@ class TrackerDataService {
 		}
 		return device;
 	}
-	
+
+	private boolean deviceIsBlackListed(String udid){
+		if(udid == null) {
+            return false;
+        }
+        String[] bl = configService.getConfigString('tracker.aprs.blacklist')?.trim().split(',');
+        if(bl == null) {
+            return false;
+        }
+        for(String b : bl){
+            b = b.trim().toUpperCase();
+            udid = udid.toUpperCase();
+            if(b.endsWith('*')){
+                b = b.substring(0,b.length()-1);
+                if(udid.startsWith(b)){
+                    return true;
+                }
+            }else if(b.equals(udid)){
+                return true;
+            }
+        }
+		return false;
+	}
+
 	/**
 	 * Update tracker position according to the received data object.
 	 * @param udid
@@ -124,6 +147,11 @@ class TrackerDataService {
 		TrackerDevice device = null;
 		String udid = positionData.udid;
 		if(positionData.isAprs()){
+			// for aprs devices, we have a black list
+			if(deviceIsBlackListed(positionData.udid)) {
+				log.info("Device ${positionData.udid} is blacklisted, position update will be ignored")
+				return;
+			}
 			device = loadDeviceForAprsPosition(positionData);
 		}else{
 			device = TrackerDevice.findByUdid(udid);
