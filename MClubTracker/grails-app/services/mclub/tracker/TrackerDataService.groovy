@@ -117,7 +117,7 @@ class TrackerDataService {
 		if(udid == null) {
             return false;
         }
-        String[] bl = configService.getConfigString('tracker.aprs.blacklist')?.trim().split(',');
+        String[] bl = configService.getConfigString('tracker.aprs.blacklist')?.trim()?.split(',');
         if(bl == null) {
             return false;
         }
