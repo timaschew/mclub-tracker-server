@@ -11,6 +11,7 @@ class MapController {
 	
 	private static final String KEY_APRS_MAP_MIRROR = "aprs.map.mirror";
 	private static final String KEY_SITE_LICENSE = "site.license";
+	private static final String KEY_SITE_LICENSE_LINK = "site.license.link";
 	
 	// Inject link generator
 	LinkGenerator grailsLinkGenerator
@@ -126,6 +127,7 @@ class MapController {
 			}
 			mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 			mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
+			mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 			render view:"map", model:[mapConfig:mapConfig];
 			//render (text:'Not implemented yet', status:501);
 			
@@ -184,6 +186,7 @@ class MapController {
 		}
 		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
+		mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	
@@ -290,5 +293,6 @@ class MapConfig{
 	int mapZoomLevel = 8
 	String copyrights;
 	String siteLicense;
+	String siteLicenseLink;
 	Boolean showLineDots = true; // by default will show line dots
 }

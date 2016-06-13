@@ -449,7 +449,7 @@
         <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
         <%}%>
         <%if(mapConfig.siteLicense){%>
-            <div class="hamclub-site-license">${mapConfig.siteLicense}</div>
+            <div class="hamclub-site-license"><a href="${mapConfig.siteLicenseLink}">${mapConfig.siteLicense}</a></div>
         <%}%>
     </body>
 </html>
