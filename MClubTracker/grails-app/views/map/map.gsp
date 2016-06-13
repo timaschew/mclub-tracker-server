@@ -38,6 +38,9 @@
 			    font-family: Arial,sans-serif;
 			    z-index: 160;    
             }
+            .hamclub-site-license{
+
+            }
         </style>
         <%--
         <script language="javascript" type="text/javascript">
@@ -444,6 +447,9 @@
         </script>
         <%if(mapConfig.copyrights){%>
         <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
+        <%}%>
+        <%if(mapConfig.siteLicense){%>
+            <div class="hamclub-site-license">${mapConfig.siteLicense}</div>
         <%}%>
     </body>
 </html>

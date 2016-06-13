@@ -9,7 +9,8 @@ import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 
 class MapController {
 	
-	private static String KEY_APRS_MAP_MIRROR = "aprs.map.mirror";
+	private static final String KEY_APRS_MAP_MIRROR = "aprs.map.mirror";
+	private static final String KEY_SITE_LICENSE = "site.license";
 	
 	// Inject link generator
 	LinkGenerator grailsLinkGenerator
@@ -124,6 +125,7 @@ class MapController {
 				detectRemoteClientLocation();
 			}
 			mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
+			mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
 			render view:"map", model:[mapConfig:mapConfig];
 			//render (text:'Not implemented yet', status:501);
 			
@@ -181,6 +183,7 @@ class MapController {
 			detectRemoteClientLocation();
 		}
 		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
+		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	
@@ -286,5 +289,6 @@ class MapConfig{
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
 	String copyrights;
+	String siteLicense;
 	Boolean showLineDots = true; // by default will show line dots
 }
