@@ -453,7 +453,10 @@ class TrackerAPIController {
 		}
 		
 		// create user but disabled by default.
-		User u = new User(name:username, displayName:display_name, phone:phone, type:User.USER_TYPE_DISABLED, creationDate:new java.util.Date(),avatar:'',settings:'');
+		Integer regUserType = configService.getConfigInt("user.register.default.type");
+		if(regUserType == null)regUserType = User.USER_TYPE_DISABLED;
+
+		User u = new User(name:username, displayName:display_name, phone:phone, type:regUserType, creationDate:new java.util.Date(),avatar:'',settings:'');
 		if(!userService.createUserAccount(u, password)){
 			log.warn("Error creating user account" + u.errors);
 			result = APIResponse.ERROR("Error creating user account");
@@ -550,6 +553,7 @@ class TrackerAPIController {
 			result['username'] = uSession.username;
 			log.info("User ${username}/${uSession.username} login ok");
 		}else{
+			if(!authErrMsg) authErrMsg = "user not found";
 			result = APIResponse.ERROR(APIResponse.AUTH_DENIED_ERROR,"Login failed, ${authErrMsg}");
 		}
 		render result as JSON;
