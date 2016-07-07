@@ -93,6 +93,10 @@ log4j = {
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
 					file: '/tmp/mtracker_gps.log'
 
+        rollingFile name: 'talkboxAppender',
+                maxFileSize: 10240000,
+                layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
+                file: '/var/log/talkbox.log'
 	}
 	
 
@@ -117,6 +121,8 @@ log4j = {
 	debug  gpsAppender: 'gps.log',
 		   additivity:false
 
+    info   talkboxAppender: 'talkbox.log',
+           additivity:false
 	/*
 	debug 'mclub.tracker.LivePositionWebsocketServer',
 		  'mclub.tracker.TalkBoxWebsocketServer',
@@ -175,6 +181,9 @@ tracker.aprs.call = 'foo'
 tracker.aprs.pass = 'bar'
 //small china filter
 tracker.aprs.filter = 'r/31.864128/109.930590/1600'
+
+//tracker.aprs.blacklist = 'a,b,c,d,e'
+
 //huge china filter
 //tracker.aprs.filter = 'r/36.045101/103.836093/2500'
 //tracker.aprs.filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
@@ -193,7 +202,20 @@ tracker.map.showLineDots = true;  // by default will show the line dots
 // Enable/disable the social feature
 social.weibo.enabled = false
 
-sys.ipdb.filepath = "~/mclub-tracker/17monipdb.dat"
+// Display site license if exists
+// site.license = ""
+
+//==========================================================
+// The home directory setup
+def homeDir = System.properties.getProperty('mclub.home');
+if(homeDir){
+    // Using external configurations if home dir specified
+    grails.config.locations = ["file:${homeDir}/database.properties"]
+    sys.ipdb.filepath = "${homeDir}/data/17monipdb.dat"
+}else{
+    System.out.println("CONFIG: \"mclub.home\" is not found in system properties, default values applied");
+    sys.ipdb.filepath = "~/mclub-tracker/17monipdb.dat"
+}
 
 // Uncomment and edit the following lines to start using Grails encoding & escaping improvements
 // See https://github.com/grails/grails-core/wiki/Default-Codecs for more details

@@ -20,10 +20,17 @@ public class ConfigService {
 	private long configLastModifiedTime;
 	private File configFile;
 	private Properties config;
-	private static final String DEFAULT_CONF_FILE = "/etc/mclub_tracker_server.conf";
+	private static final String DEFAULT_CONF_FILE = "/etc/mclub_server.conf";
+	private static final int SECONDS = 1000
 	@PostConstruct
 	public void start(){
-		configFile = new File(DEFAULT_CONF_FILE);
+		String homeDir = System.properties.getProperty('mclub.home');
+		if(homeDir != null){
+			configFile = new File(homeDir,"mclub_server.conf");
+		}else{
+			configFile = new File(DEFAULT_CONF_FILE);
+		}
+
 		config = new Properties();
 		
 		// check every 30s
@@ -31,7 +38,7 @@ public class ConfigService {
 			public void run(){
 				ConfigService.this.loadConfig();
 			}
-		}, 30 * 1000);
+		}, 30 * SECONDS);
 	}
 	
 	private void loadConfig(){
