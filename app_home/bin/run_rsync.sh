@@ -8,7 +8,7 @@ TS=`date`
 DATE=`date +"%Y-%m"`
 SRC=$1
 DST_HOST="the_dest_server"
-DST_DIR="/some_where/backup/data"
+DST_DIR="/some_where/backup"
 echo $TS>${SRC}/LAST_UPDATE
 rsync -avz -e ssh $SRC $DST_HOST:$DST_DIR/$DATE
 
