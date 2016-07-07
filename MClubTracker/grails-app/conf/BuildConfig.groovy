@@ -55,7 +55,7 @@ grails.project.dependency.resolution = {
 		// runtime 'org.xerial:sqlite-jdbc:3.7.2'
 		
 		// Enable if use MySQL 
-		//runtime 'mysql:mysql-connector-java:5.1.36'
+		runtime 'mysql:mysql-connector-java:5.1.39'
 		
 		compile 'io.netty:netty:3.6.3.Final'
 		

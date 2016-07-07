@@ -42,7 +42,7 @@ class UserController {
         respond user;
     }
 
-    @Transactional
+    @Transactional(readOnly = false)
     def save(User userInstance) {
         if (userInstance == null) {
             notFound()
@@ -80,6 +80,7 @@ class UserController {
 	 * @param newPassword2
 	 * @return
 	 */
+    @Transactional(readOnly = false)
 	def password(PasswordChangeCommand passwordChangeCommand){
 		User user = session['user'];
 		if(!user){
