@@ -140,13 +140,18 @@ class MapController {
 	/*
 	 * The APRS Map
 	 */
-	def aprs(String id /*device id*/, String lat, String lon){
+	def aprs(String id /*device id*/, String q, String lat, String lon){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
 		
 		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", apiURL:generateMapAPIURL());
-			
+
+		if(!id && q){
+			// map/aprs?q=bg5
+			id = q;
+		}
+
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
@@ -159,7 +164,7 @@ class MapController {
 					TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
 					if(pos){
 						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
-						mapConfig.mapZoomLevel = 10;
+						mapConfig.mapZoomLevel = 9;
 					}
 				}
 			}
@@ -220,7 +225,7 @@ class MapController {
 	}
 
 	/*
-	 * DEBUG MAP	
+	 * Display ALL non-APRS MAP
 	 */
 	def all(String id){
 		// Need user login
@@ -264,7 +269,7 @@ class MapController {
 		}
 		TrackerMap map = TrackerMap.findByUniqueId('foobar');
 		if(!map){
-			map = new TrackerMap(uniqueId:'foobar', name:'Test Map', filterJSON:'[BH4,BG5]', type:0);
+			map = new TrackerMap(uniqueId:'Zone5Ham', name:'Test Map', filterJSON:'[BG5]', type:0);
 			map.save(flush:true);
 			if(map.errors){
 				render text:map.errors.toString();
