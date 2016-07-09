@@ -60,17 +60,21 @@ class TrackerDataService {
 	 */
 	@Transactional
 	public Long addPosition(TrackerPosition position) throws Exception{
-		// save position
-		if(!position.save(flush:true)){
-			if(log.isWarnEnabled()){
-				log.warn("Erro save position: ${position.errors}" );
-			}
-			return null;
-		}
-		
-		return position.id;
+        return saveOrUpdatePosition(position);
 	}
-	
+
+    private Long saveOrUpdatePosition(TrackerPosition position) throws Exception{
+        // save position
+        if(!position.save(flush:true)){
+            if(log.isWarnEnabled()){
+                log.warn("Erro save position: ${position.errors}" );
+            }
+            return null;
+        }
+
+        return position.id;
+    }
+
 	/**
 	 * 
 	 * @param deviceId
@@ -136,6 +140,60 @@ class TrackerDataService {
 		return false;
 	}
 
+    /**
+     * Most of the fixed-station message is same
+     *
+     * this should be optimized in the APRS parser by caching the last received message and compare while receiving and
+     * pass with a 'changed' field in the message
+     *
+     * @param position
+     * @param lastPosition
+     * @return
+     */
+	private boolean isAprsDevicePositionChanged(TrackerPosition position, TrackerPosition lastPosition){
+		boolean notChanged = false;
+		boolean changed = true;
+        if(lastPosition == null){
+            return changed;
+        }
+
+        // quick and dirty check logic
+        // mostly position W/O speed is a fixed station broadcast message, so...
+        //if(position.speed != null && !position.speed.equals(lastPosition.speed) ){
+        if(position.speed != null){
+            return changed;
+        }
+
+		if(position.latitude != null && !position.latitude.equals(lastPosition.latitude) ){
+            return changed;
+        }
+        if(position.longitude != null && !position.longitude.equals(lastPosition.longitude) ){
+            return changed;
+        }
+        if(position.course != null && !position.course.equals(lastPosition.course) ){
+            return changed;
+        }
+        if(position.altitude != null && !position.altitude.equals(lastPosition.altitude) ){
+            return changed;
+        }
+        if(position.extendedInfo != null && !position.extendedInfo.equals(lastPosition.extendedInfo) ){
+            return changed;
+        }
+
+        /*
+        if(position.power != null && !position.power.equals(lastPosition.power) ){
+            return changed;
+        }
+        if(position.address != null && !position.address.equals(lastPosition.address) ){
+            return changed;
+        }
+        if(position.message != null && !position.message.equals(lastPosition.message) ){
+            return changed;
+        }
+        */
+        return notChanged;
+	}
+
 	/**
 	 * Update tracker position according to the received data object.
 	 * @param udid
@@ -196,34 +254,56 @@ class TrackerDataService {
 		}
 		
 		// Convert value object to position entity
-		TrackerPosition position = new TrackerPosition();
-		position.properties = positionData;
-		position.message = positionData.message;
-		position.messageType = positionData.messageType;
-		position.device = device;
+		TrackerPosition newPos = new TrackerPosition();
+        newPos.properties = positionData; // bulk assign
+        newPos.message = positionData.message;
+        newPos.messageType = positionData.messageType;
+        newPos.device = device;
 		if(!positionData.extendedInfo.isEmpty()){
 			def extJson = positionData.extendedInfo as JSON // store extended info in JSON format.
-			position.extendedInfo = extJson;
+            newPos.extendedInfo = extJson;
 		}
-		
+
+		// For APRS station positions without SPEED, will check and update the previous record instead of insert a new one.
+        boolean positionChanged = true;
+		if(positionData.isAprs()){
+			// check the previous position
+            try{
+                TrackerPosition lastPos = TrackerPosition.load(device.latestPositionId);
+                if(!isAprsDevicePositionChanged(newPos,lastPos)){
+                    // position is NOT CHANGED, just update the timestamp...
+                    lastPos.time = positionData.time;
+                    newPos = lastPos; // replace for later update/save
+                    positionChanged = false;
+                    log.info("Device ${device.udid} pos is not changed,  ${newPos.latitude}/${newPos.longitude}/${newPos.extendedInfo}");
+                }
+            }catch(Exception e ){
+                log.warn("check position change error, " + e.getMessage());
+            }
+		}
+
 		// Save the position data
 		try {
-			Long id = addPosition(position);
+			Long id = saveOrUpdatePosition(newPos);
 			if (id != null) {
-				updateLatestPosition(device.id, id,position.time);
-				// clear the position cache
-				trackerCacheService.removeDeviceFeature(device.udid);
-				
-				if(log.isDebugEnabled()){
-					log.debug("Device ${device.udid} position updated to [${position.latitude},${position.longitude}], message:${position.message}");
-				}
-				// broadcast the position data change
-				// HACK - we should set the device type currently for websocket filtering work.
-				positionData.deviceType = device.status;
-				notifyPositionChanges(positionData);
+				updateLatestPosition(device.id, id,newPos.time);
+
+                // if position changed, also need to invalidate the cache and broadcast the changes
+                if(true/*positionChanged*/){
+                    // clear the position cache
+                    trackerCacheService.removeDeviceFeature(device.udid);
+
+                    if(log.isDebugEnabled()){
+                        log.debug("Device ${device.udid} position updated to [${newPos.latitude},${newPos.longitude}], message:${newPos.message}");
+                    }
+                    // broadcast the position data change
+                    // HACK - we should set the device type currently for websocket filtering work.
+                    positionData.deviceType = device.status;
+                    notifyPositionChanges(positionData);
+                }
 			}
 		} catch (Exception error) {
-			log.warn("update postion error, " + error.getMessage());
+			log.warn("update position error, " + error.getMessage());
 		}
 	}
 	
