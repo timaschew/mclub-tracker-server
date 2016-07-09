@@ -159,8 +159,7 @@ class TrackerDataService {
 
         // quick and dirty check logic
         // mostly position W/O speed is a fixed station broadcast message, so...
-        //if(position.speed != null && !position.speed.equals(lastPosition.speed) ){
-        if(position.speed != null){
+        if(position.speed != null && !position.speed.equals(lastPosition.speed) ){
             return changed;
         }
 
