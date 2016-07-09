@@ -87,16 +87,6 @@
 				</li>
 				</g:if>
 
-				<g:if test="${trackerPositionInstance?.extendedInfo}">
-				<li class="fieldcontain">
-					<span id="extendedInfo-label" class="property-label"><g:message code="trackerPosition.extendedInfo.label" default="Extended Info" /></span>
-					
-						<span class="property-value" aria-labelledby="extendedInfo-label"><g:fieldValue bean="${trackerPositionInstance}" field="extendedInfo"/></span>
-					
-				</li>
-				</g:if>
-			
-			
 				<g:if test="${trackerPositionInstance?.time}">
 				<li class="fieldcontain">
 					<span id="time-label" class="property-label"><g:message code="trackerPosition.time.label" default="Time" /></span>
@@ -114,7 +104,15 @@
 					
 				</li>
 				</g:if>
-			
+
+				<g:if test="${trackerPositionInstance?.extendedInfo}">
+					<li class="fieldcontain">
+						<span id="extendedInfo-label" class="property-label"><g:message code="trackerPosition.extendedInfo.label" default="Extended Info" /></span>
+						<span class="property-value" aria-labelledby="extendedInfo-label"><g:fieldValue bean="${trackerPositionInstance}" field="extendedInfo"/></span>
+
+					</li>
+				</g:if>
+
 			</ol>
 			<g:form>
 				<fieldset class="buttons">
