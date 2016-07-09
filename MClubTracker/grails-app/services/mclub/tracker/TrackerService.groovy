@@ -165,7 +165,8 @@ class TrackerService {
 			gt('latestPositionTime',cmd.activeTime)
 			and{
 				if(cmd.udid){
-					ilike('udid',"${cmd.udid}%")
+					//ilike('udid',"${cmd.udid}%")
+					like('udid',"${cmd.udid}%")
 				}
 				if(cmd.type != null){
 					eq('status', cmd.type)
