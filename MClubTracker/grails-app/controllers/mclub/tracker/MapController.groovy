@@ -153,7 +153,7 @@ class MapController {
 
 		if(!id && q){
 			// map/aprs?q=bg5
-			id = q;
+			id = q.toUpperCase();
 		}
 
 		if(id){

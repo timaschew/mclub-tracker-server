@@ -27,6 +27,18 @@
 				padding:0px 0px 0px 0px;
 				font: 10px arial,sans-serif;      
             }
+            .hamclub-toolbar{
+                width: 50%;
+                display: table;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top:10px;
+                font-size: 11px;
+                line-height: 16px;
+                font-family: Arial,sans-serif;
+                z-index: 160;
+                opacity:0.9;
+            }
             .hamclub-copyrights{
             	margin-left:50%;
             	position: absolute;
@@ -50,13 +62,22 @@
 			}
 		</script>
 		--%>
+
+        <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
+        </script>
+
+        <%-- The Bootstrap Libs --%>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     </head>
     
     <body>
         <div id="mapContainer">
         </div>
-        <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
-        </script>
         <script type="text/javascript" src="${mapConfig.apiURL}">
         </script>
 
@@ -445,7 +466,29 @@
             });
 
         </script>
-        <%if(mapConfig.copyrights){%>
+
+        <!-- Search Form -->
+        <div class="col-lg-6, hamclub-toolbar">
+            <form name="query_form" id="query_form">
+                <div class="input-group">
+                    <input name="q" id="query_text" type="text" class="form-control" placeholder="搜索..." />
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="search_button">Go!</button>
+                    </span>
+                </div><!-- /input-group -->
+            </form>
+        </div><!-- /.col-lg-6 -->
+    <%--
+        <script>
+            $('#search_button').click(function() {
+                var q = $("#query_text").val();
+                if(q.length > 0){
+                    $("#query_form").submit();
+                }
+            });
+        </script>
+    --%>
+    <%if(mapConfig.copyrights){%>
         <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
         <%}%>
         <%if(mapConfig.siteLicense){%>
