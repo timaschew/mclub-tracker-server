@@ -478,16 +478,15 @@
                 </div><!-- /input-group -->
             </form>
         </div><!-- /.col-lg-6 -->
-    <%--
         <script>
             $('#search_button').click(function() {
-                var q = $("#query_text").val();
-                if(q.length > 0){
+                //var q = $("#query_text").val();
+                //if(q.length > 0){
                     $("#query_form").submit();
-                }
+                //}
             });
         </script>
-    --%>
+
     <%if(mapConfig.copyrights){%>
         <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
         <%}%>
