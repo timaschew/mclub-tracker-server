@@ -30,12 +30,16 @@ class MapController {
 		return false;
 	}
 
+	// Read from tracker.map.amap_api_url
 	private String generateMapAPIURL(){
-		if(isSecureHttpEnabled()){
-			return "https://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee";
-		}else{
-			return "http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee";
+		String amapApiUrl = configService.getConfigString("tracker.map.amap_api_url");
+		if(amapApiUrl == null){
+			throw new RuntimeException("AMap API URL is NOT set!");
 		}
+		if(isSecureHttpEnabled()){
+			amapApiUrl = amapApiUrl.replace("http://","https://");
+		}
+		return amapApiUrl;
 	}
 
 	private String generateMapLiveServiceURL(Map<String,Object> params){

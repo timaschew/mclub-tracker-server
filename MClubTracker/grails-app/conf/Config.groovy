@@ -196,8 +196,8 @@ tracker.minimalPositionUpdateInterval = 5000 // in milliseconds
 tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 tracker.map.forceSecure = false;
-
 tracker.map.showLineDots = true;  // by default will show the line dots
+tracker.map.amap_api_url = 'http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee'; // change me!
 
 // Enable/disable the social feature
 social.weibo.enabled = false
