@@ -23,12 +23,12 @@ environments {
 //			pooled = false
 			logSql = false
         }
-		dataSource_traccar {
-			dbCreate = ""
-			url = "jdbc:h2:/Users/shawn/Desktop/traccar_db/database;MVCC=TRUE;LOCK_TIMEOUT=10000"
-			pooled = false
-			readonly = true
-		}
+//		dataSource_traccar {
+//			dbCreate = ""
+//			url = "jdbc:h2:/Users/shawn/Desktop/traccar_db/database;MVCC=TRUE;LOCK_TIMEOUT=10000"
+//			pooled = false
+//			readonly = true
+//		}
     }
     test {
         dataSource {
@@ -53,11 +53,5 @@ environments {
                validationQuery="SELECT 1"
             }
         }
-		dataSource_traccar {
-			dbCreate = ""
-			url = "jdbc:h2:~/mclub-tracker/trac_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
-			pooled = false
-			readonly = true
-		}
     }
 }

@@ -10,6 +10,11 @@ eventWebXmlEnd = {String tmpfile ->
 			   'mclub.tracker.LivePositionWebsocketServer'
 		   )
         }
+	   'listener' {
+		   'listener-class' (
+			   'mclub.tracker.TalkBoxWebsocketServer'
+		   )
+		}
     }
     webXmlFile.text = new StreamingMarkupBuilder().bind {
         mkp.declareNamespace(

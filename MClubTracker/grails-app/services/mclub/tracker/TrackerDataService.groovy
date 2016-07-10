@@ -232,7 +232,7 @@ class TrackerDataService {
 		
 		if(device.latestPositionTime && (System.currentTimeMillis() - device.latestPositionTime.time < timeInterval)){
 			// update too frequently.
-			log.warn("Device ${device.udid} update location too frequently, last update time: ${device.latestPositionTime}, ignored");
+			log.info("Device ${device.udid} update location too frequently, last update time: ${device.latestPositionTime}, ignored");
 			return;
 		}
 
@@ -274,7 +274,7 @@ class TrackerDataService {
                     lastPos.time = positionData.time;
                     newPos = lastPos; // replace for later update/save
                     positionChanged = false;
-                    log.info("Device ${device.udid} pos is not changed,  ${newPos.latitude}/${newPos.longitude}/${newPos.extendedInfo}");
+                    log.debug("Device ${device.udid} pos is not changed,  ${newPos.latitude}/${newPos.longitude}/${newPos.extendedInfo}");
                 }
             }catch(Exception e ){
                 log.warn("check position change error, " + e.getMessage());
@@ -315,12 +315,13 @@ class TrackerDataService {
 		def aprsDevices = TrackerDevice.findAllByStatus(TrackerDevice.DEVICE_TYPE_APRS);
 		log.info("Total ${aprsDevices.size()} APRS devices");
 		Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000));
+		log.info("Will delete historical position data before ${timeToDelete}");
 		for(TrackerDevice dev in aprsDevices){
 			int c = TrackerPosition.executeUpdate('DELETE FROM TrackerPosition tp WHERE tp.device=:device AND tp.time < :time',[device:dev,time:timeToDelete]);
 			if(c > 0){
 				count +=c;
 				if(count > 0 && count % 100 == 0){
-					log.info("  ${count} positions deleted.");
+					log.info("  ${dev.udid}: ${count} positions deleted.");
 				}
 			}
 		}
