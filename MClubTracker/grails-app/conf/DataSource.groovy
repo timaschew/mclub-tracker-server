@@ -18,17 +18,21 @@ environments {
 			//url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
 
 			dbCreate = "update"
-			url = "jdbc:h2:/Users/shawn/works/mClub/mclub-tracker-server.git/data/main_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
 
-//			pooled = false
-			logSql = false
+			url = "jdbc:h2:/Users/shawn/works/mClub/mclub-tracker-server.git/data/main_data;MVCC=TRUE;LOCK_TIMEOUT=10000"
+            pooled=false
+
+            /*
+            // for mysql
+            pooled=true
+            driverClassName="com.mysql.jdbc.Driver"
+            dialect="org.hibernate.dialect.MySQL5InnoDBDialect"
+            url="jdbc:mysql://localhost:3306/mclub?useUnicode=yes&characterEncoding=UTF-8"
+            username="mclub"
+            password="secret"
+			logSql = true
+			*/
         }
-//		dataSource_traccar {
-//			dbCreate = ""
-//			url = "jdbc:h2:/Users/shawn/Desktop/traccar_db/database;MVCC=TRUE;LOCK_TIMEOUT=10000"
-//			pooled = false
-//			readonly = true
-//		}
     }
     test {
         dataSource {
