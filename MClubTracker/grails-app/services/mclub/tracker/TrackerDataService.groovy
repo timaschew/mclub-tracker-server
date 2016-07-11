@@ -314,7 +314,11 @@ class TrackerDataService {
 		int count = 0;
 		def aprsDevices = TrackerDevice.findAllByStatus(TrackerDevice.DEVICE_TYPE_APRS);
 		log.info("Total ${aprsDevices.size()} APRS devices");
-		Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000));
+
+		java.util.Calendar cal = java.util.Calendar.getInstance();
+		cal.add(Calendar.DATE, 0-daysOfDataToSave);
+		//Date timeToDelete = new java.util.Date(System.currentTimeMillis() - (daysOfDataToSave * 24 * 3600 * 1000));
+		Date timeToDelete = cal.getTime();
 		log.info("Will delete historical position data before ${timeToDelete}");
 		for(TrackerDevice dev in aprsDevices){
 			int c = TrackerPosition.executeUpdate('DELETE FROM TrackerPosition tp WHERE tp.device=:device AND tp.time < :time',[device:dev,time:timeToDelete]);

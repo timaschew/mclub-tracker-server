@@ -20,6 +20,9 @@ class CleanAprsDataJob {
 		Integer daysToPreserve = configService.getConfigInt("tracker.aprs.data.daysToPreserve");
 		if(!daysToPreserve){
 			daysToPreserve = 3; // by default will keep 7 days data
+		}else if(daysToPreserve == -1){
+			// disabled, do nothing
+			return;
 		}
 		trackerDataService.deleteAprsPosition(daysToPreserve);
 	}
