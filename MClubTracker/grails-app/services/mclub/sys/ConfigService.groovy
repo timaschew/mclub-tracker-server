@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy
 
-import org.codehaus.groovy.grails.commons.GrailsApplication;
+import grails.core.GrailsApplication;
 
 /**
  * The system configuration service

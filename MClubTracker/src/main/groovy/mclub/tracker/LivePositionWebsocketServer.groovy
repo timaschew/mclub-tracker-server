@@ -24,8 +24,8 @@ import javax.websocket.server.ServerEndpoint
 import mclub.sys.MessageListener
 import mclub.sys.MessageService
 
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes as GA
+import grails.core.GrailsApplication;
+import org.grails.web.util.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -46,9 +46,9 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		return grailsApplication?.getMainContext().getBean(TrackerDataService.class);
 	}
 	
-	private PubSubService getPubSubService(){
-		return grailsApplication?.getMainContext().getBean(PubSubService.class);
-	}
+//	private PubSubService getPubSubService(){
+//		return grailsApplication?.getMainContext().getBean(PubSubService.class);
+//	}
 	
 	private MessageService getMessageService(){
 		return grailsApplication?.getMainContext().getBean(MessageService.class);

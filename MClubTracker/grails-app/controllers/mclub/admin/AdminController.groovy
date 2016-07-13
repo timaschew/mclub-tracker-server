@@ -1,6 +1,5 @@
 package mclub.admin
 
-import grails.validation.Validateable
 import mclub.user.AuthUtils;
 import mclub.user.User
 import mclub.user.UserService;
@@ -80,7 +79,6 @@ class AdminController {
 	}
 }
 
-@Validateable
 class LoginCommand{
 	String username;
 	String password;

@@ -4,7 +4,6 @@ package mclub.user
 
 import static org.springframework.http.HttpStatus.*
 import grails.transaction.Transactional
-import grails.validation.Validateable
 
 @Transactional(readOnly = true)
 class UserController {
@@ -170,8 +169,6 @@ class UserController {
 	
 }
 
-
-@Validateable
 class PasswordChangeCommand{
 	String oldPassword;
 	String newPassword1;

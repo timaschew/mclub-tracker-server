@@ -2,11 +2,14 @@ package mclub.tracker
 
 import grails.validation.Validateable
 
-
-@Validateable(nullable=true)
-public class TrackerDeviceFilter{
+/**
+ * A filter that enables validateable traits
+ */
+public class TrackerDeviceFilter implements grails.validation.Validateable{
 	static constraints = {
+		'*' nullable: true
 		udid blank:false, nullable:false
+
 	}
 	
 	String udid;

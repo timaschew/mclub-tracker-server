@@ -1,5 +1,7 @@
 package mclub.tracker
 
+import grails.transaction.Transactional
+
 import java.text.SimpleDateFormat
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import mclub.util.MapShiftUtils;
  * @author shawn
  *
  */
+@Transactional
 class TrackerService {
 	ConfigService configService;
 	def trackerDataService;
@@ -34,14 +37,24 @@ class TrackerService {
 //				TrackerPosition.deleteAll();
 //			}
 //		}
+        //FIXME - ugly workaround, use Event instead
+		new Thread(new Runnable(){
+            @Override
+            void run() {
+                Thread.sleep(3000);
+                TrackerService.this.initData();
+            }
+        }).start();
+	}
 
+	void initData(){
 		if(TrackerDevice.count() == 0){
 			def device;
 			TrackerDevice.withTransaction{
 				device = new TrackerDevice(udid:'353451048729261',status:1,username:'test');
 				device.save(flush:true);
 			}
-			
+
 			//30.28022, 120.11774
 			// mock device position
 			trackerDataService.addPosition(new TrackerPosition(
@@ -54,7 +67,7 @@ class TrackerService {
 					altitude:0,
 					speed:28,
 					course:180,
-					));
+			));
 
 			trackerDataService.addPosition(new TrackerPosition(
 					//deviceId:1,
@@ -66,7 +79,7 @@ class TrackerService {
 					altitude:0,
 					speed:29,
 					course:181
-					));
+			));
 			trackerDataService.addPosition(new TrackerPosition(
 					//deviceId:1,
 					device:device,
@@ -77,7 +90,7 @@ class TrackerService {
 					altitude:0,
 					speed:30,
 					course:182
-					));
+			));
 		}
 	}
 

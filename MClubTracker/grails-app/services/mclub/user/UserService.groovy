@@ -11,6 +11,7 @@ import mclub.sys.TaskService
 import mclub.user.User
 import static mclub.user.AuthUtils.*;
 
+@Transactional
 public class UserService implements Runnable{
 	
 	ConcurrentHashMap<String,UserSession> userSessionStore = new ConcurrentHashMap<String,UserSession>();
@@ -22,15 +23,6 @@ public class UserService implements Runnable{
 	public void start(){
 		// start the session check task
 		taskService.execute(this, SESSION_CHECK_INTERVAL_MS);
-
-		// QUICK-AND-DIRTY solution: Perform a delay data initialize due to some dependency issues.
-		new Thread(new java.lang.Runnable(){
-			public void run(){
-				Thread.sleep(5000);
-				UserService.this.initUserData();
-			}
-		}).start();
-	
 		log.info("UserService initialized");
 	}
 
@@ -40,7 +32,7 @@ public class UserService implements Runnable{
 	}
 
 	/**
-	 * Called by the task service reguarlly.	
+	 * Called by the task service regularly.
 	 */
 	public void run(){
 		// check the session
@@ -62,7 +54,6 @@ public class UserService implements Runnable{
 		}
 	}
 	
-	@Transactional
 	public void initUserData(){
 		// add test user
 		/*

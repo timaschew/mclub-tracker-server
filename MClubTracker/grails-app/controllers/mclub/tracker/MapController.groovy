@@ -5,7 +5,7 @@ import mclub.sys.ConfigService;
 import mclub.user.User;
 import mclub.sys.IpService;
 
-import org.codehaus.groovy.grails.web.mapping.LinkGenerator
+import grails.web.mapping.LinkGenerator
 
 class MapController {
 	

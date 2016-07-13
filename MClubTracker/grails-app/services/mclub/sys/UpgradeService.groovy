@@ -3,6 +3,7 @@ package mclub.sys
 import grails.transaction.Transactional
 import mclub.tracker.TrackerPosition
 import org.hibernate.Query
+import org.hibernate.Session
 import org.hibernate.SessionFactory
 
 /**
@@ -17,8 +18,11 @@ class UpgradeService {
     @Transactional
     def performUpgrade() {
         def sqls = readPatchSQLFile(UPGRADE_SQL_FILE);
-
-        org.hibernate.classic.Session session = sessionFactory.currentSession;
+        if(sqls.size == 0){
+            log.info("Nothing to update");
+            return;
+        }
+        Session session = sessionFactory.currentSession;
         for(int i = 0;i < sqls.size();i++){
             String sql = sqls[i];
 
@@ -42,7 +46,7 @@ class UpgradeService {
         // rename the sql file when all task done without any error
     }
 
-    private void cleanupOrphanPositions(org.hibernate.classic.Session session){
+    private void cleanupOrphanPositions(org.hibernate.Session session){
         // first retrieve the orphan position IDs
         String sql1 = "select tp.id from TRACKER_POSITION AS tp LEFT OUTER JOIN TRACKER_DEVICE AS td ON tp.device_id = td.id WHERE td.id is null";
         Query query = session.createSQLQuery(sql1);

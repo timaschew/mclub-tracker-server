@@ -619,9 +619,12 @@ class TrackerAPIController {
 	}
 }
 
-@Validateable(nullable=true)
+/**
+ * Command object is validateable by default in a controller
+ */
 class PositionUpdateCommand{
 	static constraints = {
+		'*' nullable:true
 		udid blank:false, nullable:false
 		latitude blank:false, nullable:false
 		longitude blank:false, nullable:false

@@ -16,7 +16,7 @@ import mclub.sys.MessageListener
 import mclub.sys.MessageService
 import mclub.tracker.aprs.AprsData;
 
-import org.codehaus.groovy.grails.commons.GrailsApplication
+import grails.core.GrailsApplication;
 import org.springframework.transaction.TransactionDefinition;
 
 class TrackerDataService {

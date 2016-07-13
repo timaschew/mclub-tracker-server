@@ -14,20 +14,7 @@
 grails.project.groupId = appName // change this to alter the default package name and Maven publishing destination
 grails.mime.file.extensions = true // enables the parsing of file extensions from URLs into the request format
 grails.mime.use.accept.header = false
-grails.mime.types = [
-    all:           '*/*',
-    atom:          'application/atom+xml',
-    css:           'text/css',
-    csv:           'text/csv',
-    form:          'application/x-www-form-urlencoded',
-    html:          ['text/html','application/xhtml+xml'],
-    js:            'text/javascript',
-    json:          ['application/json', 'text/json'],
-    multipartForm: 'multipart/form-data',
-    rss:           'application/rss+xml',
-    text:          'text/plain',
-    xml:           ['text/xml', 'application/xml']
-]
+
 
 // URL Mapping Cache Max Size, defaults to 5000
 //grails.urlmapping.cache.maxsize = 1000
@@ -39,9 +26,6 @@ grails.resources.adhoc.excludes = ['**/WEB-INF/**','**/META-INF/**']
 grails.assets.minifyOptions.excludes = ["**/*.min.js"]
 
 // The default codec used to encode data with ${}
-grails.views.default.codec = "html" // none, html, base64
-grails.views.gsp.encoding = "UTF-8"
-grails.converters.encoding = "UTF-8"
 // enable Sitemesh preprocessing of GSP pages
 grails.views.gsp.sitemesh.preprocess = true
 // scaffolding templates configuration
