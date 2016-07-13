@@ -79,6 +79,10 @@ dependencies {
 
     // Local Jar
     compile name:"weibo4j-sdk"
+
+    compile "org.grails.plugins:quartz:2.0.9"
+    compile "org.grails.plugins:grails-spring-websocket:2.3.0"
+    //provided ('javax.websocket:javax.websocket-api:1.0') { export = false }
 }
 
 task wrapper(type: Wrapper) {

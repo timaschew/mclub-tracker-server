@@ -1,8 +1,13 @@
 package mclub.tracker
 
 import grails.converters.JSON
+import grails.core.support.GrailsApplicationAware
 import grails.util.Environment
+import mclub.util.GrailsApplicationHolder
+import org.springframework.boot.context.embedded.ServletContextInitializer
+import org.springframework.context.annotation.Bean
 
+import javax.servlet.ServletException
 import java.util.concurrent.ConcurrentHashMap
 
 import javax.servlet.ServletContext
@@ -31,10 +36,10 @@ import org.slf4j.LoggerFactory
 
 @WebListener
 @ServerEndpoint("/live0")
-public class LivePositionWebsocketServer implements ServletContextListener, MessageListener{
+public class LivePositionWebsocketServer implements ServletContextListener, MessageListener, GrailsApplicationAware{
 	private final Logger log = LoggerFactory.getLogger(getClass().name);
-	private static GrailsApplication grailsApplication;
-	
+	private GrailsApplication grailsApplication;
+
 	//FIXME - use session store instead of the static hash set
 	private static ConcurrentHashMap<String,SessionEntry> sessions = new ConcurrentHashMap<String,Session>();
 	
@@ -56,6 +61,8 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 	
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+        assert grailsApplication != null;
+
 		ServletContext servletContext = event.servletContext
 		final ServerContainer serverContainer = servletContext.getAttribute("javax.websocket.server.ServerContainer")
 		try {
@@ -64,8 +71,8 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 				serverContainer.addEndpoint(LivePositionWebsocketServer)
 			}
 
-			def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
-			grailsApplication = ctx.grailsApplication
+			//def ctx = servletContext.getAttribute(GA.APPLICATION_CONTEXT)
+			//grailsApplication = ctx.getGrailsApplication()
 
 			def config = grailsApplication.config
 			long sessionIdleTimeout = config.liveposition.session_idle_timeout ?: 15000 // idle timeout is 15s
@@ -254,10 +261,14 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 			ts = System.currentTimeMillis();
 		}
 	}
-	
-	public static class SessionEntry{
+
+    @Override
+    void setGrailsApplication(GrailsApplication ga) {
+        this.grailsApplication = ga;
+    }
+
+    public static class SessionEntry{
 		Session session;
 		TrackerDeviceFilter filter;
 	}
-		
 }

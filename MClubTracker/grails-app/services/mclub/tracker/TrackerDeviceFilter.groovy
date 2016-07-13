@@ -7,11 +7,13 @@ import grails.validation.Validateable
  */
 public class TrackerDeviceFilter implements grails.validation.Validateable{
 	static constraints = {
-		'*' nullable: true
-		udid blank:false, nullable:false
+		udid(blank:false, nullable:false)
 
 	}
-	
+	static boolean defaultNullable() {
+		true
+	}
+
 	String udid;
 	Integer type;
 	Double lat1,lon1,lat2,lon2;
@@ -36,6 +38,7 @@ public class TrackerDeviceFilter implements grails.validation.Validateable{
 		}
 		return false;
 	}
+
 }
 
 public class CompisiteTrackerDeviceFilter extends TrackerDeviceFilter{

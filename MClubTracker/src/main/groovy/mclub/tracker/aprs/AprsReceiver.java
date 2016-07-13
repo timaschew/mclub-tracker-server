@@ -93,6 +93,7 @@ public class AprsReceiver {
 	@PostConstruct
 	public void startup(){
 		if(!isEnabled()){
+			log.info("APRS receiver disabled.");
 			return;
 		}
 		initConnector();

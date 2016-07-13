@@ -136,3 +136,18 @@ endpoints:
 #    gps103:
 #        enabled: true
 #        port 5001
+
+
+quartz:
+    autoStartup: true
+
+environments:
+    development:
+        quartz:
+            autoStartup: true
+    test:
+        quartz:
+            autoStartup: true
+    production:
+        quartz:
+            autoStartup: true

@@ -68,3 +68,7 @@ if(homeDir){
     System.out.println("CONFIG: \"mclub.home\" is not found in system properties, default values applied");
     sys.ipdb.filepath = "~/mclub-tracker/17monipdb.dat"
 }
+
+
+org.quartz.scheduler.instanceName=RuleProcessQuartzScheduler
+org.quartz.threadPool.threadCount=1

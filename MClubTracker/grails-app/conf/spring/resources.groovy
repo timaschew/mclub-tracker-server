@@ -1,4 +1,7 @@
 // Place your Spring DSL code here
+
+
+import mclub.tracker.LivePositionWebsocketServer
 import mclub.tracker.TrackerServerManager;
 import mclub.tracker.aprs.AprsReceiver;
 
@@ -12,4 +15,6 @@ beans = {
 		trackerDataService = ref('trackerDataService')
 		configService = ref('configService')
 	}
+
+    livePositionWebsocketServer(LivePositionWebsocketServer)
 }
