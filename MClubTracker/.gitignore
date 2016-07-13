@@ -8,3 +8,6 @@
 .idea
 build
 .gradle
+.project
+.settings
+.idea
