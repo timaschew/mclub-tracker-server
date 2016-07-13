@@ -76,6 +76,8 @@ spring:
         template:
             check-template-location: false
 
+server:
+    'contextPath': '/mclub'
 ---
 grails:
     mime:
@@ -140,6 +142,9 @@ endpoints:
 
 quartz:
     autoStartup: true
+    props:
+      scheduler.instanceName: RuleProcessQuartzScheduler
+      threadPool.threadCount: 1
 
 environments:
     development:

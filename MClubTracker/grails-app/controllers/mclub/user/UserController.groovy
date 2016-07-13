@@ -18,7 +18,7 @@ class UserController {
 			// by default should sort by row id
 			params.sort = 'id';
 		}
-        respond User.list(params), model:[userInstanceCount: User.count()]
+        return [userInstanceList: User.list(params), userInstanceCount: User.count()]
     }
 
     def show(/*User userInstance*/) {
@@ -36,9 +36,9 @@ class UserController {
     }
 
     def create() {
-		User user = new User(params);
-		user.creationDate = new java.util.Date();
-        respond user;
+		User userInstance = new User(params);
+        userInstance.creationDate = new java.util.Date();
+        return [userInstance:userInstance];
     }
 
     @Transactional(readOnly = false)
@@ -48,14 +48,16 @@ class UserController {
             return
         }
 
+        if (userInstance.hasErrors()) {
+            respond userInstance.errors, view:'create'
+            return
+        }
+
 		if(!userService.createUserAccount(userInstance, 'changeme!')){
 			respond userInstance.errors, view:'create';
 			return;
 		}
-//        if (userInstance.hasErrors()) {
-//            respond userInstance.errors, view:'create'
-//            return
-//        }
+
 //
 //        userInstance.save flush:true
 

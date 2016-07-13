@@ -42,7 +42,7 @@ appender("TALKBOX", FileAppender) {
     }
 }
 
-root(ERROR, ['STDOUT'])
+root(WARN, ['STDOUT'])
 
 logger("aprs.log",TRACE,['APRS'],false)
 logger("perf.log",DEBUG,['PERF'],false)

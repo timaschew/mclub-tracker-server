@@ -24,7 +24,7 @@
 		<g:message code="user.type.label" default="Type" />
 		<span class="required-indicator">*</span>
 	</label>
-	<g:field name="type" type="number" value="${userInstance.type}" required=""/>
+	<g:field name="type" type="number" value="${userInstance?.type}" required=""/>
 
 </div>
 

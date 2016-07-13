@@ -48,7 +48,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-autoconfigure"
     compile "org.grails:grails-core"
     compile "org.springframework.boot:spring-boot-starter-actuator"
-    compile "org.springframework.boot:spring-boot-starter-tomcat"
+    provided "org.springframework.boot:spring-boot-starter-tomcat"
     compile "org.grails:grails-dependencies"
     compile "org.grails:grails-web-boot"
     compile "org.grails.plugins:cache"
@@ -81,7 +81,7 @@ dependencies {
     compile name:"weibo4j-sdk"
 
     compile "org.grails.plugins:quartz:2.0.9"
-    compile "org.grails.plugins:grails-spring-websocket:2.3.0"
+    //compile "org.grails.plugins:grails-spring-websocket:2.3.0"
     //provided ('javax.websocket:javax.websocket-api:1.0') { export = false }
 }
 
