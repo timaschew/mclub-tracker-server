@@ -184,7 +184,8 @@ public class UserService implements Runnable{
 			log.error("Error updating user password, " + user.errors)
 			return null;
 		}
-		
+
+		log.warn("User ${username} change the password");
 		return user;
 	}
 

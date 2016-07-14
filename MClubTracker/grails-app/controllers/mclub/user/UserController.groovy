@@ -112,6 +112,8 @@ class UserController {
 		}else{
 			flash['message'] = 'Update Password FAILED!';
 		}
+
+        render(view:"password");
 	}
 	
     @Transactional
