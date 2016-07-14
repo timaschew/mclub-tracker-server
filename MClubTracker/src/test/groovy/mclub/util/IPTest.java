@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class IPTest {
 		File f = new File("/tmp/ips.txt");
 		try {
             //使用readLines读取每一行，生成List
-            List<String> contents = FileUtils.readLines(f);
+            List<String> contents = FileUtils.readLines(f, Charset.forName("UTF-8"));
             //遍历输出contents
             for (String line : contents) {
             	System.out.println(Arrays.toString(IP.find(line)));

@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,7 @@ public class LocationCoderService {
 			}
 
 			if (is != null) {
-				String json = IOUtils.toString(is);
+				String json = IOUtils.toString(is, Charset.forName("UTF-8"));
 				// parse as json
 				List<LocationObject> loc = JSON.parseArray(json,
 						LocationObject.class);
@@ -106,7 +107,7 @@ public class LocationCoderService {
 			String jsonString = JSON
 					.toJSONString(addressLocationCache.values());
 			out = new FileOutputStream(localCacheFileName);
-			IOUtils.write(jsonString, out);
+			IOUtils.write(jsonString, out,Charset.forName("UTF-8"));
 			log.info("Locatio coder cache file" + localCacheFileName + " saved");
 		} catch (Exception e) {
 			log.warn("Error saving location coder cache file: "
