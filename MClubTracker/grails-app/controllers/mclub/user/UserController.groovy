@@ -32,46 +32,43 @@ class UserController {
 		}else if(params.phone){
 			u = User.findByPhoneLike("${params.phone}%");
 		}
-		return [userInstance:u];
+		respond u;
     }
 
     def create() {
-		User userInstance = new User(params);
-        userInstance.creationDate = new java.util.Date();
-        return [userInstance:userInstance];
+		User user = new User(params);
+        user.creationDate = new java.util.Date();
+        respond user;
     }
 
     @Transactional(readOnly = false)
-    def save(User userInstance) {
-        if (userInstance == null) {
+    def save(User user) {
+        if (user == null) {
             notFound()
             return
         }
 
-        if (userInstance.hasErrors()) {
-            respond userInstance.errors, view:'create'
-            return
-        }
+//        if (user.hasErrors()) {
+//            respond user.errors, view:'create'
+//            return
+//        }
 
-		if(!userService.createUserAccount(userInstance, 'changeme!')){
-			respond userInstance.errors, view:'create';
+		if(!userService.createUserAccount(user, 'changeme!')){
+			respond user.errors, view:'create';
 			return;
 		}
 
-//
-//        userInstance.save flush:true
-
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'user.label', default: 'User'), userInstance.id])
-                redirect userInstance
+                flash.message = message(code: 'default.created.message', args: [message(code: 'user.label', default: 'User'), user.id])
+                redirect user
             }
-            '*' { respond userInstance, [status: CREATED] }
+            '*' { respond user, [status: CREATED] }
         }
     }
 
-    def edit(User userInstance) {
-        respond userInstance
+    def edit(User user) {
+        respond user
     }
 
 	/**
@@ -118,25 +115,25 @@ class UserController {
 	}
 	
     @Transactional
-    def update(User userInstance) {
-        if (userInstance == null) {
+    def update(User user) {
+        if (user == null) {
             notFound()
             return
         }
 
-        if (userInstance.hasErrors()) {
-            respond userInstance.errors, view:'edit'
+        if (user.hasErrors()) {
+            respond user.errors, view:'edit'
             return
         }
 
-        userInstance.save flush:true
+        user.save flush:true
 
         request.withFormat {
             form multipartForm {
-                flash.message = message(code: 'default.updated.message', args: [message(code: 'User.label', default: 'User'), userInstance.id])
-                redirect userInstance
+                flash.message = message(code: 'default.updated.message', args: [message(code: 'User.label', default: 'User'), user.id])
+                redirect user
             }
-            '*'{ respond userInstance, [status: OK] }
+            '*'{ respond user, [status: OK] }
         }
     }
 

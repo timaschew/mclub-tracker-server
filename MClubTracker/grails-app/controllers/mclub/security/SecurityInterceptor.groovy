@@ -8,16 +8,10 @@ class SecurityInterceptor {
     def userService;
 
     SecurityInterceptor(){
-//        match(controller:'admin')
-//        .except(controller:'admin',action:'login');
-//        match(controller:'user')
-        match(uri:'/*/admin/**')
+        match(uri:'/*/admin/**').except(controller:'admin',action:'login');
     }
 
     boolean before() {
-        if(controllerName?.equals('admin') && actionName?.equals('login')){
-            return true;
-        }
 
         User user = session['user'];
         if(!user){

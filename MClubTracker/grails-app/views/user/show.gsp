@@ -23,62 +23,62 @@
 			</g:if>
 			<ol class="property-list user">
 			
-				<g:if test="${userInstance?.name}">
+				<g:if test="${this.user?.name}">
 				<li class="fieldcontain">
 					<span id="name-label" class="property-label"><g:message code="user.name.label" default="Name" /></span>
 					
-						<span class="property-value" aria-labelledby="name-label"><g:fieldValue bean="${userInstance}" field="name"/></span>
+						<span class="property-value" aria-labelledby="name-label"><g:fieldValue bean="${user}" field="name"/></span>
 					
 				</li>
 				</g:if>
 				
-				<g:if test="${userInstance?.displayName}">
+				<g:if test="${this.user?.displayName}">
 				<li class="fieldcontain">
 					<span id="display-name-label" class="property-label"><g:message code="user.displayName.label" default="Display Name" /></span>
 					
-						<span class="property-value" aria-labelledby="display-name-label"><g:fieldValue bean="${userInstance}" field="displayName"/></span>
+						<span class="property-value" aria-labelledby="display-name-label"><g:fieldValue bean="${user}" field="displayName"/></span>
 				</li>
 				</g:if>
 			
-				<g:if test="${userInstance?.phone}">
+				<g:if test="${this.user?.phone}">
 				<li class="fieldcontain">
 					<span id="phone-label" class="property-label"><g:message code="user.phone.label" default="Phone" /></span>
 					
-						<span class="property-value" aria-labelledby="phone-label"><g:fieldValue bean="${userInstance}" field="phone"/></span>
+						<span class="property-value" aria-labelledby="phone-label"><g:fieldValue bean="${user}" field="phone"/></span>
 					
 				</li>
 				</g:if>
 			
-				<g:if test="${userInstance?.type}">
+				<g:if test="${this.user?.type}">
 				<li class="fieldcontain">
 					<span id="type-label" class="property-label"><g:message code="user.type.label" default="Type" /></span>
 					
-						<span class="property-value" aria-labelledby="type-label"><g:fieldValue bean="${userInstance}" field="type"/></span>
+						<span class="property-value" aria-labelledby="type-label"><g:fieldValue bean="${user}" field="type"/></span>
 					
 				</li>
 				</g:if>
 			
-				<g:if test="${userInstance?.creationDate}">
+				<g:if test="${this.user?.creationDate}">
 				<li class="fieldcontain">
 					<span id="creationDate-label" class="property-label"><g:message code="user.creationDate.label" default="Creation Date" /></span>
 					
-						<span class="property-value" aria-labelledby="creationDate-label"><g:formatDate date="${userInstance?.creationDate}" /></span>
+						<span class="property-value" aria-labelledby="creationDate-label"><g:formatDate date="${user?.creationDate}" /></span>
 					
 				</li>
 				</g:if>			
 			
-				<g:if test="${userInstance?.avatar}">
+				<g:if test="${this.user?.avatar}">
 				<li class="fieldcontain">
 					<span id="avatar-label" class="property-label"><g:message code="user.avatar.label" default="Avatar" /></span>
 					
-						<span class="property-value" aria-labelledby="avatar-label"><g:fieldValue bean="${userInstance}" field="avatar"/></span>
+						<span class="property-value" aria-labelledby="avatar-label"><g:fieldValue bean="${user}" field="avatar"/></span>
 					
 				</li>
 				</g:if>
 			</ol>
-			<g:form url="[resource:userInstance, action:'delete']" method="DELETE">
+			<g:form url="[resource:user, action:'delete']" method="DELETE">
 				<fieldset class="buttons">
-					<g:link class="edit" action="edit" resource="${userInstance}"><g:message code="default.button.edit.label" default="Edit" /></g:link>
+					<g:link class="edit" action="edit" resource="${user}"><g:message code="default.button.edit.label" default="Edit" /></g:link>
 					<g:actionSubmit class="delete" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
 				</fieldset>
 			</g:form>
