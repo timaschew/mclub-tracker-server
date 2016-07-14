@@ -14,6 +14,22 @@ dataSource:
     username: sa
     password:
 
+# Reactor config for the event bus
+reactor:
+    dispatchers:
+        # default executor will create anonymous threads
+        threadPoolExecutor:
+            type: threadPoolExecutor
+            size: 1
+            backlog: 128
+
+        # customized executor could create pretty-named threads
+#        default: myExecutor
+#        myExecutor:
+#            type: threadPoolExecutor
+#            size: 5
+#            backlog: 2048
+
 environments:
     development:
         dataSource:
