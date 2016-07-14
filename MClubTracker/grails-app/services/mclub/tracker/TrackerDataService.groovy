@@ -10,21 +10,16 @@ import java.util.concurrent.ExecutorService
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
-import mclub.util.DateUtils
 import mclub.sys.ConfigService
-import mclub.sys.MessageListener
-import mclub.sys.MessageService
 import mclub.tracker.aprs.AprsData;
 
 import grails.core.GrailsApplication;
-import org.springframework.transaction.TransactionDefinition;
 
 class TrackerDataService {
 	GrailsApplication grailsApplication;
 	TrackerCacheService trackerCacheService;
 	ConfigService configService;
-	MessageService messageService;
-	
+
 	ConcurrentHashMap<String,Long> idCache = new ConcurrentHashMap<String,Long>();
 	
 	static {
@@ -344,7 +339,8 @@ class TrackerDataService {
 	 * call the message bus to notify the position changes.
 	 */
 	private void notifyPositionChanges(PositionData position){
-		messageService.postMessage(position);
+		// try the new events trait in grails3
+		notify("tracker.positionChanged",position);
 	}
 
 	@PostConstruct

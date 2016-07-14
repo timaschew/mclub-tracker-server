@@ -20,6 +20,5 @@ beans = {
         grailsApplication = ref('grailsApplication')
         trackerService = ref('trackerService')
         trackerDataService = ref('trackerDataService')
-        messageService = ref('messageService')
     }
 }

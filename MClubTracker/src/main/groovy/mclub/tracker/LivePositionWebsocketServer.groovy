@@ -1,50 +1,29 @@
 package mclub.tracker
 
 import grails.converters.JSON
-import grails.core.support.GrailsApplicationAware
+import grails.core.GrailsApplication
+import grails.events.Events
 import grails.util.Environment
-import mclub.util.GrailsApplicationHolder
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.embedded.ServletContextInitializer
-import org.springframework.context.annotation.Bean
-
-import javax.annotation.PostConstruct
-import javax.annotation.PreDestroy
-import javax.servlet.ServletException
-import java.util.concurrent.ConcurrentHashMap
-
-import javax.servlet.ServletContext
-import javax.servlet.ServletContextEvent
-import javax.servlet.ServletContextListener
-import javax.servlet.annotation.WebListener
-import javax.websocket.CloseReason
-import javax.websocket.EndpointConfig
-import javax.websocket.OnClose
-import javax.websocket.OnError
-import javax.websocket.OnMessage
-import javax.websocket.OnOpen
-import javax.websocket.RemoteEndpoint
-import javax.websocket.SendHandler
-import javax.websocket.Session
-import javax.websocket.server.ServerContainer
-import javax.websocket.server.ServerEndpoint
-
-import mclub.sys.MessageListener
-import mclub.sys.MessageService
-
-import grails.core.GrailsApplication;
-import org.grails.web.util.GrailsApplicationAttributes as GA
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-public class LivePositionWebsocketServer implements ServletContextListener, MessageListener{
+import javax.annotation.PostConstruct
+import javax.annotation.PreDestroy
+import javax.servlet.ServletContext
+import javax.servlet.ServletContextEvent
+import javax.servlet.ServletContextListener
+import javax.websocket.*
+import javax.websocket.server.ServerContainer
+import javax.websocket.server.ServerEndpoint
+import java.util.concurrent.ConcurrentHashMap
+
+public class LivePositionWebsocketServer implements ServletContextListener, Events{
 	private final Logger log = LoggerFactory.getLogger(getClass().name);
     private static LivePositionWebsocketServer instance = null;
 
 	GrailsApplication grailsApplication;
     TrackerService trackerService;
     TrackerDataService trackerDataService;
-    MessageService messageService;
 
     public LivePositionWebsocketServer(){
         log.info("Constructing ${this}");
@@ -69,8 +48,10 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
             long sessionIdleTimeout = config.liveposition.session_idle_timeout ?: 15000 // idle timeout is 15s
             serverContainer.defaultMaxSessionIdleTimeout = sessionIdleTimeout
 
-            // register data changes
-            getMessageService()?.addListener(this);
+            // register data changes with grails3 ractor/event support
+            on("tracker.positionChanged"){ PositionData position ->
+                this.onPositionChanged(position);
+            }
 
             instance = this;
             log.info("LivePositionWebsocketServer ${this} ready");
@@ -94,7 +75,6 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 
     @PreDestroy
     public void stop(){
-        getMessageService()?.removeListener(this);
         log.info "LivePositionWebsocketServer ${this} stopped";
     }
 
@@ -108,14 +88,10 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		sessions.remove(clientSession.getId());
 	}
 
-	static long ts = 0;
-	@Override
-	public void onMessageReceived(Object message){
-		if(!(message instanceof PositionData)){
-			return;
-		}
+    private static final String EVENT_NAME_POS = "tracker.positionChanged"
 
-		PositionData position = (PositionData)message;
+	static long ts = 0;
+	public void onPositionChanged(PositionData position){
 		//log.trace("onPositionChange called, sessions: ${sessions}");
 		// TODO filter out sessions according to the subscription record
 		if(sessions.isEmpty()){
