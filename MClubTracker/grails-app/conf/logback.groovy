@@ -62,6 +62,7 @@ if (Environment.isDevelopmentMode() && targetDir) {
     logger("grails.app", DEBUG, ['STDOUT'], false)
     logger("mclub.tracker", INFO , ['STDOUT'], false)
     logger("mclub.datamining", INFO , ['STDOUT'], false)
+    logger("mclub.security", INFO , ['STDOUT'], false)
 
     logger("mclub.user", DEBUG , ['STDOUT'], false)
     logger("mclub.tracker", DEBUG , ['STDOUT'], false)
@@ -69,4 +70,5 @@ if (Environment.isDevelopmentMode() && targetDir) {
     logger("grails.app", INFO, ['STDOUT'], false)
     logger("mclub.user", INFO , ['STDOUT'], false)
     logger("mclub.tracker", INFO , ['STDOUT'], false)
+    logger("mclub.security", INFO , ['STDOUT'], false)
 }

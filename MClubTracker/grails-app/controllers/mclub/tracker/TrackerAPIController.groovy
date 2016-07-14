@@ -17,7 +17,7 @@ class TrackerAPIController {
 	UserService userService;
 	ConfigService configService;
 	
-	def index(){
+	def about(){
 		render text:'Tracker API 0.1'
 	}
 	
