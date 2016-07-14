@@ -131,8 +131,12 @@ grails:
                 taglib: none
                 staticparts: none
 endpoints:
+    enabled: false
+    health.sensitive: true
+
     jmx:
         unique-names: true
+        enabled: false
 
 #tracker:
 #    gps103:
