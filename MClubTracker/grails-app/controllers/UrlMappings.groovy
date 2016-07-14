@@ -38,6 +38,7 @@ class UrlMappings {
 		// Error Mappings
 		if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
 			"500"(view:"/error")
+			"404"(view:'/errors/404')
 		}else{
 			"500"(view:'/errors/500')
 			"404"(view:'/errors/404')
