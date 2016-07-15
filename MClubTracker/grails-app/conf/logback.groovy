@@ -60,12 +60,11 @@ if (Environment.isDevelopmentMode() && targetDir) {
     }
     logger("StackTrace", ERROR, ['FULL_STACKTRACE'], false)
     logger("grails.app", DEBUG, ['STDOUT'], false)
-    logger("mclub.tracker", INFO , ['STDOUT'], false)
-    logger("mclub.datamining", INFO , ['STDOUT'], false)
-    logger("mclub.security", INFO , ['STDOUT'], false)
 
-    logger("mclub.user", DEBUG , ['STDOUT'], false)
-    logger("mclub.tracker", DEBUG , ['STDOUT'], false)
+    logger("mclub", INFO , ['STDOUT'], false)
+
+    logger("mclub.user", INFO , ['STDOUT'], false)
+    logger("mclub.tracker", INFO , ['STDOUT'], false)
 }else if(Environment.current == Environment.PRODUCTION){
     logger("grails.app", INFO, ['STDOUT'], false)
     logger("mclub.user", INFO , ['STDOUT'], false)
