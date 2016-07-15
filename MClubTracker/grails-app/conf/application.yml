@@ -11,8 +11,8 @@ dataSource:
     pooled: true
     jmxExport: true
     driverClassName: org.h2.Driver
-    username: sa
-    password:
+#    username: sa
+#    password:
 
 # Reactor config for the event bus
 reactor:
@@ -38,13 +38,13 @@ environments:
             pooled: false
 
             ## for mysql
-            #pooled=true
-            #driverClassName="com.mysql.jdbc.Driver"
-            #dialect="org.hibernate.dialect.MySQL5InnoDBDialect"
-            #url="jdbc:mysql://localhost:3306/mclub?useUnicode=yes&characterEncoding=UTF-8"
-            #username="mclub"
-            #password="secret"
-            #logSql = true
+#            pooled: true
+#            driverClassName: "com.mysql.jdbc.Driver"
+#            dialect: "org.hibernate.dialect.MySQL5InnoDBDialect"
+#            url: "jdbc:mysql://localhost:3306/mclub?useUnicode=yes&characterEncoding=UTF-8"
+#            username: "mclub"
+#            password: "secret"
+#            logSql: true
     test:
         dataSource:
             dbCreate: update
@@ -176,3 +176,63 @@ environments:
     production:
         quartz:
             autoStartup: true
+
+
+tracker:
+    minimalPositionUpdateInterval: 5000 # in milliseconds
+    #maximumShowPositionInterval: 30 * 60 * 1000; // 30 minutes in milliseconds
+
+    #enables tracker log
+    logger.enabled: false
+    geocode.enabled: false
+
+    map:
+        forceSecure: false
+        showLineDots: true  #by default will show the line dots
+        amap_api_url: 'http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee' #change me!
+
+    #Tracker connectors
+    #GPS103 tracker
+    gps103:
+        enabled: true
+        gps103.port: 5001
+
+    #H02 tracker
+    h02:
+        enabled: false
+        port: 5002
+
+    #GT06 tracker
+    gt06:
+        enabled: false
+        port: 5003
+
+    #TK103 tracker setup
+    tk103:
+        enabled: false
+        port: 5004
+        #Not used configurations
+        #address = 'localhost' - not used
+        #resetDelay = 0
+
+    #T55 tracker setup
+    t55:
+        enabled: false
+        port: 5005
+
+    #APRS APRS connector
+    aprs:
+        enabled: true
+        address: 'rotate.aprs2.net'
+        port: 14580
+        call: 'foo'
+        pass: 'bar'
+        ##small china filter
+        filter: 'r/31.864128/109.930590/1600'
+        #blacklist = 'a,b,c,d,e'
+        ##huge china filter
+        #filter = 'r/36.045101/103.836093/2500'
+        #filter = 'r/30.21/120.15/100' //range in Hangzhou 100KM
+        #filter = 'p/B' //All callsign starts with B
+        #filter = 'p/BG5HHP'
+        data.daysToPreserve: 7

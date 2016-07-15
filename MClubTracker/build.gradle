@@ -15,7 +15,7 @@ buildscript {
 }
 
 version "0.3"
-group "mclubtracker"
+group "mclub"
 
 apply plugin:"eclipse"
 apply plugin:"idea"
