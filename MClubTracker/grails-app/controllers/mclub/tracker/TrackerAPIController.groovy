@@ -185,7 +185,7 @@ class TrackerAPIController {
 		}
 
 		// Check user session, SecurityFilter will set in request scope
-		UserSession usession = request['session'];
+		UserSession usession = request.getAttribute('session');
 		if(!usession){
 			log.warn("Session not found in request, check SecurityFilter configurations!")
 			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
@@ -256,7 +256,7 @@ class TrackerAPIController {
 		}
 
 		// Check user session - FIXME - use filter
-		UserSession usession = request['session'];
+		UserSession usession = request.getAttribute('session');
 		if(!usession){
 			log.warn("Session not found in request, check SecurityFilter configurations!")
 			render APIResponse.ERROR(APIResponse.SESSION_EXPIRED_ERROR,"Session expired") as JSON
@@ -566,7 +566,8 @@ class TrackerAPIController {
 	 */
 	def user(String token){
 //		// Session token is checked in the apiFilter
-		String username = request['session'].username;
+		UserSession userSession = request.getAttribute('session');
+		String username = userSession.username;
 		User user = User.findByName(username);
 		if(user){
 			def u = [:]; 

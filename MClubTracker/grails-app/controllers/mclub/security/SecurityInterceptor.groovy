@@ -5,8 +5,6 @@ import mclub.user.User
 
 
 class SecurityInterceptor {
-    def userService;
-
     SecurityInterceptor(){
         match(uri:'/*/admin/**').except(controller:'admin',action:'login');
     }
@@ -38,7 +36,7 @@ class SecurityInterceptor {
 class ApiAccessInterceptor{
     def userService;
     ApiAccessInterceptor(){
-        match(controller:"trackerAPI",action:"update*|user")
+        match(controller:"trackerAPI",action:~/(update.*|user)/)
     }
     boolean before() {
         def token = params.token
@@ -52,7 +50,8 @@ class ApiAccessInterceptor{
                 log.debug("got token: ${token}")
             def userSession = userService.checkSessionToken(token);
             if(userSession){
-                request['session'] = userSession;
+                //request['session'] = userSession - GRAILS BUG!
+                request.setAttribute('session',userSession)
                 log.debug("User session loaded ${userSession.username}")
                 return true;
             }
