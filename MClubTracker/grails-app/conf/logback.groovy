@@ -6,7 +6,7 @@ import grails.util.Environment
 // See http://logback.qos.ch/manual/groovy.html for details on configuration
 appender('STDOUT', ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
-        pattern = "%level %logger - %msg%n"
+        pattern = "%d{yyyy-MM-dd/HH:mm:ss.SSS} - %level %logger - %msg%n"
     }
 }
 
@@ -55,7 +55,7 @@ if (Environment.isDevelopmentMode() && targetDir) {
         file = "${targetDir}/stacktrace.log"
         append = true
         encoder(PatternLayoutEncoder) {
-            pattern = "%level %logger - %msg%n"
+            pattern = "%d{yyyy-MM-dd/HH:mm:ss.SSS} - e%level %logger - %msg%n"
         }
     }
     logger("StackTrace", ERROR, ['FULL_STACKTRACE'], false)
