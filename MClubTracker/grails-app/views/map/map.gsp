@@ -63,8 +63,6 @@
 		</script>
 		--%>
 
-        <asset:stylesheet src="map.css"/>
-
         <%-- The JQuery Libs --%>
         <asset:javascript src="jquery-2.2.0.min.js"/>
         <%--
