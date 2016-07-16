@@ -63,15 +63,23 @@
 		</script>
 		--%>
 
+        <asset:stylesheet src="map.css"/>
+
         <%-- The JQuery Libs --%>
+        <asset:javascript src="jquery-2.2.0.min.js"/>
+        <%--
         <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
         </script>
-        <%-- The Bootstrap Libs --%>
-        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-3.3.6.min.css')}">
-        <%--
-        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-theme-3.3.6.min.css')}">
         --%>
+
+        <%-- The Bootstrap Libs --%>
+        <asset:javascript src="bootstrap.js"/>
+        <asset:stylesheet src="bootstrap.css"/>
+        <%--
+        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-3.3.6.min.css')}">
+        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-theme-3.3.6.min.css')}">
         <script type="text/javascript" src="${resource(dir:'js', file:'bootstrap-3.3.6.min.js')}"></script>
+        --%>
 
     </head>
     
@@ -304,7 +312,8 @@
                         	size: [24,24],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
                         	imageSize:[384,144],
-                        	image: "${createLink(uri:'/static/images/aprs/aprs-fi-sym', absolute:false)}" + symbol[1] + "@2x.png"
+                            image: "${assetPath(src: 'aprs/aprs-fi-sym')}" + symbol[1] + "@2x.png"
+
                         });
                         marker.setIcon(markerIcon);
                 	}else{
@@ -342,7 +351,7 @@
                             var markerIcon = new AMap.Icon({
                                 size: [32,32],
                                 imageSize: [32,32],
-                                image : "${createLink(uri:'/static/images/map/', absolute:false)}" + feature['properties']['marker-symbol'] + ".png"
+                                image : "${assetPath(src: 'map/')}" + feature['properties']['marker-symbol'] + ".png"
                             });
                             marker.setIcon(markerIcon);                        	
                         }

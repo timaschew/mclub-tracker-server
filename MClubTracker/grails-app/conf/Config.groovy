@@ -36,6 +36,8 @@ grails.mime.types = [
 grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
 grails.resources.adhoc.excludes = ['**/WEB-INF/**','**/META-INF/**']
 
+grails.assets.minifyOptions.excludes = ["**/*.min.js"]
+
 // The default codec used to encode data with ${}
 grails.views.default.codec = "html" // none, html, base64
 grails.views.gsp.encoding = "UTF-8"
