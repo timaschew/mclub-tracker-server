@@ -283,7 +283,8 @@ class TrackerService {
 			'marker-color':"#00bcce",
 			'marker-size': "medium",
 			'marker-symbol': "circle",
-			"marker-zoom": ""
+			"marker-zoom": "",
+			"position_id": device.latestPositionId
 			]
 		
 		// Load user name and mobile phone TODO optimization of loading user's phone number.
