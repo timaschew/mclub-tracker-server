@@ -1,5 +1,6 @@
 package mclub.sys
 
+import com.github.davidmoten.geo.GeoHash
 import grails.transaction.Transactional
 import mclub.tracker.TrackerPosition
 import org.hibernate.Query
@@ -28,6 +29,11 @@ class UpgradeService {
                 continue;
             }
 
+            if(sql.equals("updateDeviceLocationHash")){
+                updateDeviceLocationHash(session);
+                continue;
+            }
+
             // others
             Query query = session.createSQLQuery(sql);
             int rcount = 0;
@@ -42,6 +48,9 @@ class UpgradeService {
         // rename the sql file when all task done without any error
     }
 
+    /*
+     * Delete position records with devices not found
+     */
     private void cleanupOrphanPositions(org.hibernate.classic.Session session){
         // first retrieve the orphan position IDs
         String sql1 = "select tp.id from TRACKER_POSITION AS tp LEFT OUTER JOIN TRACKER_DEVICE AS td ON tp.device_id = td.id WHERE td.id is null";
@@ -56,6 +65,47 @@ class UpgradeService {
         log.info("Deleted ${count} orphan position records");
     }
 
+    /*
+     * Update device location hash according to the latest position data
+     */
+    private void updateDeviceLocationHash(org.hibernate.classic.Session session){
+        String sql1 = "SELECT dev.id,pos.latitude,pos.longitude FROM TRACKER_DEVICE AS dev LEFT OUTER JOIN TRACKER_POSITION AS pos ON dev.latest_position_id=pos.id";
+        Query query1 = session.createSQLQuery(sql1);
+        def records = query1.list();
+        int count = 0;
+        records.each{rec ->
+            try{
+                def devId = rec[0];
+                def lat = rec[1];
+                def lon = rec[2];
+                if(lat && lon){
+                    String geohash = GeoHash.encodeHash(lat,lon);
+                    // perform the update
+                    String sql2 = "UPDATE TRACKER_DEVICE SET location_hash=:hash WHERE id=:id"
+                    Query query2 = session.createSQLQuery(sql2);
+                    query2.setParameter("hash",geohash);
+                    query2.setParameter("id",devId);
+                    query2.executeUpdate();
+                    count++;
+                    log.info "  device[${devId}] location ${lat}/${lon} hash ${geohash} updated"
+
+                    if(count % 100){
+                        session.flush();
+                    }
+                }
+            }catch(Exception e){
+                log.error "Error updating device location hash", e
+                return;
+            }
+        }
+        log.info("Total ${count} records updated");
+    }
+
+    /**
+     * Read the patch SQL file
+     * @param fileName
+     * @return
+     */
     private Collection<String> readPatchSQLFile(String fileName){
         def sqls = [];
         File upgradeFile = new File(fileName);

@@ -18,6 +18,7 @@ class TrackerDevice {
 		status blank:true,nullable:true
 		icon blank:true,nullable:true
 		comments blank:true,nullable:true
+		locationHash blank:true,nullable:true
     }
 	
 	static mapping = {
@@ -25,6 +26,7 @@ class TrackerDevice {
 		username index:'idx_trackerdevice_username'
 		status index:'idx_trackerdevice_status'
 		latestPositionTime index:'idx_trackerdevice_lastpositiontime'
+		locationHash index:'idx_trackerdevice_locationhash'
 	}
 	
 	String udid; // the unique device id, could be IMEI or callsign or manual assigned devices;
@@ -35,4 +37,5 @@ class TrackerDevice {
 	Date latestPositionTime
 	String icon;			// name of the device icon, eg: APRS site symbol
 	String comments;		// the device comments, optional
+	String locationHash;
 }

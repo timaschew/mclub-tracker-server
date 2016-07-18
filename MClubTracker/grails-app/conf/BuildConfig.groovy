@@ -67,6 +67,9 @@ grails.project.dependency.resolution = {
 		compile 'org.htmlparser:htmlparser:1.6'
 		compile 'com.alibaba:fastjson:1.2.6'
 		//test 'org.spockframework:spock-grails-support:0.7-groovy-2.0'
+
+        // The GeoHash lib
+        compile 'com.github.davidmoten:geo:0.7.4'
 		
 		runtime 'com.h2database:h2:1.4.189'   // or 'com.h2database:h2:1.3.175' for older version
 		
