@@ -222,7 +222,7 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		
 		//def val = getTrackerService().buildDevicePositionValues(position);
 		//def val = getTrackerService().getDeviceJsonData(position.udid);
-		def val = getTrackerService().getDeviceFeatureCollection(position.udid, false);
+		def val = getTrackerService().buildDeviceFeatureCollection(position.udid);
 		def txt = val as JSON;
 		
 		String str = txt.toString();

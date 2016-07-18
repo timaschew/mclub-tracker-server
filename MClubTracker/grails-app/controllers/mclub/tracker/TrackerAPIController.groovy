@@ -320,6 +320,7 @@ class TrackerAPIController {
 	 */
 	def geojson(TrackerDeviceFilter filter){
 		def allDevices = [];
+		Double positionId = null;
 
 		// Case1 - query by map id
 		if(params.map){
@@ -348,7 +349,10 @@ class TrackerAPIController {
 			}
 		}
 
-		// Case3 - query by specific device ids
+		// Case3 - query by device id(s), which including
+		// - geojson/BG5XYZ-9 - full id match
+		// - geojson/BG5    - fuzzy id match
+		// - geojson/BG5XYZ-9#ID - full id match, with specific position id
 		else{
 			if(filter.udid == null && params.id){
 				filter.udid = params.id;
@@ -358,12 +362,37 @@ class TrackerAPIController {
 				render text:"Invalid parameters";
 				return;
 			}
-			// load filters
+
+			// check if id contains position id
+			if(filter.udid && filter.udid.indexOf('$') > 0){
+				String[] s = filter.udid.split('\\$');
+				filter.udid = s[0];
+				try{
+					positionId = Double.parseDouble(s[1])
+				}catch(Exception e){
+					// ignore the parse error
+					log.info("Error parsing position id from parameter: ${e.message}");
+				}
+			}
+			// load devices according to the filters
 			allDevices = trackerService.findTrackerDevices(filter);
 		}
 
 		// Load features by devices
-		def featureCollectionOfGeoJSON = trackerService.buildGeojsonFeatureCollection(allDevices);
+		def featureCollectionOfGeoJSON;
+
+		if(positionId && allDevices?.size() > 0){
+			// just load device with specific position data
+			TrackerDevice dev = allDevices[0];
+			TrackerPosition pos = TrackerPosition.findById(positionId);
+			if(pos && dev.id.equals(pos.device?.id)){
+				featureCollectionOfGeoJSON = trackerService.buildDeviceFeatureCollection(dev,pos,false);
+			}else{
+				log.info("Device ${dev.udid} does not contain position #${positionId}");
+			}
+		}else {
+			featureCollectionOfGeoJSON = trackerService.buildGeojsonFeatureCollection(allDevices);
+		}
 
 		// Allow browser XSS
 		response.setHeader('Access-Control-Allow-Origin',"*")
@@ -371,37 +400,37 @@ class TrackerAPIController {
 		render featureCollectionOfGeoJSON as JSON;
 	}
 	
-	/**
-	 * Returns an array of device positions.
-	 * @param udid
-	 * @return an array of device positions
-	 */
-	def live_positions(String udid){
-		if(!udid){
-			udid = params.id
-		}
-		if(!udid){
-			render text:"Missing udid";
-			return;
-		}
-		
-		def allDevicePositions = [];
-		
-		if(udid.equals("*")){
-			// load all tracker's latest positions
-			def devices = TrackerDevice.list();
-			devices?.each{ dev->
-				allDevicePositions << trackerService.getDeviceJsonData(dev);
-			}
-		}else{
-			TrackerDevice dev = TrackerDevice.findByUdid(udid);
-			if(dev){
-				allDevicePositions << trackerService.getDeviceJsonData(dev);
-			}
-		}
-		
-		render allDevicePositions as JSON;
-	}
+//	/**
+//	 * Returns an array of device positions.
+//	 * @param udid
+//	 * @return an array of device positions
+//	 */
+//	def live_positions(String udid){
+//		if(!udid){
+//			udid = params.id
+//		}
+//		if(!udid){
+//			render text:"Missing udid";
+//			return;
+//		}
+//
+//		def allDevicePositions = [];
+//
+//		if(udid.equals("*")){
+//			// load all tracker's latest positions
+//			def devices = TrackerDevice.list();
+//			devices?.each{ dev->
+//				allDevicePositions << trackerService.getDeviceJsonData(dev);
+//			}
+//		}else{
+//			TrackerDevice dev = TrackerDevice.findByUdid(udid);
+//			if(dev){
+//				allDevicePositions << trackerService.getDeviceJsonData(dev);
+//			}
+//		}
+//
+//		render allDevicePositions as JSON;
+//	}
 	
 	def clean_aprs_data(){
 		Integer daysToPreserve = configService.getConfigInt("tracker.aprs.data.daysToPreserve");
