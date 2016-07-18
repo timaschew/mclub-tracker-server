@@ -1,4 +1,7 @@
 package mclub.tracker
+import com.github.davidmoten.geo.Coverage
+import com.github.davidmoten.geo.GeoHash
+import com.github.davidmoten.geo.util.Preconditions
 
 import java.text.SimpleDateFormat
 import java.util.Map;
@@ -147,7 +150,40 @@ class TrackerService {
 		}
 		return featureCollection;
 	}
-	
+
+	/**
+	 * Find tracker in bounds
+	 * @param lat1
+	 * @param lon1
+	 * @param lat2
+	 * @param lon2
+	 * @param activeTime
+	 * @return
+	 */
+	public Collection<TrackerDevice> findTrackerDevicesInBounds(Double lat1,Double lon1, Double lat2, Double lon2,java.util.Date activeTime){
+		if(activeTime == null){
+			// by default we'll only show active positions in last 30 minutes
+			Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
+			if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+			activeTime = new java.util.Date(System.currentTimeMillis() - maximumShowPositionInterval);
+		}
+		// Calculate the geo hashes covers the bounds
+		def coverHashes = GeoHash.coverBoundingBox(lat1,lon1,lat2,lon2).hashes;
+		log.debug("Cover hashes: ${coverHashes}")
+		def criteria = TrackerDevice.createCriteria();
+		def results = criteria.list{
+			gt('latestPositionTime',activeTime)
+			and{
+				or{
+					coverHashes.each{ hash ->
+						like('locationHash',"${hash}%")
+					}
+				}
+			}
+		}
+		return results;
+	}
+
 	public Collection<TrackerDevice> findTrackerDevices(TrackerDeviceFilter cmd){
 		if("all".equalsIgnoreCase(cmd.udid)){
 			cmd.udid = null;

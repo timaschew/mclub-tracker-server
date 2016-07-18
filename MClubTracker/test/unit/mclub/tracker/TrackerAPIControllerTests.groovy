@@ -34,9 +34,21 @@ class TrackerAPIControllerTests extends Specification {
 		response.text == result as JSON;
 	}
 	
-//    void testSomething() {
-//       fail "Implement me"
-//    }
-	
-	
+	void testQueryGeoJsonInBounds(){
+		String case1 = "31.063981,119.035390,29.299308,121.500648" // ZHEJIANG
+		String case2 = "33.134480,115.361048,26.967927,123.960963" // EASTERN_CHINA
+		String case3 = "30.399728,119.944333,30.057721,120.462355" // HANGZHOU
+		given:
+		def filter = new TrackerDeviceFilter(bounds:case1);
+
+		UserSession session  = new UserSession(username:'admin',type:2,token:'the_test_token');
+		request['session'] = session;
+
+		when:
+		controller.geojson(filter)
+
+		then:
+		def result = {}
+		response.text == result as JSON
+	}
 }

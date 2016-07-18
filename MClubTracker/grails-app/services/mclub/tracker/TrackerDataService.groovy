@@ -1,5 +1,6 @@
 package mclub.tracker
 
+import com.github.davidmoten.geo.GeoHash
 import grails.converters.JSON
 import grails.transaction.Transactional;
 
@@ -81,9 +82,12 @@ class TrackerDataService {
 	 * @param positionId
 	 * @throws Exception
 	 */
-	public void updateLatestPosition(Long deviceId, Long positionId, Date timestamp) throws Exception{
+	public void updateLatestPosition(Long deviceId, TrackerPosition position) throws Exception{
 		// direct associate the position id to the device
-		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid, d.latestPositionTime=:time WHERE d.id=:did",[did:deviceId,pid:positionId,time:timestamp]);
+		String geohash = GeoHash.encodeHash(position.latitude,position.longitude);
+		Long positionId = position.id;
+		Date timestamp = position.time;
+		TrackerDevice.executeUpdate("UPDATE TrackerDevice AS d SET d.latestPositionId=:pid, d.latestPositionTime=:time, d.locationHash=:geohash WHERE d.id=:did",[did:deviceId,pid:positionId,time:timestamp,geohash:geohash]);
 	}
 	
 	/**
@@ -284,8 +288,9 @@ class TrackerDataService {
 		// Save the position data
 		try {
 			Long id = saveOrUpdatePosition(newPos);
+			assert (id.equals(newPos.id));
 			if (id != null) {
-				updateLatestPosition(device.id, id,newPos.time);
+				updateLatestPosition(device.id, newPos);
 
                 // if position changed, also need to invalidate the cache and broadcast the changes
                 if(true/*positionChanged*/){

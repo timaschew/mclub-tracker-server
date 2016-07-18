@@ -11,6 +11,9 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.h2.util.MathUtils;
 import org.springframework.web.multipart.MultipartFile
 
+import com.github.davidmoten.geo.*;
+
+
 class TrackerAPIController {
 	TrackerService trackerService;
 	TrackerDataService trackerDataService;
@@ -317,6 +320,8 @@ class TrackerAPIController {
 	 */
 	def geojson(TrackerDeviceFilter filter){
 		def allDevices = [];
+
+		// Case1 - query by map id
 		if(params.map){
 			// load device by map id
 			TrackerMap map = TrackerMap.findByUniqueId(params.map);
@@ -330,7 +335,21 @@ class TrackerAPIController {
 					}
 				}
 			}
-		}else{
+		}
+
+		// Case2 - query by bounds
+		else if(filter.bounds != null){
+			def bounds = filter.getBoundsCoordinate();
+			if(bounds) {
+				allDevices = trackerService.findTrackerDevicesInBounds(bounds[0], bounds[1], bounds[2], bounds[3],null);
+				if(log.debugEnabled && (allDevices?.size() == 0)){
+					log.debug "No device found in bound ${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}"
+				}
+			}
+		}
+
+		// Case3 - query by specific device ids
+		else{
 			if(filter.udid == null && params.id){
 				filter.udid = params.id;
 				filter.validate();
@@ -342,8 +361,10 @@ class TrackerAPIController {
 			// load filters
 			allDevices = trackerService.findTrackerDevices(filter);
 		}
-		
+
+		// Load features by devices
 		def featureCollectionOfGeoJSON = trackerService.buildGeojsonFeatureCollection(allDevices);
+
 		// Allow browser XSS
 		response.setHeader('Access-Control-Allow-Origin',"*")
 		response.setHeader('X-Powered-By', "BG5HHP")
@@ -616,6 +637,34 @@ class TrackerAPIController {
 			return resp;
 		}
 		
+	}
+
+	def test(String bound){
+		if(!bound){
+			render text:"missing bound";
+			return;
+		}
+
+		String[] bounds = bound.split(",");
+		if(bounds.length != 4){
+			render text:"invalid bound param";
+			return;
+		}
+
+		try{
+			double lat1 = Double.parseDouble(bounds[0]);
+			double lon1 = Double.parseDouble(bounds[1]);
+			double lat2 = Double.parseDouble(bounds[2]);
+			double lon2 = Double.parseDouble(bounds[3]);
+
+			Coverage coverage = GeoHash.coverBoundingBox(lat1,lon1,lat2,lon2);
+            String h1 = GeoHash.encodeHash(lat1,lon1);
+            String h2 = GeoHash.encodeHash(lat2,lon2);
+            def hash = coverage.getHashes();
+            render text:"hash1: ${h1}, hash2: ${h2}, geohash: ${hash}"
+		}catch(Exception e){
+            render text:"error: ${e.message}"
+		}
 	}
 }
 
