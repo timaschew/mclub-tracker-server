@@ -53,7 +53,7 @@ class UpgradeService {
      */
     private void cleanupOrphanPositions(org.hibernate.classic.Session session){
         // first retrieve the orphan position IDs
-        String sql1 = "select tp.id from TRACKER_POSITION AS tp LEFT OUTER JOIN TRACKER_DEVICE AS td ON tp.device_id = td.id WHERE td.id is null";
+        String sql1 = "select tp.id from tracker_position AS tp LEFT OUTER JOIN tracker_device AS td ON tp.device_id = td.id WHERE td.id is null";
         Query query = session.createSQLQuery(sql1);
         def orphanIDs = query.list();
         int count = 0;
@@ -69,7 +69,7 @@ class UpgradeService {
      * Update device location hash according to the latest position data
      */
     private void updateDeviceLocationHash(org.hibernate.classic.Session session){
-        String sql1 = "SELECT dev.id,pos.latitude,pos.longitude FROM TRACKER_DEVICE AS dev LEFT OUTER JOIN TRACKER_POSITION AS pos ON dev.latest_position_id=pos.id";
+        String sql1 = "SELECT dev.id,pos.latitude,pos.longitude FROM tracker_device AS dev LEFT OUTER JOIN tracker_position AS pos ON dev.latest_position_id=pos.id";
         Query query1 = session.createSQLQuery(sql1);
         def records = query1.list();
         int count = 0;
@@ -81,7 +81,7 @@ class UpgradeService {
                 if(lat && lon){
                     String geohash = GeoHash.encodeHash(lat,lon);
                     // perform the update
-                    String sql2 = "UPDATE TRACKER_DEVICE SET location_hash=:hash WHERE id=:id"
+                    String sql2 = "UPDATE tracker_device SET location_hash=:hash WHERE id=:id"
                     Query query2 = session.createSQLQuery(sql2);
                     query2.setParameter("hash",geohash);
                     query2.setParameter("id",devId);

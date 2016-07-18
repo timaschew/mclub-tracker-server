@@ -412,6 +412,7 @@ class TrackerService {
 		// Add line only when positions count >=4
 		if(positionCount >=4){
 			def lineCoordinates = [];
+			def positionIds = [];
 			// build line string features if positions count >=4
 			for(TrackerPosition p in positions){
 				def c;
@@ -424,13 +425,15 @@ class TrackerService {
 				c[0] = Math.round(c[0] * 1000000)/1000000.0
 				c[1] = Math.round(c[1] * 1000000)/1000000.0
 				lineCoordinates.add(c);
+				positionIds.add(p.id);
 			}
 			def lineFeatureGeometry = [
 				'type': 'LineString',
 				'coordinates': lineCoordinates
 			];
 			def lineFeatureProperties = [
-				'udid':"${device.udid}"
+				'udid':"${device.udid}",
+				'position_ids':positionIds
 			];
 		
 			lineFeature = [
