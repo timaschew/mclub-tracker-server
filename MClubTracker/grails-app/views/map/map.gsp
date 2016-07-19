@@ -194,7 +194,9 @@
                                 zIndex: 999
                             });
                             dots.on('click', function(e){
-                                //alert(e.data['name']);
+
+                                infoWindow.setContent("Loading...");
+                                infoWindow.open(map, new AMap.LngLat(e.data.lnglat['lng'], e.data.lnglat['lat']));
                                 // console.log(e);
 
                                 //var data = JSON.stringify({"udid": e.data['name']});
