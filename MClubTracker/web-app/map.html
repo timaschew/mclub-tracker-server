@@ -114,15 +114,16 @@
         </script>
         <script type="text/javascript">
             $(function() {
-
+                var mapConfig = {
+                    dataURL: "http://aprs2.mclub.to:20880/mtracker/api/geojson/ALL?type=2",
+                    serviceURL: "ws://aprs2.mclub.to:20880/mtracker/live0?type=2",
+                    aprsMarkerImagePath: "assets/aprs/aprs-fi-sym",
+                    standardMakerImagePath: "assets/map/",
+                };
                 var debug = true;
-                
-                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/ALL?type=2";
-                var serviceURL = "ws://aprs2.mclub.to:20880/mtracker/live0?type=2";
-                
                 if(debug){
-                    var dataURL = "http://localhost:8080/mclub/api/geojson/all?type=2";
-                    var serviceURL = "ws://localhost:8080/mclub/live0?type=2";
+                    mapConfig.dataURL = "http://localhost:8080/mclub/api/geojson/all?type=2";
+                    mapConfig.serviceURL = "ws://localhost:8080/mclub/live0?type=2";
                 }
                 
                 // http://bolt1.mclub.to:20880/mtracker/api/update_position?udid=0001&lat=39&lon=116
@@ -355,23 +356,25 @@
                     var lnglat = event.lnglat;
 
                     var udid = device_feature_properties['udid'];
+                    var username = device_feature_properties['username'];
                     var timestamp = device_feature_properties['timestamp'];
+                    var phone = device_feature_properties['phone'];
                     var speed = device_feature_properties['speed'];
                     var course = device_feature_properties['course'];
-                    var phone = device_feature_properties['phone'];
                     var message = device_feature_properties['message'];
 
-                    var s = "<div class=\"marker-info\"> <div> 设备:" + udid + "</div>";
-                    s = s.concat("<div> 电话:<a href=\"tel:",phone,"\">",phone,"</a></div>");
-
-                    if((typeof speed != "undefined")){
-                        s = s.concat("<div>速度:",speed," km/h ");
-                        if((typeof course != "undefined")){
-                            s = s.concat(course,"°");
+                    var s = "<div class=\"marker-info\">"
+                    s = s.concat("<div>", username," ( <a href=\"tel:",phone,"\">",phone,"</a> )</div>");
+                    s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
+                    s = s.concat("<div>设备:", udid, "</div>");
+                    s = s.concat("<div>时间:", timestamp, "</div>");
+                    if((typeof speed != "undefined")) {
+                        s = s.concat("<div>速度:", speed, " km/h ");
+                        if ((typeof course != "undefined")) {
+                            s = s.concat(course, "°");
                         }
                         s = s.concat("</div>");
                     }
-
                     if(typeof message != "undefined"){
                         s = s.concat("<div>信息:",message,"</div>");
                     }
@@ -389,18 +392,18 @@
                         // For APRS marker, use UDID as label
                         marker.setLabel({
                             offset:new AMap.Pixel(20,20),
-                            content: "<div>" + feature['properties']['udid'] + "</div>"
+                            content: "<div>" + device_feature_properties['udid'] + "</div>"
                         });
 
                         // Nasty code for APRS Icons
-                        var symbol = feature['properties']['marker-symbol'].split('_');
+                        var symbol = device_feature_properties['marker-symbol'].split('_');
                         var symbolIndex = parseInt(symbol[2]);
                         var x = ((symbolIndex % 16) * (-24));
                         var y = (Math.floor(symbolIndex / 16) * (-24));
                         var markerIcon = new AMap.Icon({
                             size: [24,24],
                             imageOffset: new AMap.Pixel(x - 1,y - 1),
-                            image: "assets/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
+                            image: mapConfig.aprsMarkerImagePath + symbol[1] + "@2x.png",
                             imageSize:[384,144]
                         });
                         marker.setIcon(markerIcon);
@@ -422,7 +425,7 @@
                             var markerIcon = new AMap.Icon({
                                 //image : "http://webapi.amap.com/images/marker_sprite.png"
                                 size: [32,32],
-                                image : "assets/map/" + symbol + ".png",
+                                image : mapConfig.standardMakerImagePath + symbol + ".png",
                                 imageSize: [32,32]
                             });
                             marker.setIcon(markerIcon);
@@ -430,96 +433,6 @@
 
                         marker.on("click",showStandardInfoWindowOnMarkerClicked);
                     }
-                };
-
-                var setupDeviceMarker2 = function(marker, feature) {
-                	var message = feature['properties']['message'];
-                	var symbol = feature['properties']['marker-symbol'];
-                	var speed = feature['properties']['speed'];
-                	var course = feature['properties']['course'];
-                	var aprs = feature['properties']['aprs'];
-                	if(typeof aprs != "undefined"){
-                		// For APRS marker, use UDID as label
-                        marker.setLabel({
-                            offset:new AMap.Pixel(20,20),
-                            content: "<div>" + feature['properties']['udid'] + "</div>"
-                        });
-                		
-                		// Setup Info Content View
-                		// TODO - display power, gain,height
-                        marker.on("click",function(e) {
-                            console.log(e);
-                            infoWindow.setContent("");
-                            
-                            var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
-                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
-                            s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
-                            // spped and course
-                            if((typeof speed != "undefined")){
-                            	s = s.concat("<div><b>",speed," km/h ");
-                            	if((typeof course != "undefined")){
-                            		s = s.concat(course,"°");
-                            	}
-                            	s = s.concat("</b></div>");
-                            }
-                            s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
-                            s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
-                            s = s.concat("</div>");
-                            infoWindow.setContent(s);
-                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
-                        });
-                		
-                		// Nasty code for Icons
-                        var symbol = feature['properties']['marker-symbol'].split('_');
-                		var symbolIndex = parseInt(symbol[2]);
-                		var x = ((symbolIndex % 16) * (-24));
-                		var y = (Math.floor(symbolIndex / 16) * (-24)); 
-                        var markerIcon = new AMap.Icon({
-                        	size: [24,24],
-                        	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	image: "assets/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
-                        	imageSize:[384,144]
-                        });
-                        marker.setIcon(markerIcon);
-                	}else{
-                		// For others, use username as label
-                        marker.setLabel({
-                            offset:new AMap.Pixel(12,25),
-                            content: "<div>" + feature['properties']['username'] + "</div>"
-                        });
-                		
-                        marker.on("click",function(e) {
-                            infoWindow.setContent("");
-                            var s = "<div class=\"marker-info\"> <div> 设备:" + feature['properties']['udid'] + "</div>";
-                            s = s.concat("<div> 电话:<a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a></div>");
-                            
-                            if((typeof speed != "undefined")){
-                            	s = s.concat("<div>速度:",speed," km/h ");
-                            	if((typeof course != "undefined")){
-                            		s = s.concat(course,"°");
-                            	}
-                            	s = s.concat("</div>");
-                            }
-                            
-                            if(typeof message != "undefined"){
-                            	s = s.concat("<div>信息:",message,"</div>");
-                            }
-                            s = s.concat("</div>")
-                            
-                            infoWindow.setContent(s);
-                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
-                        });
-                        
-                        if(typeof symbol != "undefined"){
-                            var markerIcon = new AMap.Icon({
-                                //image : "http://webapi.amap.com/images/marker_sprite.png"
-                                size: [32,32],
-                            	image : "assets/map/" + feature['properties']['marker-symbol'] + ".png",
-                            	imageSize: [32,32]
-                            });
-                            marker.setIcon(markerIcon);                        	
-                        }
-                	}
                 };
 
                 var parseGEOJSON = function(geojson) {
@@ -568,7 +481,7 @@
                 		}
                 		var self = this;
                 		try{
-                			this.websocket = new WebSocket(serviceURL);
+                			this.websocket = new WebSocket(mapConfig.serviceURL);
                     		this.websocket.onopen = function(e) {
                     			//alert("PushService connected");
                             };
@@ -634,7 +547,7 @@
 
                 // init entry point
                 var init = function(){
-                	$.get(dataURL,function(data) {
+                	$.get(mapConfig.dataURL,function(data) {
                 		parseGEOJSON(data);
                 		PushService.connect();
                 		heartBeat();

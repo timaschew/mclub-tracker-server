@@ -144,19 +144,20 @@ class MapController {
 	/*
 	 * The APRS Map
 	 */
-	def aprs(String id /*device id*/, String q, String lat, String lon){
+	def aprs(String id /*device id*/, String q, String lat, String lon, String bounds){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
 		
 		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", mapApiURL:generateMapAPIURL());
+		mapConfig.mapZoomLevel = 10;
 
 		if(!id && q){
 			// map/aprs?q=bg5
 			id = q.toUpperCase();
 		}
 
-		if(id){
+		if(id && !"all".equalsIgnoreCase(id)){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 			
@@ -168,13 +169,16 @@ class MapController {
 					TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
 					if(pos){
 						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
-						mapConfig.mapZoomLevel = 9;
+						mapConfig.mapZoomLevel = 10;
 					}
 				}
 			}
-			
+		}else if(bounds){
+			// determin by map ranges
+			// query by map region
+			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS/*,bounds:bounds*/ /*TODO - websocket server not supported yet*/]);
+			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',bounds:bounds,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 		}else{
-			// TODO - determin by map ranges
 			// detect remote location by address
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);

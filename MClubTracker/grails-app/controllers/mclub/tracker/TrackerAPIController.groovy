@@ -336,46 +336,52 @@ class TrackerAPIController {
 					}
 				}
 			}
-		}
+		}else{
+			// Case3 - query by device id(s), which including
+			// - geojson/BG5XYZ-9 - full id match
+			// - geojson/BG5    - fuzzy id match
+			// - geojson/BG5XYZ-9#ID - full id match, with specific position id
+			// - geojson/all
 
-		// Case2 - query by bounds
-		else if(filter.bounds != null){
-			def bounds = filter.getBoundsCoordinate();
-			if(bounds) {
-				allDevices = trackerService.findTrackerDevicesInBounds(bounds[0], bounds[1], bounds[2], bounds[3],null);
-				if(log.debugEnabled && (allDevices?.size() == 0)){
-					log.debug "No device found in bound ${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}"
-				}
-			}
-		}
-
-		// Case3 - query by device id(s), which including
-		// - geojson/BG5XYZ-9 - full id match
-		// - geojson/BG5    - fuzzy id match
-		// - geojson/BG5XYZ-9#ID - full id match, with specific position id
-		else{
+			// read geojson/$id as udid
 			if(filter.udid == null && params.id){
 				filter.udid = params.id;
-				filter.validate();
-			}
-			if(filter.hasErrors()){
-				render text:"Invalid parameters";
-				return;
 			}
 
-			// check if id contains position id
-			if(filter.udid && filter.udid.indexOf('$') > 0){
-				String[] s = filter.udid.split('\\$');
-				filter.udid = s[0];
-				try{
-					positionId = Double.parseDouble(s[1])
-				}catch(Exception e){
-					// ignore the parse error
-					log.info("Error parsing position id from parameter: ${e.message}");
-				}
+			// udid == all means null, just for compatible
+			if("all".equalsIgnoreCase(filter.udid)){
+				filter.udid = null;
 			}
-			// load devices according to the filters
-			allDevices = trackerService.findTrackerDevices(filter);
+
+			if(filter.udid == null){
+				// no udid specified, so check the bounds parameter
+				if(filter.bounds == null){
+					log.warn("geojson API received ALL data request, this is slow and should to be avoided!");
+					allDevices = trackerService.findTrackerDevices(filter);
+				}else{
+					def bounds = filter.getBoundsCoordinate();
+					if(bounds) {
+						allDevices = trackerService.findTrackerDevicesInBounds(bounds[0], bounds[1], bounds[2], bounds[3],null);
+						if(log.debugEnabled && (allDevices?.size() == 0)){
+							log.debug "No device found in bound ${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}"
+						}
+					}
+				}
+			}else{
+				// query by udid
+				if(filter.udid && filter.udid.indexOf('$') > 0){
+					String[] s = filter.udid.split('\\$');
+					filter.udid = s[0];
+					try{
+						positionId = Double.parseDouble(s[1])
+					}catch(Exception e){
+						// ignore the parse error
+						log.info("Error parsing position id from parameter: ${e.message}");
+					}
+				}
+				// load devices according to the filters
+				allDevices = trackerService.findTrackerDevices(filter);
+			}
 		}
 
 		// Load features by devices
