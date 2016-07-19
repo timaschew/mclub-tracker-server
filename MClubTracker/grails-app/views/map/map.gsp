@@ -65,26 +65,15 @@
 
         <%-- The JQuery Libs --%>
         <asset:javascript src="jquery-2.2.0.min.js"/>
-        <%--
-        <script type="text/javascript" src="${resource(dir:'js', file:'jquery-2.1.4.min.js')}">
-        </script>
-        --%>
-
         <%-- The Bootstrap Libs --%>
         <asset:javascript src="bootstrap.js"/>
         <asset:stylesheet src="bootstrap.css"/>
-        <%--
-        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-3.3.6.min.css')}">
-        <link rel="stylesheet" href="${resource(dir:'css', file:'bootstrap-theme-3.3.6.min.css')}">
-        <script type="text/javascript" src="${resource(dir:'js', file:'bootstrap-3.3.6.min.js')}"></script>
-        --%>
-
     </head>
     
     <body>
         <div id="mapContainer">
         </div>
-        <script type="text/javascript" src="${mapConfig.apiURL}">
+        <script type="text/javascript" src="${mapConfig.mapApiURL}">
         </script>
 
         <script type="text/javascript" >
@@ -151,11 +140,11 @@
 
                 var PointRender = {
                     pointsMap: {},
-                    render: function(point, tag) {
-                        if (!point || !tag) {
+                    render: function(point, udid) {
+                        if (!point || !udid) {
                             return;
                         };
-                        var marker = this.pointsMap[tag]
+                        var marker = this.pointsMap[udid]
                         if (typeof marker == "undefined") {
                             marker = new AMap.Marker({
                                 icon: "https://webapi.amap.com/images/marker_sprite.png",
@@ -163,9 +152,7 @@
                             });
                             marker.setPosition(point);
                             marker.setMap(map);
-                            if (tag) {
-                                this.pointsMap[tag] = marker;
-                            }
+                            this.pointsMap[udid] = marker;
                         } else {
                             marker.moveTo(point,1000);
                         }
@@ -176,9 +163,9 @@
                 var renderLineDots = <%=mapConfig.showLineDots%>
                 var LineStringRender = {
                     lineStringsMap: {},
-                    createLine: function(points){
+                    createLine: function(path_points, line_position_ids, udid){
                         var polylineoptions = {
-                        	path: points,
+                        	path: path_points,
                             strokeColor: "#3366FF", 
                             strokeOpacity: 0.8,       
                             strokeWeight: 4,        
@@ -191,8 +178,8 @@
                         if(renderLineDots){
                             // assume points.length > 0
                             var dotsData = new Array();
-                            for(i in points){
-                                var m = {lnglat:points[i]/*,name:tag + i*/};
+                            for(i in path_points){
+                                var m = {lnglat:path_points[i],name:udid + "$" + line_position_ids[i]};
                                 dotsData.push(m);
                             }
                             dotsData.shift();
@@ -206,26 +193,43 @@
                                 zooms:[11],
                                 zIndex: 999
                             });
-                            /*
-                            var marksInfo = new AMap.Marker({
-                                content:'',
-                                map:map
+                            dots.on('click', function(e){
+                                //alert(e.data['name']);
+                                // console.log(e);
+
+                                //var data = JSON.stringify({"udid": e.data['name']});
+                                var data = {"udid": e.data['name']};
+                                //FIXME - Correct API URL
+                                var url = dataURL;
+                                var urlparts= url.split('?'); // remove the parameters in dataURL
+                                if (urlparts.length>=2) {
+                                    url = urlparts.shift();
+                                }
+                                $.get(url,data,function(result){
+                                    //console.log(result);
+                                    var marker = e.target;
+                                    var lnglat = e.data.lnglat;
+                                    var device_feature_properties = result['features'][0]['properties'];
+                                    marker.extData = device_feature_properties;
+                                    var aprs = device_feature_properties['aprs']
+                                    var event = {target: marker, lnglat: lnglat};
+                                    if(typeof aprs != "undefined") {
+                                        showAprsInfoWindowOnMarkerClicked(event);
+                                    }else{
+                                        showStandardInfoWindowOnMarkerClicked(event);
+                                    }
+                                });
                             });
-                            marks.on('mouseover',function(e){
-                                marksInfo.setPosition(e.data.lnglat);
-                                marksInfo.setLabel({content:e.data.name});
-                            });
-                            */
-                            line.setExtData({dots:dots});                            
+                            line.setExtData({dots:dots});
                         }
                         return line;
                     },
                     
-                    render: function(points, tag) {
-                        if (points.length == 0) {
+                    render: function(path_points, line_position_ids, udid) {
+                        if (path_points.length == 0) {
                             return;
                         };
-                        var polyline = this.createLine(points);
+                        var polyline = this.createLine(path_points,line_position_ids, udid);
                         if(typeof tag != "undefined"){
                             this.lineStringsMap[tag] = polyline;
                         }
@@ -237,155 +241,179 @@
                         return polyline;
                     },
                     
-                    append: function(point, tag){
-                    	if (typeof tag == "undefined"){
-                    		return;
-                    	}
-                    	var path = new Array(point); // this is one point
-                    	var polyline = this.lineStringsMap[tag];
-                    	if(typeof polyline == "undefined"){
-                    		polyline = this.createLine(path);
-                    		polyline.setMap(map);
-                    		this.lineStringsMap[tag] = polyline;
-                    	}else{
-                    		// update the line
-                    		path = polyline.getPath();
-                    		path.unshift(point); // append current point to the top element of path array
-                    		polyline.setPath(path);
+                    append: function(point, position_id, udid){
+                        if (typeof udid == "undefined"){
+                            return;
+                        }
+                        var path_points = new Array(point); // this is one point
+                        var line_position_ids = new Array(position_id); // the associated line position id
+                        var polyline = this.lineStringsMap[udid];
+                        if(typeof polyline == "undefined"){
+                            polyline = this.createLine(path_points,line_position_ids,udid);
+                            polyline.setMap(map);
+                            this.lineStringsMap[udid] = polyline;
+                        }else{
+                            // update the line
+                            path_points = polyline.getPath();
+                            path_points.unshift(point); // append current point to the top element of path array
+                            polyline.setPath(path_points);
 
                             // update the dots
                             var dots = polyline.getExtData().dots;
                             if(typeof dots != 'undefined'){
                                 var dotsData = dots.getData();
-                                dotsData.unshift({lnglat:path[1]}); // the second dot in line
+                                dotsData.unshift({lnglat:path_points[1],name:udid + "$" + position_id}); // the second dot in line
                                 dots.setData(dotsData);
-                            }                            
-                    	}
+                            }
+                        }
                     },
                 };
 
-                var setupCustomMarker = function(marker, feature) {
-                	var message = feature['properties']['message'];
-                	var markerSymbol = feature['properties']['marker-symbol'];
-                	var speed = feature['properties']['speed'];
-                	var course = feature['properties']['course'];
-                	var aprs = feature['properties']['aprs'];
-                	if(typeof aprs != "undefined"){
-                		// For APRS marker, use UDID as label
+                var showAprsInfoWindowOnMarkerClicked = function(event){
+                    // TODO - display power, gain,height
+                    infoWindow.setContent("");
+                    var device_feature_properties = event.target.extData;
+                    var lnglat = event.lnglat;
+
+                    var udid = device_feature_properties['udid'];
+                    var timestamp = device_feature_properties['timestamp'];
+                    var speed = device_feature_properties['speed'];
+                    var course = device_feature_properties['course'];
+                    var aprs = device_feature_properties['aprs'];
+
+                    var s = "<div class=\"marker-info\"><div><b>" + udid + "</b></div>";
+                    s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+                    s = s.concat("<div>",timestamp,"</div>");
+                    if((typeof speed != "undefined")){
+                        s = s.concat("<div><b>",speed," km/h ");
+                        if((typeof course != "undefined")){
+                            s = s.concat(course,"°");
+                        }
+                        s = s.concat("</b></div>");
+                    }
+                    s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
+                    s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
+                    s = s.concat("</div>");
+                    infoWindow.setContent(s);
+                    infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+                }
+
+                var showStandardInfoWindowOnMarkerClicked = function(event){
+                    infoWindow.setContent("");
+                    var device_feature_properties = event.target.extData;
+                    var lnglat = event.lnglat;
+
+                    var udid = device_feature_properties['udid'];
+                    var timestamp = device_feature_properties['timestamp'];
+                    var speed = device_feature_properties['speed'];
+                    var course = device_feature_properties['course'];
+                    var phone = device_feature_properties['phone'];
+                    var message = device_feature_properties['message'];
+
+                    var s = "<div class=\"marker-info\"> <div> 设备:" + udid + "</div>";
+                    s = s.concat("<div> 电话:<a href=\"tel:",phone,"\">",phone,"</a></div>");
+
+                    if((typeof speed != "undefined")){
+                        s = s.concat("<div>速度:",speed," km/h ");
+                        if((typeof course != "undefined")){
+                            s = s.concat(course,"°");
+                        }
+                        s = s.concat("</div>");
+                    }
+
+                    if(typeof message != "undefined"){
+                        s = s.concat("<div>信息:",message,"</div>");
+                    }
+                    s = s.concat("</div>")
+
+                    infoWindow.setContent(s);
+                    infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+                }
+
+                var setupDeviceMarker = function(marker, feature) {
+                    var device_feature_properties = feature['properties'];
+                    marker.extData = device_feature_properties;
+                    var aprs = device_feature_properties['aprs'];
+                    if(typeof aprs != "undefined"){
+                        // For APRS marker, use UDID as label
                         marker.setLabel({
                             offset:new AMap.Pixel(20,20),
                             content: "<div>" + feature['properties']['udid'] + "</div>"
                         });
-                		
-                		// Setup Info Content View
-                		// TODO - display power, gain,height
-                        marker.on("click",function(e) {
-                            infoWindow.setContent("");
-                            
-                            var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
-                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
-                            s = s.concat("<div>",feature['properties']['timestamp'],"</div>");
-                            // speed and course
-                            if((typeof speed != "undefined")){
-                            	s = s.concat("<div><b>",speed," km/h ");
-                            	if((typeof course != "undefined")){
-                            		s = s.concat(course,"°");
-                            	}
-                            	s = s.concat("</b></div>");
-                            }
-                            s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
-                            s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
-                            s = s.concat("</div>");
-                            infoWindow.setContent(s);
-                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
-                        });
-                		
-                		// Nasty code for APRS Icons - Should read from aprs['symbol'] first ?
-                        // var symbol = aprs['symbol'].split('_');
-                		var symbol = feature['properties']['marker-symbol'].split('_');
-                		var symbolIndex = parseInt(symbol[2]);
-                		var x = ((symbolIndex % 16) * (-24));
-                		var y = (Math.floor(symbolIndex / 16) * (-24)); 
-                        var markerIcon = new AMap.Icon({
-                        	size: [24,24],
-                        	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	imageSize:[384,144],
-                            image: "${assetPath(src: 'aprs/aprs-fi-sym')}" + symbol[1] + "@2x.png"
 
+                        // Nasty code for APRS Icons
+                        var symbol = feature['properties']['marker-symbol'].split('_');
+                        var symbolIndex = parseInt(symbol[2]);
+                        var x = ((symbolIndex % 16) * (-24));
+                        var y = (Math.floor(symbolIndex / 16) * (-24));
+                        var markerIcon = new AMap.Icon({
+                            size: [24,24],
+                            imageOffset: new AMap.Pixel(x - 1,y - 1),
+                            image: "${assetPath(src: 'aprs/aprs-fi-sym')}" + symbol[1] + "@2x.png",
+                            imageSize:[384,144]
                         });
                         marker.setIcon(markerIcon);
-                	}else{
-                		// For others, use username as label
+
+                        // Setup Info Content View
+                        marker.on("click",showAprsInfoWindowOnMarkerClicked);
+
+                    }else{
+                        // For others, use username as label
+                        var username = device_feature_properties['username']
                         marker.setLabel({
                             offset:new AMap.Pixel(12,25),
-                            content: "<div>" + feature['properties']['username'] + "</div>"
+                            content: "<div>" + username + "</div>"
                         });
-                		
-                        marker.on("click",function(e) {
-                            infoWindow.setContent("");
-                            var s = "<div class=\"marker-info\">"
-                            s = s.concat("<div>", feature['properties']['username']," ( <a href=\"tel:",feature['properties']['phone'],"\">",feature['properties']['phone'],"</a> )</div>");
-                            s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
-                            s = s.concat("<div>设备:", feature['properties']['udid'], "</div>");
-                            s = s.concat("<div>时间:", feature['properties']['timestamp'], "</div>");                            
-                            if((typeof speed != "undefined")){
-                            	s = s.concat("<div>速度:",speed," km/h ");
-                            	if((typeof course != "undefined")){
-                            		s = s.concat(course,"°");
-                            	}
-                            	s = s.concat("</div>");
-                            }
-                            
-                            if(typeof message != "undefined"){
-                            	s = s.concat("<div>信息:",message,"</div>");
-                            }
-                            s = s.concat("</div>")
-                            
-                            infoWindow.setContent(s);
-                            infoWindow.open(map, new AMap.LngLat(e['lnglat']['lng'], e['lnglat']['lat']));
-                        });
-                        
-                        if(typeof markerSymbol != "undefined"){
+
+                        // Customized marker symbol
+                        var symbol = device_feature_properties['marker-symbol'];
+                        if(typeof symbol != "undefined"){
                             var markerIcon = new AMap.Icon({
+                                //image : "http://webapi.amap.com/images/marker_sprite.png"
                                 size: [32,32],
-                                imageSize: [32,32],
-                                image : "${assetPath(src: 'map/')}" + feature['properties']['marker-symbol'] + ".png"
+                                image : "${assetPath(src: 'map/')}" + symbol + ".png",
+                                imageSize: [32,32]
                             });
-                            marker.setIcon(markerIcon);                        	
+                            marker.setIcon(markerIcon);
                         }
-                	}
+
+                        marker.on("click",showStandardInfoWindowOnMarkerClicked);
+                    }
                 };
 
                 var parseGEOJSON = function(geojson) {
                     if ("FeatureCollection" === geojson["type"]) {
                         for (var i = 0; i < geojson.features.length; i++) {
                             var feature = geojson.features[i];
-                            var tag = feature['properties']['udid'];
+                            var udid = feature['properties']['udid'];
+                            var coordinates = feature['geometry']['coordinates'];
                             if ("MultiPoint" === feature['geometry']['type']) {
-                                MultiPointRender.render(feature['geometry']['coordinates'], tag);
+                                MultiPointRender.render(coordinates, udid);
                             } else if ("Point" === feature['geometry']['type']) {
-                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
-                                setupCustomMarker(marker, feature);
+                                var marker = PointRender.render(coordinates, udid);
+                                setupDeviceMarker(marker, feature);
                             } else if ("LineString" === feature['geometry']['type']) {
-                                LineStringRender.render(feature['geometry']['coordinates'], tag);
+                                var line_position_ids = feature['properties']['position_ids'];
+                                LineStringRender.render(coordinates/*path_points*/, line_position_ids, udid);
                             }
                         };
+                        //map.setFitView();
                     };
                 };
-                
-                
-                
+
                 var updateGEOJSON = function(geojson) {
                     if ("FeatureCollection" === geojson["type"]) {
                         for (var i = 0; i < geojson.features.length; i++) {
                             var feature = geojson.features[i];
-                            var tag = feature['properties']['udid'];
+                            var udid = feature['properties']['udid'];
+                            var position_id = feature['properties']['position_id'];
                             if ("Point" === feature['geometry']['type']) {
-                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
-                                setupCustomMarker(marker, feature);
-                                
+                                var current_point = feature['geometry']['coordinates'];
+                                var marker = PointRender.render(current_point, udid);
+                                setupDeviceMarker(marker, feature);
+
                                 // update the line
-                                LineStringRender.append(feature['geometry']['coordinates'],tag)
+                                LineStringRender.append(current_point,position_id,udid)
                             }
                         };
                     };

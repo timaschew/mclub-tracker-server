@@ -90,10 +90,10 @@ public class IpService {
 //	private LocationObject queryGeoLocation(String cityNames){
 //		// http://api.map.baidu.com/geocoder?address=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E&output=json&key=g2fQ61PYZCgBwTY7YAk9c8n7&city=%E6%B5%99%E6%B1%9F%E6%9D%AD%E5%B7%9E
 //		LocationObject location = null;
-//		String apiURL = "http://api.map.baidu.com/geocoder";
+//		String mapApiURL = "http://api.map.baidu.com/geocoder";
 //		try {
 //			HttpClient client = new HttpClient();
-//			GetMethod httpget = new GetMethod(apiURL /*"http://api.map.baidu.com/geocoder"*/);
+//			GetMethod httpget = new GetMethod(mapApiURL /*"http://api.map.baidu.com/geocoder"*/);
 //			httpget.setRequestHeader("Accept-Charset", "utf-8,gb2312");
 //			
 //			List<NameValuePair> params = new ArrayList<NameValuePair>();

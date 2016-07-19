@@ -28,17 +28,6 @@
 				padding:0px 0px 0px 0px;
 				font: 10px arial,sans-serif;      
             }
-            .hamclub-copyrights{
-            	margin-left:50%;
-            	position: absolute;
-    			right: 15px;
-			    height: 16px;
-			    bottom: 0;
-			    font-size: 11px;
-			    line-height: 16px;
-			    font-family: Arial,sans-serif;
-			    z-index: 160;    
-            }
             .hamclub-toolbar{
                 width: 50%;
                 display: table;
@@ -51,7 +40,20 @@
                 z-index: 160;
                 opacity:0.9;
             }
+            .hamclub-copyrights{
+                margin-left:50%;
+                position: absolute;
+                right: 15px;
+                height: 16px;
+                bottom: 0;
+                font-size: 11px;
+                line-height: 16px;
+                font-family: Arial,sans-serif;
+                z-index: 160;
+            }
+            .hamclub-site-license{
 
+            }
         </style>
         <script language="javascript" type="text/javascript">
 			if(top.location!=self.location){
@@ -60,15 +62,14 @@
 			}
 		</script>
 
-        <script type="text/javascript" src="static/js/jquery-2.1.4.min.js">
+        <script type="text/javascript" src="assets/jquery-2.2.0.min.js">
         </script>
 
         <!-- Latest compiled and minified CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <link rel="stylesheet" href="assets/bootstrap.css">
         <!-- Optional theme -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
         <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <script src="assets/bootstrap.js"></script>
     </head>
     
     <body>
@@ -114,9 +115,9 @@
         <script type="text/javascript">
             $(function() {
 
-                var debug = false;
+                var debug = true;
                 
-                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/all?type=2";
+                var dataURL = "http://aprs2.mclub.to:20880/mtracker/api/geojson/ALL?type=2";
                 var serviceURL = "ws://aprs2.mclub.to:20880/mtracker/live0?type=2";
                 
                 if(debug){
@@ -131,7 +132,12 @@
                     //center: [120.20, 30.24],
                     //zoom: 11
                 });
-
+                map.on('moveend', function(e){
+                    var bounds = this.getBounds();
+                    //TODO - construct northwest and southeast points as parameter
+                    //alert(bounds.getSouthWest() + "," + bounds.getNorthEast());
+                    console.log(bounds.getSouthWest() + "," + bounds.getNorthEast());
+                });
                 /*
                 var customLayer = new AMap.CustomLayer({
                     map:map,
@@ -184,18 +190,18 @@
                             });
                             marker.setMap(map);
                         }
-                        //map.setFitView();
                         return marker;
                     },
                 };
 
                 var PointRender = {
                     pointsMap: {},
-                    render: function(point, tag) {
-                        if (!point || !tag) {
+                    render: function(point, udid) {
+                        // Create a marker or move to $position if exists
+                        if (!point || !udid) {
                             return;
                         };
-                        var marker = this.pointsMap[tag];
+                        var marker = this.pointsMap[udid];
                         if (typeof marker == "undefined") {
                             marker = new AMap.Marker({
                                 icon: "http://webapi.amap.com/images/marker_sprite.png",
@@ -203,9 +209,7 @@
                             });
                             marker.setPosition(point);
                             marker.setMap(map);
-                            if (tag) {
-                                this.pointsMap[tag] = marker;
-                            }
+                            this.pointsMap[udid] = marker;
                         } else {
                             marker.moveTo(point,1000);
                         }
@@ -213,12 +217,12 @@
                     },
                 };
 
-                var renderLineDots = false;
+                var renderLineDots = true;
                 var LineStringRender = {
                     lineStringsMap: {},
-                    createLine: function(points){
+                    createLine: function(path_points, line_position_ids, udid){
                         var polylineoptions = {
-                        	path: points,
+                        	path: path_points,
                             strokeColor: "#3366FF", 
                             strokeOpacity: 0.8,       
                             strokeWeight: 4,        
@@ -231,8 +235,8 @@
                         if(renderLineDots){
                             // assume points.length > 0
                             var dotsData = new Array();
-                            for(i in points){
-                                var m = {lnglat:points[i]/*,name:tag + i*/};
+                            for(i in path_points){
+                                var m = {lnglat:path_points[i],name:udid + "$" + line_position_ids[i]};
                                 dotsData.push(m);
                             }
                             dotsData.shift();
@@ -246,28 +250,39 @@
                                 zooms:[11],
                                 zIndex: 999
                             });
-                            /*
-                            var marksInfo = new AMap.Marker({
-                                content:'',
-                                map:map
+                            dots.on('click', function(e){
+                                //alert(e.data['name']);
+                                console.log(e);
+
+                                //var data = JSON.stringify({"udid": e.data['name']});
+                                var data = {"udid": e.data['name']};
+                                $.get('api/geojson',data,function(result){
+                                    console.log(result);
+                                    var marker = e.target;
+                                    var lnglat = e.data.lnglat;
+                                    var device_feature_properties = result['features'][0]['properties'];
+                                    marker.extData = device_feature_properties;
+                                    var aprs = device_feature_properties['aprs']
+                                    var event = {target: marker, lnglat: lnglat};
+                                    if(typeof aprs != "undefined") {
+                                        showAprsInfoWindowOnMarkerClicked(event);
+                                    }else{
+                                        showStandardInfoWindowOnMarkerClicked(event);
+                                    }
+                                });
                             });
-                            marks.on('mouseover',function(e){
-                                marksInfo.setPosition(e.data.lnglat);
-                                marksInfo.setLabel({content:e.data.name});
-                            });
-                            */
-                            line.setExtData({dots:dots});                            
+                            line.setExtData({dots:dots});
                         }
                         return line;
                     },
                     
-                    render: function(points, tag) {
-                        if (points.length == 0) {
+                    render: function(path_points, line_position_ids, udid) {
+                        if (path_points.length == 0) {
                             return;
                         };
-                        var polyline = this.createLine(points);
-                        if(typeof tag != "undefined"){
-                            this.lineStringsMap[tag] = polyline;
+                        var polyline = this.createLine(path_points,line_position_ids, udid);
+                        if(typeof udid != "undefined"){
+                            this.lineStringsMap[udid] = polyline;
                         }
                         polyline.setMap(map);
                         var dots = polyline.getExtData().dots;
@@ -277,34 +292,147 @@
                         return polyline;
                     },
                     
-                    append: function(point, tag){
-                    	if (typeof tag == "undefined"){
+                    append: function(point,position_id,udid){
+                    	if (typeof udid == "undefined"){
                     		return;
                     	}
-                    	var path = new Array(point); // this is one point
-                    	var polyline = this.lineStringsMap[tag];
+                    	var path_points = new Array(point); // this is one point
+                        var line_position_ids = new Array(position_id); // the associated line position id
+                    	var polyline = this.lineStringsMap[udid];
                     	if(typeof polyline == "undefined"){
-                    		polyline = this.createLine(path);
+                    		polyline = this.createLine(path_points,line_position_ids,udid);
                     		polyline.setMap(map);
-                    		this.lineStringsMap[tag] = polyline;
+                    		this.lineStringsMap[udid] = polyline;
                     	}else{
                     		// update the line
-                    		path = polyline.getPath();
-                    		path.unshift(point); // append current point to the top element of path array
-                    		polyline.setPath(path);
+                            path_points = polyline.getPath();
+                            path_points.unshift(point); // append current point to the top element of path array
+                    		polyline.setPath(path_points);
 
                             // update the dots
                             var dots = polyline.getExtData().dots;
                             if(typeof dots != 'undefined'){
                                 var dotsData = dots.getData();
-                                dotsData.unshift({lnglat:path[1]}); // the second dot in line
+                                dotsData.unshift({lnglat:path_points[1],name:udid + "$" + position_id}); // the second dot in line
                                 dots.setData(dotsData);
-                            }                            
+                            }
                     	}
                     },
                 }
 
-                var setupCustomMarker = function(marker, feature) {
+                var showAprsInfoWindowOnMarkerClicked = function(event){
+                    // TODO - display power, gain,height
+                    infoWindow.setContent("");
+                    var device_feature_properties = event.target.extData;
+                    var lnglat = event.lnglat;
+
+                    var udid = device_feature_properties['udid'];
+                    var timestamp = device_feature_properties['timestamp'];
+                    var speed = device_feature_properties['speed'];
+                    var course = device_feature_properties['course'];
+                    var aprs = device_feature_properties['aprs'];
+
+                    var s = "<div class=\"marker-info\"><div><b>" + udid + "</b></div>";
+                    s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+                    s = s.concat("<div>",timestamp,"</div>");
+                    if((typeof speed != "undefined")){
+                        s = s.concat("<div><b>",speed," km/h ");
+                        if((typeof course != "undefined")){
+                            s = s.concat(course,"°");
+                        }
+                        s = s.concat("</b></div>");
+                    }
+                    s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
+                    s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
+                    s = s.concat("</div>");
+                    infoWindow.setContent(s);
+                    infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+                }
+
+                var showStandardInfoWindowOnMarkerClicked = function(event){
+                    infoWindow.setContent("");
+                    var device_feature_properties = event.target.extData;
+                    var lnglat = event.lnglat;
+
+                    var udid = device_feature_properties['udid'];
+                    var timestamp = device_feature_properties['timestamp'];
+                    var speed = device_feature_properties['speed'];
+                    var course = device_feature_properties['course'];
+                    var phone = device_feature_properties['phone'];
+                    var message = device_feature_properties['message'];
+
+                    var s = "<div class=\"marker-info\"> <div> 设备:" + udid + "</div>";
+                    s = s.concat("<div> 电话:<a href=\"tel:",phone,"\">",phone,"</a></div>");
+
+                    if((typeof speed != "undefined")){
+                        s = s.concat("<div>速度:",speed," km/h ");
+                        if((typeof course != "undefined")){
+                            s = s.concat(course,"°");
+                        }
+                        s = s.concat("</div>");
+                    }
+
+                    if(typeof message != "undefined"){
+                        s = s.concat("<div>信息:",message,"</div>");
+                    }
+                    s = s.concat("</div>")
+
+                    infoWindow.setContent(s);
+                    infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+                }
+
+                var setupDeviceMarker = function(marker, feature) {
+                    var device_feature_properties = feature['properties'];
+                    marker.extData = device_feature_properties;
+                    var aprs = device_feature_properties['aprs'];
+                    if(typeof aprs != "undefined"){
+                        // For APRS marker, use UDID as label
+                        marker.setLabel({
+                            offset:new AMap.Pixel(20,20),
+                            content: "<div>" + feature['properties']['udid'] + "</div>"
+                        });
+
+                        // Nasty code for APRS Icons
+                        var symbol = feature['properties']['marker-symbol'].split('_');
+                        var symbolIndex = parseInt(symbol[2]);
+                        var x = ((symbolIndex % 16) * (-24));
+                        var y = (Math.floor(symbolIndex / 16) * (-24));
+                        var markerIcon = new AMap.Icon({
+                            size: [24,24],
+                            imageOffset: new AMap.Pixel(x - 1,y - 1),
+                            image: "assets/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
+                            imageSize:[384,144]
+                        });
+                        marker.setIcon(markerIcon);
+
+                        // Setup Info Content View
+                        marker.on("click",showAprsInfoWindowOnMarkerClicked);
+
+                    }else{
+                        // For others, use username as label
+                        var username = device_feature_properties['username']
+                        marker.setLabel({
+                            offset:new AMap.Pixel(12,25),
+                            content: "<div>" + username + "</div>"
+                        });
+
+                        // Customized marker symbol
+                        var symbol = device_feature_properties['marker-symbol'];
+                        if(typeof symbol != "undefined"){
+                            var markerIcon = new AMap.Icon({
+                                //image : "http://webapi.amap.com/images/marker_sprite.png"
+                                size: [32,32],
+                                image : "assets/map/" + symbol + ".png",
+                                imageSize: [32,32]
+                            });
+                            marker.setIcon(markerIcon);
+                        }
+
+                        marker.on("click",showStandardInfoWindowOnMarkerClicked);
+                    }
+                };
+
+                var setupDeviceMarker2 = function(marker, feature) {
                 	var message = feature['properties']['message'];
                 	var symbol = feature['properties']['marker-symbol'];
                 	var speed = feature['properties']['speed'];
@@ -319,8 +447,8 @@
                 		
                 		// Setup Info Content View
                 		// TODO - display power, gain,height
-                		// TODO - display speed and course
                         marker.on("click",function(e) {
+                            console.log(e);
                             infoWindow.setContent("");
                             
                             var s = "<div class=\"marker-info\"><div><b>" + feature['properties']['udid'] + "</b></div>";
@@ -349,7 +477,7 @@
                         var markerIcon = new AMap.Icon({
                         	size: [24,24],
                         	imageOffset: new AMap.Pixel(x - 1,y - 1),
-                        	image: "images/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
+                        	image: "assets/aprs/aprs-fi-sym" + symbol[1] + "@2x.png",
                         	imageSize:[384,144]
                         });
                         marker.setIcon(markerIcon);
@@ -386,7 +514,7 @@
                             var markerIcon = new AMap.Icon({
                                 //image : "http://webapi.amap.com/images/marker_sprite.png"
                                 size: [32,32],
-                            	image : "images/map/" + feature['properties']['marker-symbol'] + ".png",
+                            	image : "assets/map/" + feature['properties']['marker-symbol'] + ".png",
                             	imageSize: [32,32]
                             });
                             marker.setIcon(markerIcon);                        	
@@ -398,14 +526,16 @@
                     if ("FeatureCollection" === geojson["type"]) {
                         for (var i = 0; i < geojson.features.length; i++) {
                             var feature = geojson.features[i];
-                            var tag = feature['properties']['udid'];
+                            var udid = feature['properties']['udid'];
+                            var coordinates = feature['geometry']['coordinates'];
                             if ("MultiPoint" === feature['geometry']['type']) {
-                                MultiPointRender.render(feature['geometry']['coordinates'], tag);
+                                MultiPointRender.render(coordinates, udid);
                             } else if ("Point" === feature['geometry']['type']) {
-                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
-                                setupCustomMarker(marker, feature);
+                                var marker = PointRender.render(coordinates, udid);
+                                setupDeviceMarker(marker, feature);
                             } else if ("LineString" === feature['geometry']['type']) {
-                                LineStringRender.render(feature['geometry']['coordinates'], tag);
+                                var line_position_ids = feature['properties']['position_ids'];
+                                LineStringRender.render(coordinates/*path_points*/, line_position_ids, udid);
                             }
                         };
                         //map.setFitView();
@@ -416,13 +546,15 @@
                     if ("FeatureCollection" === geojson["type"]) {
                         for (var i = 0; i < geojson.features.length; i++) {
                             var feature = geojson.features[i];
-                            var tag = feature['properties']['udid'];
+                            var udid = feature['properties']['udid'];
+                            var position_id = feature['properties']['position_id'];
                             if ("Point" === feature['geometry']['type']) {
-                                var marker = PointRender.render(feature['geometry']['coordinates'], tag);
-                                setupCustomMarker(marker, feature);
+                                var current_point = feature['geometry']['coordinates'];
+                                var marker = PointRender.render(current_point, udid);
+                                setupDeviceMarker(marker, feature);
                                 
                                 // update the line
-                                LineStringRender.append(feature['geometry']['coordinates'],tag)
+                                LineStringRender.append(current_point,position_id,udid)
                             }
                         };
                     };
@@ -501,7 +633,7 @@
                 };
 
                 // init entry point
-               var init = function(){
+                var init = function(){
                 	$.get(dataURL,function(data) {
                 		parseGEOJSON(data);
                 		PushService.connect();

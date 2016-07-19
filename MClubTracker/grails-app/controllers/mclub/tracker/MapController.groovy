@@ -120,7 +120,7 @@ class MapController {
 			}
 			
 			// just pass the map id to action:geojson
-			MapConfig mapConfig = new MapConfig(title:"Tracker Map", apiURL:generateMapAPIURL());
+			MapConfig mapConfig = new MapConfig(title:"Tracker Map", mapApiURL:generateMapAPIURL());
 			if(map.name) mapConfig.title = "${map.name} Map";
 			mapConfig.serviceURL = generateMapLiveServiceURL([map:map.uniqueId]);// generate the websocket url with live0?map=xxx
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[map:map.uniqueId]);// generate the geojson?map=xxx
@@ -149,7 +149,7 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", apiURL:generateMapAPIURL());
+		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", mapApiURL:generateMapAPIURL());
 
 		if(!id && q){
 			// map/aprs?q=bg5
@@ -174,6 +174,7 @@ class MapController {
 			}
 			
 		}else{
+			// TODO - determin by map ranges
 			// detect remote location by address
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
@@ -244,7 +245,7 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"mClub Map",apiURL:generateMapAPIURL());
+		MapConfig mapConfig = new MapConfig(title:"mClub Map", mapApiURL:generateMapAPIURL());
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id, type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id, type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
@@ -297,7 +298,7 @@ class MapConfig{
 	String title;
 	String serviceURL;
 	String dataURL;
-	String apiURL;
+	String mapApiURL;
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
 	String copyrights;
