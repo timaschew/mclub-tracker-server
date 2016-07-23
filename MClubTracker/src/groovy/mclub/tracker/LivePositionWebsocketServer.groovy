@@ -121,16 +121,15 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 				}
 			}else{
 				// compatible with old behavior
-				filter = new TrackerDeviceFilter();
 				if(params.get("udid")){
+					filter = new TrackerDeviceFilter();
 					filter.udid = params["udid"][0];
+					if(params.get("type")){
+						String t = params["type"][0];
+						try{filter.type = Integer.parseInt(t);}catch(Exception e){}
+					}
 				}
-				if(params.get("type")){
-					String t = params["type"][0];
-					try{filter.type = Integer.parseInt(t);}catch(Exception e){}
-				}
-				
-				if(filter.udid || filter.type){
+				if(filter){
 					sessionEntry.filter = filter;
 				}
 			}
@@ -144,27 +143,73 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 		if(log.isDebugEnabled()){
 			log.debug "Received: " + message
 		}
-		String resp;
+		String resp = null;
 		if("PING".equals(message)){
 			// this is a ping message;
 			resp = "PONG";
 		}else{
-			resp = "echo [" + clientSession.getId() + "]"  + message;
+			// trying parse as JSON {"filter":{"type":1,"udid":"xxxx"}};
+			try{
+				def req = JSON.parse(message);
+				if(req instanceof Map) {
+					def val = req['filter']
+					if(val){
+						TrackerDeviceFilter filter = null;
+						String mapId = val['mapId'];
+						String udid = val['udid'];
+						double[] bounds = val['bounds'];
+
+						if(mapId && mapId.length() > 0){
+							// Load map by id and construct the filter;
+							TrackerMap map = TrackerMap.findByUniqueId(val['mapId']);
+							if(map){
+								def filters = map.loadFilters();
+								filter = new CompisiteTrackerDeviceFilter(filters:filters);
+							}else{
+								log.info("No map filter found for id: ${mapId}");
+							}
+						}else if(udid && udid.length() >0 && !"all".equalsIgnoreCase(udid)){
+							filter = new TrackerDeviceFilter(udid:udid,type:val['type']);
+						}else if(bounds && bounds.length == 4){
+							String s = bounds.join(',');
+							filter = new TrackerDeviceFilter(bounds:s);
+							log.debug("websock filter bounds: ${s}");
+						}
+						if(filter){
+							// replace the filter with current one
+							SessionEntry se = sessions[clientSession.id];
+							if(se){
+								se.filter = filter;
+							}else{
+								se = new SessionEntry(session:clientSession,filter:filte);
+								sessions[clientSession.id] = se;
+							}
+						}
+					}
+				}
+			}catch(Exception e ){
+				resp = "Parse filter failed, message: " + message;
+				log.info(resp);
+			}
+			//resp = "echo [" + clientSession.getId() + "]"  + message;
 		}
-		try{
-			RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
-			remote.setSendTimeout(5000);
-			remote.sendText(resp);
+
+		if(resp){
+			try{
+				RemoteEndpoint.Async remote = clientSession.getAsyncRemote();
+				remote.setSendTimeout(5000);
+				remote.sendText(resp);
 //			remote.sendText(message, new SendHandler(){
 //				public void onResult(javax.websocket.SendResult result){
-//					
+//
 //				}
 //			});
-		}catch(Exception e){
-			// ignore
-			log.warn("Error send message to client[${clientSession.getId()}], ${e.getMessage()}.");
+			}catch(Exception e){
+				// ignore
+				log.warn("Error send message to client[${clientSession.getId()}], ${e.getMessage()}.");
+			}
 		}
-		
+
 		//TODO - read input as JSON and parse to {"filter":{"type":1,"udid":"xxxx"}};
 		/*
 		def myMsg=[:]
