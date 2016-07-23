@@ -39,6 +39,13 @@
                 z-index: 160;
                 opacity:0.9;
             }
+            .hamclub-ui{
+                display: table;
+                margin-left: auto;
+                margin-right: auto;
+                z-index: 160;
+                opacity:0.99;
+            }
             .hamclub-copyrights{
             	margin-left:50%;
             	position: absolute;
@@ -71,20 +78,25 @@
     </head>
     
     <body>
-        <div id="mapContainer">
-        </div>
-        <script type="text/javascript" src="${mapConfig.mapApiURL}">
-        </script>
+        <div id="mapContainer"></div>
+        <script type="text/javascript" src="${mapConfig.mapApiURL}"></script>
 
         <script type="text/javascript" >
             var mapConfig = {
                 dataURL: "<%=mapConfig.dataURL%>",
                 serviceURL: "<%=mapConfig.serviceURL%>",
-                aprsMarkerImagePath: "${assetPath(src: 'aprs/aprs-fi-sym')}",
-                standardMakerImagePath: "${assetPath(src: 'map/')}",
-                center:<%=mapConfig.centerCoordinate.toString()%>,
-                zoom:<%=mapConfig.mapZoomLevel%>,
-                renderLineDots: <%=mapConfig.showLineDots%>
+                aprsMarkerImagePath: "${mapConfig.aprsMarkerImagePath}",
+                standardMakerImagePath: "${mapConfig.standardMakerImagePath}",
+                centerCoordinate:<%=mapConfig.centerCoordinate.toString()%>,
+                mapZoomLevel:<%=mapConfig.mapZoomLevel%>,
+                showLineDots: <%=mapConfig.showLineDots%>,
+                defaultMarkerIcon: "${mapConfig.defaultMarkerIcon}"
+            };
+
+            var mapFilter = {
+                udid: "${mapFilter['udid']}",
+                bounds:"${mapFilter['bounds']}",
+                mapId:"${mapFilter['mapId']}"
             };
         </script>
 
@@ -95,9 +107,9 @@
 
         <!-- Search Form -->
         <div class="col-lg-6, hamclub-toolbar">
-            <form name="query_form" id="query_form">
+            <form name="query_form" id="query_form" method="post">
                 <div class="input-group">
-                    <input name="q" id="query_text" type="text" class="form-control" placeholder="搜索..." />
+                    <input name="q" id="query_text" type="text" class="form-control" placeholder="搜索 呼号/城市...""/>
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="button" id="search_button">Go!</button>
                     </span>
@@ -105,14 +117,16 @@
             </form>
         </div><!-- /.col-lg-6 -->
         <script>
+        $(function(){
             $('#search_button').click(function() {
-                //var q = $("#query_text").val();
-                //if(q.length > 0){
-                    $("#query_form").submit();
-                //}
+                return submitQuery();
             });
-        </script>
 
+            var submitQuery = function() {
+                $("#query_form").submit();
+            };
+        });
+        </script>
     <%if(mapConfig.copyrights){%>
         <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
         <%}%>

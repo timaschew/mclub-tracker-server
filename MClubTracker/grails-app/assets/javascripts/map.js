@@ -4,8 +4,8 @@
 $(function() {
     var map = new AMap.Map('mapContainer', {
         resizeEnable: true,
-        center: mapConfig.center,
-        zoom: mapConfig.zoom
+        center: mapConfig.centerCoordinate,
+        zoom: mapConfig.mapZoomLevel
     });
 
     map.on('moveend', function(e){
@@ -176,7 +176,7 @@ $(function() {
             // prepare the dots data
             var line = new AMap.Polyline(polylineoptions);
 
-            if(mapConfig.renderLineDots){
+            if(mapConfig.showLineDots){
                 // assume points.length > 0
                 var dotsData = new Array();
                 for(i in path_points){
@@ -480,6 +480,4 @@ $(function() {
             }
         });
     };
-    //init();
-    //window.addEventListener("load",init,false);
 });

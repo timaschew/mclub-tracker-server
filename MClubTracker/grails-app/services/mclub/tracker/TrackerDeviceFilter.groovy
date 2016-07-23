@@ -18,20 +18,30 @@ public class TrackerDeviceFilter{
 	//Double lat1,lon1,lat2,lon2;
 	Date activeTime;
 
+	private boolean boundsContainingCoordinate(double lat, double lon){
+		Double[] b = getBoundsCoordinate();
+		if(b){
+			double lat1 = b[0];
+			double lon1 = b[1];
+			double lat2 = b[2];
+			double lon2 = b[3];
+			return (lat <= lat1) && (lon >= lon1) && (lat >= lat2) && (lon <= lon2);
+		}
+		return false;
+	}
+
 	public boolean accept(PositionData positionData){
-		
-		// UDID available
-		if(udid){
+		if(bounds) {
+			return boundsContainingCoordinate(positionData.latitude,positionData.longitude);
+		}else if(udid){
+			// UDID available
 			if(udid.equalsIgnoreCase("ALL") ){
 				return true;
-			//} else if(udid.equalsIgnoreCase(positionData.udid)){
-			//	return true;
 			} else if(positionData.udid.startsWith(udid)){
 				return true;
 			}
 		}
-		
-		// just only have the type
+		// just only have the type - should be DEPRECATED!
 		if(udid == null && type > 0){
 			return type == positionData.deviceType;
 		}
