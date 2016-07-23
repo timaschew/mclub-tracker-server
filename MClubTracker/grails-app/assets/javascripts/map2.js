@@ -549,14 +549,21 @@ $(function() {
     var dataRequest = null;
     // init entry point
     map_reload = function(init_load){
-        var data = {};
+        if(dataRequest){
+            dataRequest.abort();
+            dataRequest = null;
+            console.log("abort previous request");
+        }
+
+        // appending the map bounds to query parameter
+        var data = {}
         if(mapFilter['bounds']){
             data['bounds'] = mapFilter['bounds'].join(',');
         }
+
         if(init_load == true){
             PushService.disconnect(true);
         }
-        //map_clear();
         console.log("map loading data...")
         dataRequest = $.ajax({
             url: mapConfig.dataURL,
@@ -569,7 +576,7 @@ $(function() {
                 if(init_load == true) {
                     PushService.connect();
                 }else{
-                    PushService.subscribe();
+                    PushService.subscribe(); // update the subscribe filter
                 }
             },
             error: function(data,status){
@@ -585,7 +592,11 @@ $(function() {
         LineStringRender.clear();
     }
 
-    map_query = function(url,query){
+    map_query = function(query){
+        if(!query){
+            return;
+        }
+        var url = mapConfig.queryURL;
         $.get(url,{q:query},function(data){
             var e = data['errorMessage'];
             if(e){
@@ -594,6 +605,7 @@ $(function() {
             }else if(data['mapConfig']){
                 mapConfig = data['mapConfig'];
                 mapFilter = data['mapFilter'];
+                mapFilter['bounds'] = convertBounds(map.getBounds());
                 //map_clear();
                 if(map.center != mapConfig.centerCoordinate){
                     map.setCenter(mapConfig.centerCoordinate);

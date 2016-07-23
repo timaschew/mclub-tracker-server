@@ -85,6 +85,7 @@
             var mapConfig = {
                 dataURL: "<%=mapConfig.dataURL%>",
                 serviceURL: "<%=mapConfig.serviceURL%>",
+                queryURL: "${mapConfig.queryURL}",
                 aprsMarkerImagePath: "${mapConfig.aprsMarkerImagePath}",
                 standardMakerImagePath: "${mapConfig.standardMakerImagePath}",
                 centerCoordinate:<%=mapConfig.centerCoordinate.toString()%>,
@@ -94,9 +95,9 @@
             };
 
             var mapFilter = {
-                udid: "${mapFilter['udid']}",
-                bounds:"${mapFilter['bounds']}",
-                mapId:"${mapFilter['mapId']}"
+                udid: "${mapFilter.udid}",
+                bounds:"${mapFilter.bounds}",
+                mapId:"${mapFilter.mapId}"
             };
         </script>
 
@@ -127,8 +128,7 @@
 
             var submitQuery = function(){
                 var q = $("#query_text").val();
-                var url = "${createLink(controller:'map',action:'query')}";
-                map_query(url,q);
+                map_query(q);
                 return false;
             }
         });

@@ -124,8 +124,10 @@ class MapController {
 			}
 			
 			// just pass the map id to action:geojson
-			MapConfig mapConfig = new MapConfig(title:"Tracker Map", mapApiURL:generateMapAPIURL());
-			if(map.name) mapConfig.title = "${map.name} Map";
+			MapConfig mapConfig = buildDefaultMapConfig();
+			if(map.name){
+				mapConfig.title = "${map.name} Map";
+			}
 			mapConfig.serviceURL = generateMapLiveServiceURL([map:map.uniqueId]);// generate the websocket url with live0?map=xxx
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[map:map.uniqueId]);// generate the geojson?map=xxx
 			// TODO center the map ?
@@ -133,13 +135,7 @@ class MapController {
 				// detect remote client location;
 				detectRemoteClientLocation();
 			}
-			mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
-			mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
-			mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 			render view:"map", model:[mapConfig:mapConfig];
-			//render (text:'Not implemented yet', status:501);
-			
-			mapConfig.showLineDots = detectShowLineDots();
 		}else{
 			render(text:'map not found', status:404)
 		}
@@ -153,6 +149,7 @@ class MapController {
 		mapConfig.mapApiURL = generateMapAPIURL();
 		mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
 		mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
+        mapConfig.queryURL = grailsLinkGenerator.link(controller:'map',action:'query');
 		mapConfig.showLineDots = detectShowLineDots();
 		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
@@ -169,7 +166,7 @@ class MapController {
 	 */
 	def query(String q){
 		MapConfig mapConfig = buildDefaultMapConfig();
-		def mapFilter = [:];
+		def mapFilter = new MapFilter();
 		def result = [mapConfig:mapConfig,mapFilter:mapFilter];
 
 		if(!q){
@@ -182,7 +179,7 @@ class MapController {
 
 		if(q.length() >=2 && TextHelper.isChinese(q)){
 			// input is chinese location name
-			def lonlat = ipService.addressToLocation(q);
+            List<Double> lonlat = ipService.addressToLocation(q);
 			if(lonlat){
 				mapConfig.centerCoordinate = [lonlat[0],lonlat[1]];
 				mapConfig.mapZoomLevel = 10;
@@ -190,7 +187,7 @@ class MapController {
 				result['errorMessage'] = "NO data found";
 			}
 		}else if("all".equalsIgnoreCase(q)){
-			mapFilter['udid'] = q;
+			mapFilter.udid = q;
 			// same as the default map config
 //			// query all
 //			mapConfig['serviceURL'] = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
@@ -215,12 +212,12 @@ class MapController {
 				if(dev.latestPositionId){
 					TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
 					if(pos){
-						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
+						mapConfig.centerCoordinate = [((int)(pos.longitude * 1000000)) / 1000000.0,(int)(pos.latitude * 1000000)/1000000.0];
 						mapConfig.mapZoomLevel = 10;
 					}
 				}
 				result['count'] = devices.size();
-				mapFilter['udid'] = id;
+				mapFilter.udid = id;
 			}else{
 				result['errorMessage'] = "NO data found"
 			}
@@ -231,15 +228,16 @@ class MapController {
 	/*
 	 * The APRS Map
 	 */
-	def aprs(String id /*device id*/, String q, String lat, String lon, String bounds){
+	def aprs(String id /*device id*/, String q, String bounds){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", mapApiURL:generateMapAPIURL());
+		MapConfig mapConfig = buildDefaultMapConfig();
+		mapConfig.title = "APRS Map - hamclub.net";
 		mapConfig.mapZoomLevel = 10;
 
-		def mapFilter = [:];
+		MapFilter mapFilter = new MapFilter()
 
 		if(!id && q){
 			// if q=杭州, will query by that place
@@ -264,7 +262,7 @@ class MapController {
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 
-			mapFilter['udid'] = id;
+			mapFilter.udid = id;
 
 			TrackerDeviceFilter filter = new TrackerDeviceFilter(udid:id);
 			def devices = trackerService.findTrackerDevices(filter);
@@ -283,7 +281,7 @@ class MapController {
 			// query by map region
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS,bounds:bounds /*TODO - websocket server not supported yet*/]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',bounds:bounds,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
-			//mapFilter['bounds'] = bounds.toDoubleArray();
+			//mapFilter.bounds = bounds.toDoubleArray();
 
 		}else{
 			// detect remote location by address
@@ -309,97 +307,27 @@ class MapController {
 		render view:"map", model:[mapConfig:mapConfig,mapFilter:mapFilter];
 	}
 
-
-	def aprs2(String id /*device id*/, String q, String lat, String lon, String bounds){
+    /**
+     * Map version2 supports dynamic query
+     * @return
+     */
+	def aprs2(){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
-
-		MapConfig mapConfig = new MapConfig(title:"APRS Map - hamclub.net", mapApiURL:generateMapAPIURL());
+		MapConfig mapConfig = buildDefaultMapConfig();
+		mapConfig.title = "APRS Map - hamclub.net";
 		mapConfig.mapZoomLevel = 10;
+        mapConfig.serviceURL = generateMapLiveServiceURL([:]);
+        mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[:]);
 
-		def mapFilter = [:];
+        MapFilter mapFilter = new MapFilter();
+        //mapFilter.type = TrackerDevice.DEVICE_TYPE_APRS;
 
-		if(!id && q){
-			// if q=杭州, will query by that place
-			if(q.length() >=2 && TextHelper.isChinese(q)){
-				// input is chinese location name
-				def lonlat = ipService.addressToLocation(q);
-				if(lonlat){
-					mapConfig.centerCoordinate = [lonlat[0],lonlat[1]];
-					mapConfig.mapZoomLevel = 10;
-				}else{
-					flash.message = "nothing found";
-					id = 'none';
-				}
-			}else{
-				// map/aprs?q=bg5
-				// input is the call sign
-				id = q.toUpperCase();
-			}
-		}
-
-		if(id && !"all".equalsIgnoreCase(id)){
-			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id,type:TrackerDevice.DEVICE_TYPE_APRS]);
-			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
-
-			mapFilter['udid'] = id;
-
-			TrackerDeviceFilter filter = new TrackerDeviceFilter(udid:id);
-			def devices = trackerService.findTrackerDevices(filter);
-			if(devices?.size() > 0){
-				if(false) {
-					// Calculate the center point of devices
-					double maxLat = -90, maxLon = -180, minLat = 90, minLon = 180;
-					for (TrackerDevice dev in devices) {
-						LatLong latlon = GeoHash.decodeHash(dev.locationHash);
-						if (latlon.lat > maxLat) maxLat = latlon.lat;
-						if (latlon.lon > maxLon) maxLon = latlon.lon;
-						if (latlon.lat < minLat) minLat = latlon.lat;
-						if (latlon.lon < minLon) minLon = latlon.lon;
-					}
-					log.info("${maxLat},${maxLon},${minLat},${minLon}");
-					mapConfig.centerCoordinate = [(maxLon + minLon) / 2, (maxLat + minLat) / 2];
-					mapConfig.mapZoomLevel = 10;
-				}else{
-                    def dev = devices[0];
-                    if(dev.latestPositionId){
-                        TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
-                        if(pos){
-                            mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
-                            mapConfig.mapZoomLevel = 10;
-                        }
-                    }
-				}
-			}
-		}else if(bounds){
-			// determin by map ranges
-			// query by map region
-			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS,bounds:bounds /*TODO - websocket server not supported yet*/]);
-			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',bounds:bounds,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
-			//mapFilter['bounds'] = bounds.toDoubleArray();
-
-		}else{
-			// detect remote location by address
-			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
-			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
-		}
-
-		// load the default center point
-		/*
-		if(!mapConfig.centerCoordinate){
-			mapConfig.centerCoordinate = detectRemoteClientLocation(); // center of hangzhou
-			mapConfig.mapZoomLevel = 8;
-		}
-		*/
-		mapConfig.showLineDots = detectShowLineDots();
 		if(log.isInfoEnabled()){
 			// detect remote client location;
 			detectRemoteClientLocation();
 		}
-		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
-		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
-		mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 		render view:"map2", model:[mapConfig:mapConfig,mapFilter:mapFilter];
 	}
 	
@@ -448,7 +376,8 @@ class MapController {
 			return;
 		}
 		
-		MapConfig mapConfig = new MapConfig(title:"mClub Map", mapApiURL:generateMapAPIURL());
+		MapConfig mapConfig = buildDefaultMapConfig();
+		mapConfig.title = "mClub Map";
 		if(id){
 			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id, type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id, type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
@@ -457,7 +386,6 @@ class MapController {
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all', type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
 		}
 		mapConfig.mapZoomLevel = 11;
-		mapConfig.showLineDots = this.detectShowLineDots();
 		render view:"map", model:[mapConfig:mapConfig];
 	}
 	
@@ -501,6 +429,7 @@ class MapConfig{
 	String title;
 	String serviceURL;
 	String dataURL;
+    String queryURL;
 	String mapApiURL;
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
@@ -511,4 +440,11 @@ class MapConfig{
 	String defaultMarkerIcon = "https://webapi.amap.com/images/marker_sprite.png" //TODO - configurable
 	String aprsMarkerImagePath;
 	String standardMakerImagePath;
+}
+
+class MapFilter{
+    String udid;
+    double[] bounds;
+    String mapId;
+    //int type;
 }
