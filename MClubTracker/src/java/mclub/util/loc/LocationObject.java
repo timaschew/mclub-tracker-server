@@ -29,8 +29,8 @@ import java.util.Random;
  */
 public class LocationObject {
 	String addr;
-	String lat;
-	String lon;
+	Double lat;
+	Double lon;
 	/**
 	 * @return the addr
 	 */
@@ -46,25 +46,25 @@ public class LocationObject {
 	/**
 	 * @return the lat
 	 */
-	public String getLat() {
+	public Double getLat() {
 		return lat;
 	}
 	/**
 	 * @param lat the lat to set
 	 */
-	public void setLat(String lat) {
+	public void setLat(Double lat) {
 		this.lat = lat;
 	}
 	/**
 	 * @return the lon
 	 */
-	public String getLon() {
+	public Double getLon() {
 		return lon;
 	}
 	/**
 	 * @param lon the lon to set
 	 */
-	public void setLon(String lon) {
+	public void setLon(Double lon) {
 		this.lon = lon;
 	}
 	/* (non-Javadoc)
@@ -101,7 +101,7 @@ public class LocationObject {
 	public String getLatWithRandOffset(){
 		int x = rnd.nextInt(50000);
 		double offset = (double)(x - 25000) / 1000000.f;
-		String s = String.format("%.6f", Double.parseDouble(lat) + offset);
+		String s = String.format("%.6f", lat + offset);
 		//System.out.println(lat + "->" + s);
 		return s;
 	}
@@ -109,7 +109,7 @@ public class LocationObject {
 	public String getLonWithRandOffset(){
 		int x = rnd.nextInt(50000);
 		double offset = (double)(x - 25000) / 1000000.f;
-		String s = String.format("%.6f", Double.parseDouble(lon) + offset);
+		String s = String.format("%.6f", lon + offset);
 		//System.out.println(lon + "->" + s);
 		return s;
 	}

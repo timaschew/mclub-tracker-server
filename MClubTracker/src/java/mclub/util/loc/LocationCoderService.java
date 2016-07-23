@@ -175,10 +175,12 @@ public class LocationCoderService {
 						// construct the GeoLocation object
 						location = new LocationObject();
 						location.addr = addr;
-						location.lat = String.format("%.6f",
-								loc.getDouble("lat"));// new String(loc("lat");
-						location.lon = String.format("%.6f",
-								loc.getDouble("lng"));// loc.getString("lon");
+						location.lat = loc.getDouble("lat");
+						location.lon = loc.getDouble("lng");
+//						location.lat = String.format("%.6f",
+//								loc.getDouble("lat"));// new String(loc("lat");
+//						location.lon = String.format("%.6f",
+//								loc.getDouble("lng"));// loc.getString("lon");
 					}
 				}
 
