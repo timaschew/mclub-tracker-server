@@ -9,8 +9,12 @@ class UrlMappings {
 //			}
 //		}
 
+		"/map2"(controller:"map", action:'aprs2'){}
+
 		"/map/$id?"(controller:"map", action:'index'){}
 		"/map/aprs/$id?"(controller:"map", action:'aprs'){}
+
+		"/map/query"(controller:"map", action:'query'){}
 
 		"/map/all"(controller:"map", action:'all'){}
 		"/map/mclub"(controller:"map", action:'all'){}
