@@ -13,7 +13,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication;
  * @author shawn
  *
  */
-public class ConfigService {
+public class ConfigService implements ConfigServiceKeys{
 	GrailsApplication grailsApplication;
 	TaskService taskService;
 	
@@ -104,4 +104,13 @@ public class ConfigService {
 		}
 		return null;
 	}
+}
+
+public interface ConfigServiceKeys{
+	//TODO - move all configuration keys here
+	public static final String MAP_FORCE_SECURE = "tracker.map.forceSecure";
+	public static final String MAP_SHOW_LINE_DOTS = "tracker.map.showLineDots";
+	public static final String MAP_AMAP_API_URL = "tracker.map.amapApiUrl";
+
+	public static final String MAP_DEFAULT_MAP = "tracker.map.defaultMap";
 }
