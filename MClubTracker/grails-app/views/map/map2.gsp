@@ -97,7 +97,8 @@
             var mapFilter = {
                 udid: "${mapFilter.udid}",
                 bounds:"${mapFilter.bounds}",
-                mapId:"${mapFilter.mapId}"
+                mapId:"${mapFilter.mapId}",
+                type:${mapFilter.type}
             };
         </script>
 

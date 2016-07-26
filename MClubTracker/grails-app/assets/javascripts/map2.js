@@ -557,6 +557,12 @@ $(function() {
 
         // appending the map bounds to query parameter
         var data = {}
+        if(mapFilter['udid']){
+            data['udid'] = mapFilter['udid'];
+        }
+        if(mapFilter['type']){
+            data['type'] = mapFilter['type'];
+        }
         if(mapFilter['bounds']){
             data['bounds'] = mapFilter['bounds'].join(',');
         }
@@ -564,7 +570,7 @@ $(function() {
         if(init_load == true){
             PushService.disconnect(true);
         }
-        console.log("map loading data...")
+        console.log("map loading data from " + mapConfig.dataURL + " with params: " + JSON.stringify(data))
         dataRequest = $.ajax({
             url: mapConfig.dataURL,
             data:data,
@@ -572,7 +578,7 @@ $(function() {
                 dataRequest = null;
                 map_clear();
                 parseGEOJSON(data);
-                console.log("map loading data completed")
+                console.log("map load data completed")
                 if(init_load == true) {
                     PushService.connect();
                 }else{

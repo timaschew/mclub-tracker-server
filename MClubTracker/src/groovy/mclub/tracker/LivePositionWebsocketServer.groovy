@@ -157,11 +157,13 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 						TrackerDeviceFilter filter = null;
 						String mapId = val['mapId'];
 						String udid = val['udid'];
+						Integer type = val['type'];
+
 						double[] bounds = val['bounds'];
 
 						if(mapId && mapId.length() > 0){
 							// Load map by id and construct the filter;
-							TrackerMap map = TrackerMap.findByUniqueId(val['mapId']);
+							TrackerMap map = TrackerMap.findByUniqueId(mapId);
 							if(map){
 								def filters = map.loadFilters();
 								filter = new CompisiteTrackerDeviceFilter(filters:filters);
@@ -169,19 +171,19 @@ public class LivePositionWebsocketServer implements ServletContextListener, Mess
 								log.info("No map filter found for id: ${mapId}");
 							}
 						}else if(udid && udid.length() >0 && !"all".equalsIgnoreCase(udid)){
-							filter = new TrackerDeviceFilter(udid:udid,type:val['type']);
+							filter = new TrackerDeviceFilter(udid:udid,type:type);
 						}else if(bounds && bounds.length == 4){
 							String s = bounds.join(',');
-							filter = new TrackerDeviceFilter(bounds:s);
+							filter = new TrackerDeviceFilter(bounds:s,type:type);
 							log.debug("websock filter bounds: ${s}");
 						}
 						if(filter){
 							// replace the filter with current one
 							SessionEntry se = sessions[clientSession.id];
-							if(se){
+							if(se/*most likely*/){
 								se.filter = filter;
 							}else{
-								se = new SessionEntry(session:clientSession,filter:filte);
+								se = new SessionEntry(session:clientSession,filter:filter);
 								sessions[clientSession.id] = se;
 							}
 						}

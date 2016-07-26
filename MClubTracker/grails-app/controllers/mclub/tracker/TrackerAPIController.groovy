@@ -353,7 +353,21 @@ class TrackerAPIController {
 				filter.udid = null;
 			}
 
-			if(filter.udid == null){
+			if(filter.udid != null){
+				// query by udid, if udid contains '$', means load specific position id
+				if(filter.udid.indexOf('$') > 0){
+					String[] s = filter.udid.split('\\$');
+					filter.udid = s[0];
+					try{
+						positionId = Double.parseDouble(s[1])
+					}catch(Exception e){
+						// ignore the parse error
+						log.info("Error parsing position id from parameter: ${e.message}");
+					}
+				}
+				// load devices according to the filters
+				allDevices = trackerService.findTrackerDevices(filter);
+			}else{
 				// no udid specified, so check the bounds parameter
 				if(filter.bounds == null){
 					log.warn("geojson API received ALL data request, this is slow and should to be avoided!");
@@ -367,20 +381,6 @@ class TrackerAPIController {
 						}
 					}
 				}
-			}else{
-				// query by udid
-				if(filter.udid && filter.udid.indexOf('$') > 0){
-					String[] s = filter.udid.split('\\$');
-					filter.udid = s[0];
-					try{
-						positionId = Double.parseDouble(s[1])
-					}catch(Exception e){
-						// ignore the parse error
-						log.info("Error parsing position id from parameter: ${e.message}");
-					}
-				}
-				// load devices according to the filters
-				allDevices = trackerService.findTrackerDevices(filter);
 			}
 		}
 

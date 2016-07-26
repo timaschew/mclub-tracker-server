@@ -31,6 +31,30 @@ public class TrackerDeviceFilter{
 	}
 
 	public boolean accept(PositionData positionData){
+		// First check the type
+		if(type > 0 && type != positionData.deviceType){
+			return false;
+		}
+
+		// check udid;
+		if(udid && udid.length() > 0 && !"ALL".equalsIgnoreCase(udid)){
+			// UDID available
+			if(!positionData.udid.startsWith(udid)){
+				return false;
+			}
+		}
+
+		// check range
+		if(bounds && bounds.length() > 0){
+			if(!boundsContainingCoordinate(positionData.latitude,positionData.longitude)){
+				return false;
+			}
+		}
+
+		// the left is passed!
+		return true;
+
+		/*
 		if(bounds) {
 			return boundsContainingCoordinate(positionData.latitude,positionData.longitude);
 		}else if(udid){
@@ -46,6 +70,7 @@ public class TrackerDeviceFilter{
 			return type == positionData.deviceType;
 		}
 		return false;
+		*/
 	}
 
 	/**
@@ -53,7 +78,7 @@ public class TrackerDeviceFilter{
 	 * @return
 	 */
 	public Double[] getBoundsCoordinate(){
-		if(bounds){
+		if(bounds && bounds.length() > 0){
 			String[] s = bounds.split(",")
 			if(s.length == 4){
 				try{
