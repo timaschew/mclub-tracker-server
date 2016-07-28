@@ -2,6 +2,8 @@ package mclub.tracker
 import com.github.davidmoten.geo.Coverage
 import com.github.davidmoten.geo.GeoHash
 import com.github.davidmoten.geo.util.Preconditions
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.text.SimpleDateFormat
 import java.util.Map;
@@ -25,6 +27,7 @@ class TrackerService {
 	ConfigService configService;
 	def trackerDataService;
 	TrackerCacheService trackerCacheService;
+	private Logger log = LoggerFactory.getLogger(getClass());
 	
 	int mapCoordType = TrackerPosition.COORDINATE_TYPE_GCJ02;
 	
@@ -170,7 +173,7 @@ class TrackerService {
 		}
 		// Calculate the geo hashes covers the bounds
 		def coverHashes = GeoHash.coverBoundingBox(lat1,lon1,lat2,lon2).hashes;
-		log.debug("Cover hashes: ${coverHashes}")
+		log.debug("Bound [${lat1},${lon1},${lat2},${lon2}] cover hashes: ${coverHashes}")
 		def criteria = TrackerDevice.createCriteria();
 		def results = criteria.list{
 			gt('latestPositionTime',activeTime)
