@@ -1,0 +1,51 @@
+body{ margin:0; height:100%; width:100%; position:absolute; }
+body *{padding: none; margin: none;}
+#mapContainer{ position: absolute; top:0; left: 0; bottom:0; width:100%; }
+/*
+#toolBox{ position: absolute; top:20px; right:0; bottom:0; width:20%; }
+#submit{ position: absolute; top:0; right:0; width:20%; height: 22px;}
+*/
+.amap-marker-label {
+    padding: 0px 2px;
+    border: 0px solid #666666;
+    color: #222222;
+    font: bold 12px arial,sans-serif;
+    opacity:0.6;
+}
+.marker-info{
+    padding:0px 0px 0px 0px;
+    font: 10px arial,sans-serif;
+}
+.hamclub-toolbar{
+    width: 50%;
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:10px;
+    font-size: 11px;
+    line-height: 16px;
+    font-family: Arial,sans-serif;
+    z-index: 160;
+    opacity:0.9;
+}
+.hamclub-ui{
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    z-index: 160;
+    opacity:0.99;
+}
+.hamclub-copyrights{
+    margin-left:50%;
+    position: absolute;
+    right: 15px;
+    height: 16px;
+    bottom: 0;
+    font-size: 11px;
+    line-height: 16px;
+    font-family: Arial,sans-serif;
+    z-index: 160;
+}
+.hamclub-site-license{
+
+}
