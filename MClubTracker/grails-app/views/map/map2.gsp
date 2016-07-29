@@ -17,12 +17,6 @@
 			}
 		</script>
 		--%>
-
-        <%-- The JQuery Libs --%>
-        <asset:javascript src="jquery-2.2.0.min.js"/>
-        <%-- The Bootstrap Libs --%>
-        <asset:javascript src="bootstrap.js"/>
-        <asset:stylesheet src="bootstrap.css"/>
     </head>
     
     <body>
@@ -50,8 +44,8 @@
             };
         </script>
 
-        <asset:javascript src="map2.js"/>
 
+        <asset:javascript src="map2.js"/>
         <script type="text/javascript" >
         </script>
 
@@ -88,5 +82,22 @@
         <%if(mapConfig.siteLicense){%>
             <div class="hamclub-site-license"><a href="${mapConfig.siteLicenseLink}">${mapConfig.siteLicense}</a></div>
         <%}%>
+
+
+    <script id="aprs_info_window_template" type="text/html">
+        <div class="marker-info">
+        <div><span><strong>{{udid}}</strong></span><span class="title-links"><a href="#">跟踪</a></span>
+        </div>
+        <div><hr color="red" size="2" />
+            <div>{{timestamp}}</div>
+            <div><b>
+                {{#speed}}速度:{{speed}} km/h{{/speed}}
+                {{#course}}方向:{{course}}°{{/course}}
+            </b></div>
+            <div><i><font color="green">{{aprs.comment}}</font></i></div>
+            <div>{{aprs.destination}} via {{aprs.path}}</div>
+        </div>
+        </div>
+    </script>
     </body>
 </html>

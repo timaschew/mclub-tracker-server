@@ -1,3 +1,17 @@
+/*
+* This is a manifest file that'll be compiled into application.css, which will include all the files
+* listed below.
+*
+* Any CSS file within this directory can be referenced here using a relative path.
+*
+* You're free to add application-wide styles to this file and they'll appear at the top of the
+* compiled file, but it's generally better to create a new file per style scope.
+*
+*= require bootstrap
+*= require_self
+*/
+
+
 body{ margin:0; height:100%; width:100%; position:absolute; }
 body *{padding: none; margin: none;}
 #mapContainer{ position: absolute; top:0; left: 0; bottom:0; width:100%; }
@@ -12,10 +26,21 @@ body *{padding: none; margin: none;}
     font: bold 12px arial,sans-serif;
     opacity:0.6;
 }
+
 .marker-info{
     padding:0px 0px 0px 0px;
-    font: 10px arial,sans-serif;
+    font:10px arial,sans-serif;
 }
+
+.marker-info hr{
+    margin-top:5px;
+    margin-bottom:5px
+}
+
+.marker-info .title-links{
+    float:right
+}
+
 .hamclub-toolbar{
     width: 50%;
     display: table;

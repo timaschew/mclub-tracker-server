@@ -2,6 +2,12 @@
  * Created by shawn on 16/7/20.
  */
 
+//= require jquery-2.2.0.min
+//= require bootstrap
+//= require mustache
+//= require jquery.mustache
+//= require_self
+
 var map;
 var map_clear;
 var map_reload;
@@ -327,7 +333,7 @@ $(function() {
     };
 
 
-    var showAprsInfoWindowOnMarkerClicked = function(event){
+    var showAprsInfoWindowOnMarkerClicked2 = function(event){
         // TODO - display power, gain,height
         infoWindow.setContent("");
         var device_feature_properties = event.target.extData;
@@ -352,6 +358,26 @@ $(function() {
         s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
         s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
         s = s.concat("</div>");
+        infoWindow.setContent(s);
+        infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+    }
+
+    var showAprsInfoWindowOnMarkerClicked = function(event){
+        // TODO - display power, gain,height
+        infoWindow.setContent("");
+        var device_feature_properties = event.target.extData;
+        var lnglat = event.lnglat;
+
+        var data = {
+            'udid':device_feature_properties['udid'],
+            'timestamp':device_feature_properties['timestamp'],
+            'speed':device_feature_properties['speed'],
+            'course':device_feature_properties['course'],
+            'aprs':device_feature_properties['aprs']
+        }
+
+        $.Mustache.addFromDom('aprs_info_window_template');
+        var s = $.Mustache.render('aprs_info_window_template', data);
         infoWindow.setContent(s);
         infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
     }
