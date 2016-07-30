@@ -41,6 +41,16 @@ body *{padding: none; margin: none;}
     float:right
 }
 
+.marker-info .title-icon{
+    /*
+    width: 24px;
+    height: 24px;
+    */
+    margin: 0px;
+    vertical-align:middle;
+    display:inline-block
+}
+
 .hamclub-toolbar{
     width: 50%;
     display: table;

@@ -84,20 +84,44 @@
         <%}%>
 
 
+    <%-- APRS InfoWindow Template --%>
     <script id="aprs_info_window_template" type="text/html">
         <div class="marker-info">
-        <div><span><strong>{{udid}}</strong></span><span class="title-links"><a href="#">跟踪</a></span>
-        </div>
-        <div><hr color="red" size="2" />
-            <div>{{timestamp}}</div>
-            <div><b>
-                {{#speed}}速度:{{speed}} km/h{{/speed}}
-                {{#course}}方向:{{course}}°{{/course}}
-            </b></div>
-            <div><i><font color="green">{{aprs.comment}}</font></i></div>
-            <div>{{aprs.destination}} via {{aprs.path}}</div>
-        </div>
+            <div class="marker-info-title"><span class="title-icon" style="background:url({{{icon.image}}}) no-repeat {{icon.imageOffset.x}}px {{icon.imageOffset.y}}px;background-size:{{icon.imageSize.0}}px {{icon.imageSize.1}}px;width:{{icon.size.0}}px;height:{{icon.size.1}}px"></span><span><strong>{{udid}}</strong></span><!--<span class="title-links"><a href="#">跟踪</a></span>-->
+            </div>
+            <hr color="red" size="2" />
+            <div class="marker-info-content">
+                <div>{{timestamp}}</div>
+                <div><b>
+                    {{#speed}}速度:{{speed}} km/h{{/speed}}
+                    {{#course}}方向:{{course}}°{{/course}}
+                    {{#altitude}}高度:{{altitude}}m{{/altitude}}
+                </b></div>
+                <div><i><font color="green">{{aprs.comment}}</font></i></div>
+                <div>[{{aprs.destination}} via {{aprs.path}}]</div>
+            </div>
         </div>
     </script>
+
+    <%-- Standard InfoWindow Template --%>
+    <script id="info_window_template" type="text/html">
+        <div class="marker-info">
+            <div class="marker-info-title">
+                <div>{{username}} (<a href="tel:{{phone}}">{{phone}}</a>)</div>
+            </div>
+            <hr color="blue" size="2" />
+            <div class="marker-info-content">
+                <div>设备:{{udid}}</div>
+                <div>时间:{{timestamp}}</div>
+                <div><b>
+                    {{#speed}}速度:{{speed}} km/h{{/speed}}
+                    {{#course}}方向:{{course}}°{{/course}}
+                    {{#altitude}}高度:{{altitude}}m{{/altitude}}
+                </b></div>
+                <div>{{#message}}信息:{{message}}{{/message}}</div>
+            </div>
+        </div>
+    </script>
+
     </body>
 </html>

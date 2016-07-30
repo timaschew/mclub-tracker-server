@@ -2,6 +2,7 @@ package mclub.tracker
 import grails.converters.JSON
 import grails.validation.Validateable
 import mclub.sys.ConfigService
+import mclub.tracker.protocol.helper.DateBuilder
 import mclub.user.User
 import mclub.user.UserService
 import mclub.user.UserService.UserSession
@@ -370,14 +371,18 @@ class TrackerAPIController {
 			}else{
 				// no udid specified, so check the bounds parameter
 				if(filter.bounds == null){
-					log.warn("geojson API received ALL data request, this is slow and should to be avoided!");
+					log.warn("geojson API received requst for ALL device/data, THIS IS SLOW and should to be avoided!");
 					allDevices = trackerService.findTrackerDevices(filter);
 				}else{
 					def bounds = filter.getBoundsCoordinate();
 					if(bounds) {
-						allDevices = trackerService.findTrackerDevicesInBounds(bounds[0], bounds[1], bounds[2], bounds[3],null);
+						/*
+						DateBuilder db = new DateBuilder();
+						def time = db.setYear(2016).setMonth(1).setDay(1).getDate()
+						*/
+						allDevices = trackerService.findTrackerDevicesInBounds(bounds[0], bounds[1], bounds[2], bounds[3],null,filter.type);
 						if(log.debugEnabled && (allDevices?.size() == 0)){
-							log.debug "No device found in bound ${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}"
+							log.debug "No device (type=${filter.type})found in bound ${bounds[0]},${bounds[1]},${bounds[2]},${bounds[3]}"
 						}
 					}
 				}

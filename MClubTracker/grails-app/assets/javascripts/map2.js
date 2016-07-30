@@ -67,6 +67,10 @@ $(function() {
             scale = new AMap.Scale();
             map.addControl(scale);
         });
+
+        // Load the templates
+        $.Mustache.addFromDom('aprs_info_window_template');
+        $.Mustache.addFromDom('info_window_template');
     }
 
 
@@ -139,6 +143,8 @@ $(function() {
                     content: "<div>" + device_feature_properties['udid'] + "</div>"
                 });
 
+                var markerIcon = new AMap.Icon(makeAprsIcon(device_feature_properties['marker-symbol']));
+                /*
                 // Nasty code for APRS Icons
                 var symbol = device_feature_properties['marker-symbol'].split('_');
                 var symbolIndex = parseInt(symbol[2]);
@@ -150,6 +156,7 @@ $(function() {
                     image: mapConfig.aprsMarkerImagePath + symbol[1] + "@2x.png",
                     imageSize:[384,144]
                 });
+                */
                 marker.setIcon(markerIcon);
 
                 // Setup Info Content View
@@ -187,6 +194,24 @@ $(function() {
             });
         }
     };
+
+    var makeAprsIcon = function(symbolImage){
+        var symbol = symbolImage.split('_');
+        var symbolIndex = parseInt(symbol[2]);
+        var x = ((symbolIndex % 16) * (-24));
+        var y = (Math.floor(symbolIndex / 16) * (-24));
+        var icon = {
+            size: [24,24],
+            imageOffset: new AMap.Pixel(x - 1,y - 1),
+            image: mapConfig.aprsMarkerImagePath + symbol[1] + "@2x.png",
+            imageSize:[384,144]
+        };
+        return icon;
+    };
+
+    var makeIcon = function(symbolImage){
+
+    }
 
     var LineStringRender = {
         lineStringsMap: {},
@@ -367,22 +392,40 @@ $(function() {
         infoWindow.setContent("");
         var device_feature_properties = event.target.extData;
         var lnglat = event.lnglat;
-
+        var icon = makeAprsIcon(device_feature_properties['marker-symbol'])
         var data = {
             'udid':device_feature_properties['udid'],
             'timestamp':device_feature_properties['timestamp'],
             'speed':device_feature_properties['speed'],
             'course':device_feature_properties['course'],
-            'aprs':device_feature_properties['aprs']
+            'aprs':device_feature_properties['aprs'],
+            'altitude':device_feature_properties['altitude'],
+            'icon':icon,
         }
-
-        $.Mustache.addFromDom('aprs_info_window_template');
         var s = $.Mustache.render('aprs_info_window_template', data);
         infoWindow.setContent(s);
         infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
     }
 
     var showStandardInfoWindowOnMarkerClicked = function(event){
+        infoWindow.setContent("");
+        var device_feature_properties = event.target.extData;
+        var lnglat = event.lnglat;
+        var data={
+            'udid':device_feature_properties['udid'],
+            'username':device_feature_properties['username'],
+            'timestamp':device_feature_properties['timestamp'],
+            'phone':device_feature_properties['phone'],
+            'speed':device_feature_properties['speed'],
+            'course':device_feature_properties['course'],
+            'message':device_feature_properties['message'],
+        }
+        var s = $.Mustache.render('info_window_template', data);
+        infoWindow.setContent(s);
+        infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
+    }
+
+    var showStandardInfoWindowOnMarkerClicked2 = function(event){
         infoWindow.setContent("");
         var device_feature_properties = event.target.extData;
         var lnglat = event.lnglat;
