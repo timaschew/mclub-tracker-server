@@ -164,7 +164,7 @@ class TrackerService {
 	 * @param activeTime
 	 * @return
 	 */
-	public Collection<TrackerDevice> findTrackerDevicesInBounds(Double lat1,Double lon1, Double lat2, Double lon2,java.util.Date activeTime){
+	public Collection<TrackerDevice> findTrackerDevicesInBounds(Double lat1,Double lon1, Double lat2, Double lon2,java.util.Date activeTime,Integer type){
 		if(activeTime == null){
 			// by default we'll only show active positions in last 30 minutes
 			Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
@@ -177,6 +177,11 @@ class TrackerService {
 		def criteria = TrackerDevice.createCriteria();
 		def results = criteria.list{
 			gt('latestPositionTime',activeTime)
+			if(type){
+				and {
+					eq('status', type)
+				}
+			}
 			and{
 				or{
 					coverHashes.each{ hash ->
@@ -346,6 +351,10 @@ class TrackerService {
 		if(position.course && position.course >=0){
 			markerFeatureProperties['course'] = position.course;
 		}
+		if(position.altitude && position.altitude >=0){
+			markerFeatureProperties['altitude'] = position.altitude; // altitude in meter
+		}
+
 		
 		// Add extended info
 		if(position.getExtendedInfo()){
