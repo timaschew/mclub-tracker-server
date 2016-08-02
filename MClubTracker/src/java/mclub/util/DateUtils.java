@@ -21,6 +21,7 @@
  */
 package mclub.util;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -36,6 +37,30 @@ public class DateUtils {
 		return getDayOfTime(today);
 		*/
 		return getDayOfTime(new Date());
+	}
+
+    /**
+     * Get the begin/end day of a month
+     * @param yearMonthString
+     * @return an Date array with begin date at 0 and end date at 1 or null if any error occured
+     */
+	public static Date[] getBeginEndDayOfMonth(String yearMonthString){
+        try {
+            Date begin, end;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+            begin = sdf.parse(yearMonthString);
+
+            Calendar cal = getCalendar();
+            cal.setTime(begin);
+            cal.add(Calendar.MONTH, 1);
+            cal.add(Calendar.MILLISECOND, -1);
+            end = cal.getTime();
+            return new Date[]{begin,end};
+        }catch(Exception e){
+            // NOOP
+        }
+
+        return null;
 	}
 	
 	public static Date yesterday(){
@@ -82,12 +107,14 @@ public class DateUtils {
 	    /* days */diff[0] = (diffInSeconds = (diffInSeconds / 24));
 	    StringBuilder sb = new StringBuilder();
 	    if(diff[0] > 0){
-	    	sb.append(String.format("%d���",diff[0]));
+	    	sb.append(String.format("%d天",diff[0]));
 	    }
 	    if(diff[1] > 0){
-	    	sb.append(String.format("%d������",diff[1]));
+	    	sb.append(String.format("%d小时",diff[1]));
 	    }
-	    sb.append(String.format("%d������",diff[2]));
+	    sb.append(String.format("%d分钟",diff[2]));
 	    return sb.toString();
 	}
+
+
 }

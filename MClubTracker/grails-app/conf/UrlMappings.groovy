@@ -27,6 +27,10 @@ class UrlMappings {
 		"/api/$action/$id?"(controller:"trackerAPI"){
 			
 		}
+
+		"/api/report/$action/$id?"(controller:"trackerReportAPI"){
+
+		}
 	
 		"/admin/$action?/$id?"(controller:"admin"){
 			
