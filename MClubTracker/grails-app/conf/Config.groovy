@@ -62,6 +62,7 @@ grails.exceptionresolver.params.exclude = ['password']
 // configure auto-caching of queries by default (if false you can cache individual queries with 'cache: true')
 grails.hibernate.cache.queries = false
 
+
 environments {
     development {
         grails.logging.jul.usebridge = true
@@ -133,12 +134,12 @@ log4j = {
 
 	environments {
 		development {
-			debug   'grails.app'
+			info   'grails.app'
 			info	'mclub.tracker',
 				   	'mclub.datamining'
 			//debug  'org.hibernate.SQL'
 			debug  'mclub.user',
-				   'mclub.tracker'
+				   'mclub.tracker.TrackerService'
 		}
 		production {
 			info   'grails.app',
@@ -199,7 +200,7 @@ tracker.maximumShowPositionInterval = 30 * 60 * 1000; // 30 minutes in milliseco
 
 tracker.map.forceSecure = false;
 tracker.map.showLineDots = true;  // by default will show the line dots
-tracker.map.amap_api_url = 'http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee'; // change me!
+tracker.map.amapApiUrl = 'http://webapi.amap.com/maps?v=1.3&key=cfce41430c43afbb7bd2cdfab2d9a2ee'; // change me!
 
 // Enable/disable the social feature
 social.weibo.enabled = false

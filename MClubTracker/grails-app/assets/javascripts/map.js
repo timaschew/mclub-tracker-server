@@ -295,7 +295,7 @@ $(function() {
         var aprs = device_feature_properties['aprs'];
 
         var s = "<div class=\"marker-info\"><div><b>" + udid + "</b></div>";
-        s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
+        s = s.concat("<div> <hr color=\"blue\" size=\"1\"/>");
         s = s.concat("<div>",timestamp,"</div>");
         if((typeof speed != "undefined")){
             s = s.concat("<div><b>",speed," km/h ");
@@ -326,7 +326,7 @@ $(function() {
 
         var s = "<div class=\"marker-info\">"
         s = s.concat("<div>", username," ( <a href=\"tel:",phone,"\">",phone,"</a> )</div>");
-        s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
+        s = s.concat("<div> <hr color=\"blue\" size=\"1\"/></div>");
         s = s.concat("<div>设备:", udid, "</div>");
         s = s.concat("<div>时间:", timestamp, "</div>");
         if((typeof speed != "undefined")) {
