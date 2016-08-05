@@ -107,6 +107,11 @@ class MapController {
 		mapConfig.aprsMarkerImagePath = asset.assetPath(src: 'aprs/aprs-fi-sym');
 		mapConfig.standardMakerImagePath = asset.assetPath(src: 'map/');
 
+		if (Environment.current == Environment.PRODUCTION) {
+			mapConfig.debug = false;
+		}else{
+			mapConfig.debug = true;
+		}
 		return mapConfig;
 	}
 
@@ -465,6 +470,7 @@ class MapConfig{
 	String defaultMarkerIcon = "https://webapi.amap.com/images/marker_sprite.png" //TODO - configurable
 	String aprsMarkerImagePath;
 	String standardMakerImagePath;
+	Boolean debug;
 }
 
 class MapFilter{

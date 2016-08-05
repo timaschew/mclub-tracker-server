@@ -14,13 +14,13 @@ var datepicker_init = function(){
     var datepicker = $('#datepicker');
     $("#history").click(function(e){
         if(!datepickerShown){
-            console.log("will show datepicker");
+            if(map_debug)console.log("will show datepicker");
             loadActiveDays(function(){
                 $("#datepicker").datepicker('show')
             });
         }else{
             $("#datepicker").datepicker('hide')
-            console.log("hide datepicker");
+            if(map_debug)console.log("hide datepicker");
         }
         return false;
     });
@@ -59,7 +59,7 @@ var datepicker_init = function(){
 
     datepicker
         .on("changeMonth", function (e) {
-            console.log("Month changed to " + e.date);
+            if(map_debug)console.log("Month changed to " + e.date);
             currentDpDate = new Date(e.date);
             // clear selected days
             monthTable = [];
@@ -72,14 +72,14 @@ var datepicker_init = function(){
         })
         .on('show',function(e){
             datepickerShown = true;
-            console.log("calendar show");
+            if(map_debug)console.log("calendar show");
             // redraw the datepicker
             $('#datepicker').datepicker('fill');
         })
         .on('hide',function(e){
             datepickerShown = false;
             currentDpDate = new Date();
-            console.log("calendar hide");
+            if(map_debug)console.log("calendar hide");
         })
         .on("changeDate", function (e) {
             if(!(e.date)){
@@ -89,7 +89,7 @@ var datepicker_init = function(){
             }
             //currentDpDate = new Date(e.date);
             var date = new Date(e.date);
-            console.log("Day changed to " + date);
+            if(map_debug)console.log("Day changed to " + date);
             datepicker.datepicker('clearDates');
 
             // TODO - update filters and reload the map
@@ -114,7 +114,7 @@ var datepicker_init = function(){
 
     var loadActiveDays = function(mycb){
         var data = {udid:mapConfig['activeDevice'],time:currentDpDate.getFullYear() + "-" + (currentDpDate.getMonth() + 1)};
-        console.log("load active days, params: " + JSON.stringify(data));
+        if(map_debug)console.log("load active days, params: " + JSON.stringify(data));
         var dataRequest = $.ajax({
             //url: '/mtracker/api/report/device_active_days',/*mapConfig.historyURL,*/
             url: mapConfig.deviceActiveDaysApi,
@@ -124,17 +124,17 @@ var datepicker_init = function(){
                 dataRequest = null;
                 if(data.code === 0){
                     monthTable = [].concat(data.data);
-                    console.log("active_days: " + monthTable);
+                    if(map_debug)console.log("active_days: " + monthTable);
                     if(mycb){
                         mycb();
                     }
                 }else{
-                    console.log("load active days failed, " + JSON.stringify(data));
+                    if(map_debug)console.log("load active days failed, " + JSON.stringify(data));
                 }
             },
             error: function(data,status){
                 dataRequest = null;
-                console.log("load active days failed, " + JSON.stringify(data) + ", status: " + status);
+                if(map_debug)console.log("load active days failed, " + JSON.stringify(data) + ", status: " + status);
             }
         });
     }

@@ -35,7 +35,8 @@
                 mapZoomLevel:<%=mapConfig.mapZoomLevel%>,
                 showLineDots: <%=mapConfig.showLineDots%>,
                 defaultMarkerIcon: "${mapConfig.defaultMarkerIcon}",
-                deviceActiveDaysApi: "${mapConfig.deviceActiveDaysApi}"
+                deviceActiveDaysApi: "${mapConfig.deviceActiveDaysApi}",
+                debug : ${mapConfig.debug},
             };
 
             var mapFilter = {

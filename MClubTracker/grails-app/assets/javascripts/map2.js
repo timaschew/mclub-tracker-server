@@ -14,6 +14,7 @@ var map_clear;
 var map_reload;
 var map_query;
 var map_hide_info_window;
+var map_debug = mapConfig['debug'];;
 
 $(function() {
     var map_init = function(){
@@ -39,14 +40,14 @@ $(function() {
 
             //console.log("map resized, zoom: " + map.getZoom() + ", bounds: " + mapConfig.bounds);
             // Only reload when map zoom level > 5
-            console.log("map zoom: " + map.getZoom())
+            if(map_debug)console.log("map zoom: " + map.getZoom())
             if(map.getZoom() > 5) {
                 if(dataRequest){
                     dataRequest.abort();
                     dataRequest = null;
-                    console.log("abort previous request");
+                    if(map_debug)console.log("abort previous request");
                 }
-                console.log('moveend, auto reloading');
+                if(map_debug)console.log('moveend, auto reloading');
                 map_reload(false,null);
             }else{
                 PushService.subscribe();
@@ -216,7 +217,7 @@ $(function() {
         clear:function(){
             var m = simpleCopy(this.pointsMap);
             this.pointsMap = {};
-            console.log("cleaning markers");
+            if(map_debug)console.log("cleaning markers");
             $.each(m,function(k,v){
                 v.setMap(null);
             });
@@ -362,7 +363,7 @@ $(function() {
         clear: function(){
             var m = simpleCopy(this.lineStringsMap);
             this.lineStringsMap = {};
-            console.log("cleaning line");
+            if(map_debug)console.log("cleaning line");
             $.each(m,function(udid,line){
                 var dots = line.getExtData().dots;
                 if(dots){
@@ -504,7 +505,7 @@ $(function() {
             try{
                 this.websocket = new WebSocket(mapConfig.serviceURL);
                 this.running = 1;
-                console.log("websocket connected, url: " + mapConfig.serviceURL);
+                if(map_debug)console.log("websocket connected, url: " + mapConfig.serviceURL);
                 this.websocket.onopen = function(e) {
                     //alert("PushService connected");
                     self.running = 2;
@@ -547,7 +548,7 @@ $(function() {
                 this.running = 0;
                 this.websocket.close();
                 this.websocket = null;
-                console.log("websocket disconnected");
+                if(map_debug)console.log("websocket disconnected");
             }
         },
 
@@ -567,14 +568,14 @@ $(function() {
 
         subscribe:function(){
             if(!this.isConnected()){
-                console.log("websock not connected yet, subscribe aborted");
+                if(map_debug)console.log("websock not connected yet, subscribe aborted");
                 return;
             }
             // send the filter
             var f = {filter:mapFilter};
             var s = JSON.stringify(f);
             this.send(s);
-            console.log("updating filter: " + s);
+            if(map_debug)console.log("updating filter: " + s);
         }
     };
 
@@ -594,13 +595,13 @@ $(function() {
                     PushService.connect();
                 }
             }, 5000);
-            console.log("heartbeat started");
+            if(map_debug)console.log("heartbeat started");
         },
         stop:function(){
             if(this.heartBeatTimer){
                 clearInterval(this.heartBeatTimer);
                 this.heartBeatTimer = null;
-                console.log("heartbeat stopped");
+                if(map_debug)console.log("heartbeat stopped");
             }
         }
     };
@@ -611,7 +612,7 @@ $(function() {
         if(dataRequest){
             dataRequest.abort();
             dataRequest = null;
-            console.log("abort previous request");
+            if(map_debug)console.log("abort previous request");
         }
 
         // appending the map bounds to query parameter
@@ -634,7 +635,7 @@ $(function() {
         if(init_load == true){
             PushService.disconnect(true);
         }
-        console.log("map loading data from " + mapConfig.dataURL + " with params: " + JSON.stringify(data))
+        if(map_debug)console.log("map loading data from " + mapConfig.dataURL + " with params: " + JSON.stringify(data))
         dataRequest = $.ajax({
             url: mapConfig.dataURL,
             data:data,
@@ -642,7 +643,7 @@ $(function() {
                 dataRequest = null;
                 map_clear();
                 parseGEOJSON(data);
-                console.log("map load data completed")
+                if(map_debug)console.log("map load data completed")
                 if(init_load == true) {
                     PushService.connect();
                 }else{
