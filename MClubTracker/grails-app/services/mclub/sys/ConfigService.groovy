@@ -115,4 +115,6 @@ public interface ConfigServiceKeys{
 	public static final String MAP_DEFAULT_MAP = "tracker.map.defaultMap";
 
 	public static final String LIVE_DATA_SERVICE_URL = "tracker.liveDataServiceUrl"
+
+	public static final String MAP_HISTORY_ENABLED = "tracker.map.history.enabled"
 }

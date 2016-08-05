@@ -676,7 +676,11 @@ $(function() {
         // restore the historical flag if query received
         mapConfig['historical'] = false;
         var url = mapConfig.queryURL;
-        $.get(url,{q:query},function(data){
+        var params = {
+            q:query,
+            type:mapFilter['type'],
+        }
+        $.get(url,params,function(data){
             var e = data['errorMessage'];
             if(e){
                 //TODO - error alert

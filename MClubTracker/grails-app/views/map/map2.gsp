@@ -37,6 +37,7 @@
                 defaultMarkerIcon: "${mapConfig.defaultMarkerIcon}",
                 deviceActiveDaysApi: "${mapConfig.deviceActiveDaysApi}",
                 debug : ${mapConfig.debug},
+                historyEnabled : ${mapConfig.historyEnabled},
             };
 
             var mapFilter = {
@@ -106,12 +107,14 @@
                 <div><i><font color="green">{{aprs.comment}}</font></i></div>
                 <div>[{{aprs.destination}} via {{aprs.path}}]</div>
             </div>
+            <%if(mapConfig.historyEnabled){%>
             {{#history}}
             <p/>
             <div>
                 <span id="datepicker"><a href="#" id="history">历史轨迹(试用)</a></span>
             </div>
             {{/history}}
+            <%}%>
         </div>
     </script>
 
@@ -133,12 +136,14 @@
                 </b></div>
                 <div>{{#message}}信息:{{message}}{{/message}}</div>
             </div>
+            <%if(mapConfig.historyEnabled){%>
             {{#history}}
             <p/>
             <div>
                 <span id="datepicker"><a href="#" id="history">历史轨迹(试用)</a></span>
             </div>
             {{/history}}
+            <%}%>
         </div>
     </script>
 

@@ -106,6 +106,7 @@ class MapController {
 		mapConfig.mapZoomLevel = 10;
 		mapConfig.aprsMarkerImagePath = asset.assetPath(src: 'aprs/aprs-fi-sym');
 		mapConfig.standardMakerImagePath = asset.assetPath(src: 'map/');
+		mapConfig.historyEnabled = configService.getConfigBool(ConfigService.MAP_HISTORY_ENABLED);
 
 		if (Environment.current == Environment.PRODUCTION) {
 			mapConfig.debug = false;
@@ -241,7 +242,7 @@ class MapController {
             //mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id,type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 
             // Calculate the map range of the devices
-            TrackerDeviceFilter filter = new TrackerDeviceFilter(udid:id);
+            TrackerDeviceFilter filter = new TrackerDeviceFilter(udid:id,type:deviceType);
             def devices = trackerService.findTrackerDevices(filter);
             if(devices?.size() > 0){
                 def dev = devices[0];
@@ -249,7 +250,6 @@ class MapController {
                     TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
                     if(pos){
                         mapConfig.centerCoordinate = [((int)(pos.longitude * 1000000)) / 1000000.0,(int)(pos.latitude * 1000000)/1000000.0];
-
                     }
 					if(devices.size() == 1){
 						// increase the map zoom if only 1 device found
@@ -267,14 +267,14 @@ class MapController {
 	/*
 	 * AJAX interface receives the query and returns the map config
 	 */
-	def query(String q,String type){
+	def query(String q,Integer type){
         if(!'true'.equals(params['jquery']) &&  !'XMLHttpRequest'.equals(request.getHeader('X-Requested-With'))) {
             redirect action:'index', params:params
             return;
         }
 
         //TODO - honor the type parameter
-        def result = doQuery(q,TrackerDevice.DEVICE_TYPE_APRS);
+        def result = doQuery(q,type/*TrackerDevice.DEVICE_TYPE_APRS*/);
         render result as JSON;
 	}
 
@@ -426,11 +426,11 @@ class MapController {
 	/*
 	 * Display ALL non-APRS MAP
 	 */
-	def all(String id){
+	def all(){
 		// Need user login
 		User user = session['user'];
 		if(!user){
-			String returnURL = grailsLinkGenerator.link(params:params,absolute:true);
+			String returnURL = grailsLinkGenerator.link(action:'all', params:params,absolute:true);
 			redirect(controller:'admin', action:'login',params:[returnURL:returnURL]);
 			return ;
 		}
@@ -438,18 +438,34 @@ class MapController {
 			render(text:"No permission", status:403);
 			return;
 		}
-		
+
+		/*
+		def result = doQuery('all', TrackerDevice.DEVICE_TYPE_ACTIVED);
+		result.mapConfig.title = "mClub Map";
+		render view:"map2", model:[mapConfig:result.mapConfig,mapFilter:result.mapFilter];
+		*/
+
 		MapConfig mapConfig = buildDefaultMapConfig();
 		mapConfig.title = "mClub Map";
-		if(id){
-			mapConfig.serviceURL = generateMapLiveServiceURL([udid:id, type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
-			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:id, type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
-		}else{
-			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_ACTIVED]);
-			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all', type:mclub.tracker.TrackerDevice.DEVICE_TYPE_ACTIVED]);
-		}
 		mapConfig.mapZoomLevel = 11;
 		MapFilter mapFilter = new MapFilter(type:TrackerDevice.DEVICE_TYPE_ACTIVED);
+
+		TrackerDeviceFilter filter = new TrackerDeviceFilter(type:TrackerDevice.DEVICE_TYPE_ACTIVED);
+		def devices = trackerService.findTrackerDevices(filter);
+		if(devices?.size() > 0){
+			def dev = devices[0];
+			if(dev.latestPositionId){
+				TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
+				if(pos){
+					mapConfig.centerCoordinate = [((int)(pos.longitude * 1000000)) / 1000000.0,(int)(pos.latitude * 1000000)/1000000.0];
+				}
+			}
+			if(devices?.size() == 1){
+				mapConfig.mapZoomLevel = 12;
+			}
+		}else{
+			//result['errorMessage'] = "Nothing found, check your query please!";
+		}
 		render view:"map2", model:[mapConfig:mapConfig,mapFilter:mapFilter];
 	}
 }
@@ -471,6 +487,7 @@ class MapConfig{
 	String aprsMarkerImagePath;
 	String standardMakerImagePath;
 	Boolean debug;
+	Boolean historyEnabled;
 }
 
 class MapFilter{
