@@ -69,7 +69,7 @@ environments {
     }
     production {
         grails.logging.jul.usebridge = false
-        //grails.serverURL = "http://aprs.hamclub.net"
+        grails.serverURL = "https://aprs.hamclub.net/mtracker"
     }
 }
 

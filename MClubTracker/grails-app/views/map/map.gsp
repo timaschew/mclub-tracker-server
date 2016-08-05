@@ -128,7 +128,7 @@
         });
         </script>
     <%if(mapConfig.copyrights){%>
-        <div class="hamclub-copyrights">${mapConfig.copyrights}</div>
+        <div class="hamclub-copyrights">${mapConfig.copyrights} v1</div>
         <%}%>
         <%if(mapConfig.siteLicense){%>
             <div class="hamclub-site-license"><a href="${mapConfig.siteLicenseLink}">${mapConfig.siteLicense}</a></div>

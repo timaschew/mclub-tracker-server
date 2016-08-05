@@ -9,16 +9,18 @@ class UrlMappings {
 //			}
 //		}
 
-		"/map2"(controller:"map", action:'aprs2'){}
-
+		"/map"(controller:"map", action:'index'){}
 		"/map/$id?"(controller:"map", action:'index'){}
-		"/map/aprs/$id?"(controller:"map", action:'aprs'){}
+		"/map/aprs/$id?"(controller:"map", action:'aprs_compatible'){}
+		// The legacy aprs v1 map
+		"/map/aprs1"(controller:"map", action:'aprs_v1'){}
 
 		"/map/query"(controller:"map", action:'query'){}
 
 		"/map/all"(controller:"map", action:'all'){}
 		"/map/mclub"(controller:"map", action:'all'){}
-		
+
+
 		// For compatible with the application
 		"/mtracker/api/$action/$id?"(controller:"trackerAPI"){
 		

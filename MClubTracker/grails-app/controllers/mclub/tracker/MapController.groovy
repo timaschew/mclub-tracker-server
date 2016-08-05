@@ -48,7 +48,9 @@ class MapController {
 	}
 
 	private String generateMapLiveServiceURL(Map<String,Object> params){
-		String link = grailsLinkGenerator.link(uri:'/live0',id:'all', params:params, absolute:true);
+		String base = configService.getConfigString(ConfigService.LIVE_DATA_SERVICE_URL);
+		if(!base) base = '/live0';
+		String link = grailsLinkGenerator.link(uri:base,id:'all', params:params, absolute:true);
 		String wsLink = "";
 		if(isSecureHttpEnabled()){
 			// always use wss://20843
@@ -68,7 +70,10 @@ class MapController {
 				wsLink = link.replace("http://","ws://");
 			}
 		}
-		
+
+		if(!wsLink){
+			wsLink = link;
+		}
 		return wsLink;
 	}
 
@@ -95,7 +100,7 @@ class MapController {
 		mapConfig.queryURL = grailsLinkGenerator.link(controller:'map',action:'query');
 		mapConfig.deviceActiveDaysApi = grailsLinkGenerator.link(controller:'trackerReportAPI',action:'device_active_days');
 		mapConfig.showLineDots = detectShowLineDots();
-		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
+		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2016";
 		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
 		mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 		mapConfig.mapZoomLevel = 10;
@@ -259,7 +264,7 @@ class MapController {
 	 */
 	def query(String q,String type){
         if(!'true'.equals(params['jquery']) &&  !'XMLHttpRequest'.equals(request.getHeader('X-Requested-With'))) {
-            redirect action:'aprs2', params:params
+            redirect action:'index', params:params
             return;
         }
 
@@ -268,14 +273,23 @@ class MapController {
         render result as JSON;
 	}
 
+	def aprs_compatible(String id){
+		// redirect to the new aprs action
+		if(id){
+			redirect action:'aprs',params:[q:id];
+		}else{
+			forward action:'aprs'
+		}
+	}
+
 	/*
-	 * The APRS Map
+	 * The Legacy APRS Map
 	 */
-	def aprs(String id /*device id*/, String q, String bounds){
+	def aprs_v1(String id /*device id*/, String q, String bounds){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
-		
+
 		MapConfig mapConfig = buildDefaultMapConfig();
 		mapConfig.title = "APRS Map - hamclub.net";
 		mapConfig.mapZoomLevel = 10;
@@ -337,7 +351,7 @@ class MapController {
 			mapConfig.serviceURL = generateMapLiveServiceURL([type:TrackerDevice.DEVICE_TYPE_APRS]);
 			mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson',params:[udid:'all',type:mclub.tracker.TrackerDevice.DEVICE_TYPE_APRS]);
 		}
-		
+
 		// load the default center point
 		/*
 		if(!mapConfig.centerCoordinate){
@@ -350,7 +364,7 @@ class MapController {
 			// detect remote client location;
 			detectRemoteClientLocation();
 		}
-		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
+		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2016";
 		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
 		mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
 		render view:"map", model:[mapConfig:mapConfig,mapFilter:mapFilter];
@@ -360,7 +374,7 @@ class MapController {
      * Map version2 supports dynamic query
      * @return
      */
-	def aprs2(String q){
+	def aprs(String q){
 		if(checkAprsMapMirrorEnabled()){
 			return;
 		}
