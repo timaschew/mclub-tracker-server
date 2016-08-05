@@ -17,6 +17,7 @@ public class TrackerDeviceFilter{
 	String bounds;
 	//Double lat1,lon1,lat2,lon2;
 	Date activeTime;
+	String historyTime; // currently only supports 'yy-MM-dd'
 
 	private boolean boundsContainingCoordinate(double lat, double lon){
 		Double[] b = getBoundsCoordinate();

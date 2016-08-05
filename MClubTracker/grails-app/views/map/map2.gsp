@@ -9,6 +9,7 @@
             ${mapConfig.title}
         </title>
         <asset:stylesheet src="map.css"/>
+        <asset:stylesheet src="bootstrap-datepicker3.css"/>
         <%--
         <script language="javascript" type="text/javascript">
 			if(top.location!=self.location){
@@ -33,7 +34,8 @@
                 centerCoordinate:<%=mapConfig.centerCoordinate.toString()%>,
                 mapZoomLevel:<%=mapConfig.mapZoomLevel%>,
                 showLineDots: <%=mapConfig.showLineDots%>,
-                defaultMarkerIcon: "${mapConfig.defaultMarkerIcon}"
+                defaultMarkerIcon: "${mapConfig.defaultMarkerIcon}",
+                deviceActiveDaysApi: "${mapConfig.deviceActiveDaysApi}"
             };
 
             var mapFilter = {
@@ -87,7 +89,10 @@
     <%-- APRS InfoWindow Template --%>
     <script id="aprs_info_window_template" type="text/html">
         <div class="marker-info">
-            <div class="marker-info-title"><span class="title-icon" style="background:url({{{icon.image}}}) no-repeat {{icon.imageOffset.x}}px {{icon.imageOffset.y}}px;background-size:{{icon.imageSize.0}}px {{icon.imageSize.1}}px;width:{{icon.size.0}}px;height:{{icon.size.1}}px"></span><span><strong>{{udid}}</strong></span><!--<span class="title-links"><a href="#">跟踪</a></span>-->
+            <div class="marker-info-title">
+                <span class="title-icon" style="background:url({{{icon.image}}}) no-repeat {{icon.imageOffset.x}}px {{icon.imageOffset.y}}px;background-size:{{icon.imageSize.0}}px {{icon.imageSize.1}}px;width:{{icon.size.0}}px;height:{{icon.size.1}}px"></span>
+                <span><strong>{{udid}}</strong></span><!--<span class="title-links"><a href="#">跟踪</a></span>-->
+                {{#historical}}<span><strong>(历史记录)</strong></span>{{/historical}}
             </div>
             <hr color="red" size="2" />
             <div class="marker-info-content">
@@ -100,6 +105,12 @@
                 <div><i><font color="green">{{aprs.comment}}</font></i></div>
                 <div>[{{aprs.destination}} via {{aprs.path}}]</div>
             </div>
+            {{#history}}
+            <p/>
+            <div>
+                <span id="datepicker"><a href="#" id="history">历史轨迹(试用)</a></span>
+            </div>
+            {{/history}}
         </div>
     </script>
 
@@ -107,7 +118,8 @@
     <script id="info_window_template" type="text/html">
         <div class="marker-info">
             <div class="marker-info-title">
-                <div>{{username}} (<a href="tel:{{phone}}">{{phone}}</a>)</div>
+                <span>{{username}} (<a href="tel:{{phone}}">{{phone}}</a>)</span>
+                {{#historical}}<span><strong>(历史记录)</strong></span>{{/historical}}
             </div>
             <hr color="blue" size="2" />
             <div class="marker-info-content">
@@ -120,8 +132,15 @@
                 </b></div>
                 <div>{{#message}}信息:{{message}}{{/message}}</div>
             </div>
+            {{#history}}
+            <p/>
+            <div>
+                <span id="datepicker"><a href="#" id="history">历史轨迹(试用)</a></span>
+            </div>
+            {{/history}}
         </div>
     </script>
 
+    <asset:javascript src="history_datepicker.js"/>
     </body>
 </html>

@@ -6,7 +6,8 @@ import mclub.util.DateUtils
 class TrackerReportAPIController {
     def trackerReportService;
 
-    def device_active_days(String udid, String month){
+    def device_active_days(String udid, String time){
+        def month = time;
         if(!udid  || !month){
             render text:"Error Input";
             return;
@@ -15,7 +16,7 @@ class TrackerReportAPIController {
         def result = [];
         TrackerDevice td = TrackerDevice.findByUdid(udid);
         if(td){
-            result = trackerReportService.reportTheDaysInOneMonthOfTheDeviceThatWithTrackerRecordsAvailable(td,month);
+            result = trackerReportService.reportDeviceActiveDays(td,month);
         }
 
         render APIResponse.OK(result) as JSON;

@@ -93,11 +93,12 @@ class MapController {
 		mapConfig.serviceURL = generateMapLiveServiceURL([:]);
 		mapConfig.dataURL = grailsLinkGenerator.link(controller:'trackerAPI',action:'geojson');
 		mapConfig.queryURL = grailsLinkGenerator.link(controller:'map',action:'query');
+		mapConfig.deviceActiveDaysApi = grailsLinkGenerator.link(controller:'trackerReportAPI',action:'device_active_days');
 		mapConfig.showLineDots = detectShowLineDots();
 		mapConfig.copyrights = "BG5HHP@HAMCLUB.net ©2015";
 		mapConfig.siteLicense = configService.getConfig(KEY_SITE_LICENSE);
 		mapConfig.siteLicenseLink = configService.getConfig(KEY_SITE_LICENSE_LINK);
-
+		mapConfig.mapZoomLevel = 10;
 		mapConfig.aprsMarkerImagePath = asset.assetPath(src: 'aprs/aprs-fi-sym');
 		mapConfig.standardMakerImagePath = asset.assetPath(src: 'map/');
 
@@ -204,7 +205,6 @@ class MapController {
             List<Double> lonlat = ipService.addressToLocation(q);
             if(lonlat){
                 mapConfig.centerCoordinate = [lonlat[0],lonlat[1]];
-                mapConfig.mapZoomLevel = 10;
             }else{
                 result['errorMessage'] = "NO data found";
             }
@@ -239,8 +239,12 @@ class MapController {
                     TrackerPosition pos = TrackerPosition.load(dev.latestPositionId);
                     if(pos){
                         mapConfig.centerCoordinate = [((int)(pos.longitude * 1000000)) / 1000000.0,(int)(pos.latitude * 1000000)/1000000.0];
-                        mapConfig.mapZoomLevel = 10;
+
                     }
+					if(devices.size() == 1){
+						// increase the map zoom if only 1 device found
+						mapConfig.mapZoomLevel = 12;
+					}
                 }
                 result['count'] = devices.size();
             }else{
@@ -316,6 +320,9 @@ class MapController {
 						mapConfig.centerCoordinate = [pos.longitude,pos.latitude];
 						mapConfig.mapZoomLevel = 10;
 					}
+					if(devices.size() == 1){
+						mapConfig.mapZoomLevel = 12;
+					}
 				}
 			}
 		}else if(bounds){
@@ -360,7 +367,6 @@ class MapController {
 
         def result = doQuery(q, TrackerDevice.DEVICE_TYPE_APRS);
 		result.mapConfig.title = "APRS Map - hamclub.net";
-		result.mapConfig.mapZoomLevel = 10;
 
 		if(log.isInfoEnabled()){
 			// detect remote client location;
@@ -435,6 +441,7 @@ class MapConfig{
 	String dataURL;
     String queryURL;
 	String mapApiURL;
+	String deviceActiveDaysApi;
 	List<Float> centerCoordinate;
 	int mapZoomLevel = 8
 	String copyrights;

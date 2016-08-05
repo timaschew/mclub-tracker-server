@@ -2,6 +2,7 @@ package mclub.tracker
 import com.github.davidmoten.geo.Coverage
 import com.github.davidmoten.geo.GeoHash
 import com.github.davidmoten.geo.util.Preconditions
+import mclub.util.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -111,7 +112,7 @@ class TrackerService {
 		if(!features.isEmpty()){
 			featureCollection['type'] = 'FeatureCollection';
 			featureCollection['features'] = features;
-			featureCollection['id'] = 'mclub_tracker_livepositions';
+			featureCollection['id'] = 'mclub_tracker_positions_live';
 		}
 		return featureCollection;
 	}
@@ -184,6 +185,46 @@ class TrackerService {
 		return devs;
 	}
 
+	public Map<String,Object> buildHistoricalDeviceFeatureCollection(TrackerDevice device,String historyTimeString){
+
+		def featureCollection = [:];
+		if(!device || !historyTimeString){
+			return featureCollection;
+		}
+
+		def deviceFeatures = [];
+
+		// load the 'latest' position in the historyDate;
+		Date[] beginEndDate = DateUtils.getBeginEndTimeOfDay(historyTimeString);
+		def s1 = System.currentTimeMillis();
+		String tpHQL = 'FROM TrackerPosition AS tp WHERE tp.device=:device AND tp.time >= :begin AND tp.time <= :end ORDER BY tp.time DESC';
+		def position = TrackerPosition.find(tpHQL,[device:device, begin:beginEndDate[0],end:beginEndDate[1]/*,max:1*/])
+		if(log.isInfoEnabled())
+			log.info("Historical query on [${device.udid}] date(${historyTimeString}) elapsed ${System.currentTimeMillis() - s1} ms");
+		if(!position){
+			// no position found, returns empty result;
+			return featureCollection;
+		}
+
+		def markerFeature = loadDeviceMarkerFeature(device,position);
+		if(markerFeature){
+			deviceFeatures.add(markerFeature);
+		}
+
+		// load line in the time period
+		def lineFeature = loadDeviceLineFeature(device,beginEndDate[0],beginEndDate[1]);
+		if(lineFeature){
+			deviceFeatures.add(lineFeature);
+		}
+
+		if(deviceFeatures && deviceFeatures.size() > 0){
+			featureCollection['type'] = 'FeatureCollection';
+			featureCollection['id'] = 'mclub_tracker_positions_historical';
+			featureCollection['features'] = deviceFeatures;
+		}
+		return featureCollection;
+	}
+
 	/**
 	 * Build device feature collection with udid
 	 * @param udid
@@ -198,30 +239,11 @@ class TrackerService {
 		}
 		return buildDeviceFeatureCollection(device,null/*position*/,false /*includeLine*/);
 	}
-	
-//	/**
-//	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
-//	 * @param device
-//	 * @return
-//	 */
-//	public Map<String,Object> getDeviceFeatureCollection(TrackerDevice device){
-//		def featureCollection = [:];
-//		
-//		featureCollection['type'] = 'FeatureCollection';
-//		featureCollection['id'] = 'mclub_tracker_livepositions';
-//		
-//		def features = [];
-//		def dfeatures = buildDeviceFeatures(device);
-//		if(dfeatures)features.addAll(dfeatures);
-//		featureCollection['features'] = features;
-//		
-//		return featureCollection;
-//	}
 
 	/**
 	 * Build device position geojson data. Example: https://github.com/shawnchain/mclub-tracker-app/wiki/api-data-examples
 	 * @param device - the device
-	 * @param position - the position object used to read speed/lat/lon from
+	 * @param position - the position object used to read speed/lat/lon from, if null, will load position from device.latestPositionId
 	 * @param includeLine - including line feature
 	 * @return
 	 */
@@ -232,7 +254,7 @@ class TrackerService {
 
 		if(features && features.size() > 0){
 			featureCollection['type'] = 'FeatureCollection';
-			featureCollection['id'] = 'mclub_tracker_livepositions';
+			featureCollection['id'] = 'mclub_tracker_positions_live';
 			featureCollection['features'] = features;
 		}
 		return featureCollection;
@@ -373,16 +395,22 @@ class TrackerService {
 		return markerFeature;
 	}
 	
-	private Map<String,Object> loadDeviceLineFeature(TrackerDevice device/*, Date time, Integer limit*/){
+	private Map<String,Object> loadDeviceLineFeature(TrackerDevice device, Date timeBegin, Date timeEnd/*, Date time, Integer limit*/){
 		// Add line string feature, by default will load points that in 30 minutes ago and not exceeding 360 in total.
 		Integer minimalPositionUpdateInterval = configService.getConfigInt("tracker.minimalPositionUpdateInterval");
 		if(!minimalPositionUpdateInterval) minimalPositionUpdateInterval = 5000L;
-		Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
-		if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
-		int maxPointsOfLine = maximumShowPositionInterval / minimalPositionUpdateInterval; // (30 * 60 * 1000 / 5000 = 360)
-		
-		Date lineTime = new Date(System.currentTimeMillis() - maximumShowPositionInterval /*(30 * 60 * 1000)*/);
-		def positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:maxPointsOfLine]);
+
+		def positions;
+		if(timeBegin == null && timeEnd == null){
+			// TODO - optimize the query logic
+			Integer maximumShowPositionInterval = configService.getConfigInt("tracker.maximumShowPositionInterval");
+			if(!maximumShowPositionInterval) maximumShowPositionInterval = mclub.util.DateUtils.TIME_OF_HALF_HOUR;
+			int maxPointsOfLine = maximumShowPositionInterval / minimalPositionUpdateInterval; // (30 * 60 * 1000 / 5000 = 360)
+			Date lineTime = new Date(System.currentTimeMillis() - maximumShowPositionInterval /*(30 * 60 * 1000)*/);
+			positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>:lineTime ORDER BY p.time DESC",[dev:device, lineTime:lineTime, max:maxPointsOfLine]);
+		}else{
+			positions = TrackerPosition.findAll("FROM TrackerPosition p WHERE p.device=:dev AND p.time>=:begin AND p.time<=:end ORDER BY p.time DESC",[dev:device, begin:timeBegin,end:timeEnd]);
+		}
 		positions = shrinkTrackPositions(positions);
 		int positionCount = positions?.size();
 		
@@ -444,7 +472,7 @@ class TrackerService {
 
 		// if position is specified outside, don't include the line features
 		if(position == null && includeLine){
-			def lineFeature = loadDeviceLineFeature(device);
+			def lineFeature = loadDeviceLineFeature(device,null,null);
 			if(lineFeature){
 				deviceFeatures.add(lineFeature);
 			}

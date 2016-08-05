@@ -16,7 +16,7 @@ class TrackerReportService {
      * @param yearMonthString the 'yyyy-MM' formated year/month string
      * @return
      */
-    def reportTheDaysInOneMonthOfTheDeviceThatWithTrackerRecordsAvailable(TrackerDevice device,String yearMonthString) {
+    def reportDeviceActiveDays(TrackerDevice device,String yearMonthString) {
         Date[] beginEnd = DateUtils.getBeginEndDayOfMonth(yearMonthString);
         if(!beginEnd){
             log.info("Invalid year/month string, ${yearMonthString}");

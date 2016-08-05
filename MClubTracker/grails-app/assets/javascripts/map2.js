@@ -12,6 +12,7 @@ var map;
 var map_clear;
 var map_reload;
 var map_query;
+var map_hide_info_window;
 
 $(function() {
     var map_init = function(){
@@ -22,9 +23,22 @@ $(function() {
         });
 
         map.on('moveend', function(e){
-            mapFilter['bounds'] = convertBounds(map.getBounds())
+
+            // Don't auto reload if map contains historical data
+            if(mapConfig['historical']){
+                return;
+            }
+
+            // Don't update map if zoom is larger than 16
+            if(map.getZoom() >= 16){
+                return;
+            }
+
+            mapFilter['bounds'] = convertBounds(map.getBounds());
+
             //console.log("map resized, zoom: " + map.getZoom() + ", bounds: " + mapConfig.bounds);
             // Only reload when map zoom level > 5
+            console.log("map zoom: " + map.getZoom())
             if(map.getZoom() > 5) {
                 if(dataRequest){
                     dataRequest.abort();
@@ -32,7 +46,7 @@ $(function() {
                     console.log("abort previous request");
                 }
                 console.log('moveend, auto reloading');
-                map_reload(false);
+                map_reload(false,null);
             }else{
                 PushService.subscribe();
             }
@@ -41,7 +55,7 @@ $(function() {
         map.on('complete',function(e){
             mapFilter['bounds'] = convertBounds(map.getBounds())
             //console.log("map loaded, bounds: " + mapConfig.bounds);
-            map_reload(true);
+            map_reload(true,null);
         });
 
         // Add map toolbar controller
@@ -84,6 +98,15 @@ $(function() {
         // isCustom: true
         closeWhenClickMap:true,
     });
+
+    infoWindow.on('close',function(e){
+        $('#datepicker').datepicker('hide');
+        mapConfig['activeDevice'] = "";
+    });
+    infoWindow.on('open',function(e){
+        setTimeout(function(e){datepicker_init();},500);
+    });
+
 
     var MultiPointRender = {
         pointsMap: {},
@@ -160,7 +183,9 @@ $(function() {
                 marker.setIcon(markerIcon);
 
                 // Setup Info Content View
-                marker.on("click",showAprsInfoWindowOnMarkerClicked);
+                marker.on("click",function(e){
+                    showAprsInfoWindowOnMarkerClicked(e,true);
+                });
             }else{
                 // For others, use username as label
                 var username = device_feature_properties['username']
@@ -179,7 +204,9 @@ $(function() {
                     });
                     marker.setIcon(markerIcon);
                 }
-                marker.on("click",showStandardInfoWindowOnMarkerClicked);
+                marker.on("click",function(e){
+                    showStandardInfoWindowOnMarkerClicked(e,true);
+                });
             }
             marker.setPosition(point);
             marker.setMap(map);
@@ -246,7 +273,6 @@ $(function() {
                     zIndex: 999
                 });
                 dots.on('click', function(e){
-
                     infoWindow.setContent("Loading...");
                     infoWindow.open(map, new AMap.LngLat(e.data.lnglat['lng'], e.data.lnglat['lat']));
                     // console.log(e);
@@ -268,9 +294,9 @@ $(function() {
                         var aprs = device_feature_properties['aprs']
                         var event = {target: marker, lnglat: lnglat};
                         if(typeof aprs != "undefined") {
-                            showAprsInfoWindowOnMarkerClicked(event);
+                            showAprsInfoWindowOnMarkerClicked(event,false);
                         }else{
-                            showStandardInfoWindowOnMarkerClicked(event);
+                            showStandardInfoWindowOnMarkerClicked(event,false);
                         }
                     });
                 });
@@ -357,37 +383,7 @@ $(function() {
         return newobj;
     };
 
-
-    var showAprsInfoWindowOnMarkerClicked2 = function(event){
-        // TODO - display power, gain,height
-        infoWindow.setContent("");
-        var device_feature_properties = event.target.extData;
-        var lnglat = event.lnglat;
-
-        var udid = device_feature_properties['udid'];
-        var timestamp = device_feature_properties['timestamp'];
-        var speed = device_feature_properties['speed'];
-        var course = device_feature_properties['course'];
-        var aprs = device_feature_properties['aprs'];
-
-        var s = "<div class=\"marker-info\"><div><b>" + udid + "</b></div>";
-        s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr>");
-        s = s.concat("<div>",timestamp,"</div>");
-        if((typeof speed != "undefined")){
-            s = s.concat("<div><b>",speed," km/h ");
-            if((typeof course != "undefined")){
-                s = s.concat(course,"°");
-            }
-            s = s.concat("</b></div>");
-        }
-        s = s.concat("<div> <i><font color=\"green\">",aprs['comment'],"</font></i></div>");
-        s = s.concat("<div>[",aprs['destination']," via ", aprs['path'],"]</div>");	// path
-        s = s.concat("</div>");
-        infoWindow.setContent(s);
-        infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
-    }
-
-    var showAprsInfoWindowOnMarkerClicked = function(event){
+    var showAprsInfoWindowOnMarkerClicked = function(event,isMarkerClicked){
         // TODO - display power, gain,height
         infoWindow.setContent("");
         var device_feature_properties = event.target.extData;
@@ -401,65 +397,49 @@ $(function() {
             'aprs':device_feature_properties['aprs'],
             'altitude':device_feature_properties['altitude'],
             'icon':icon,
+            'historical':mapConfig['historical'],
+        }
+        if(isMarkerClicked){
+            data['history'] = true;
+            mapConfig['activeDevice'] = device_feature_properties['udid'];
         }
         var s = $.Mustache.render('aprs_info_window_template', data);
         infoWindow.setContent(s);
         infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
     }
 
-    var showStandardInfoWindowOnMarkerClicked = function(event){
+    var showStandardInfoWindowOnMarkerClicked = function(event,isMarkerClicked) {
         infoWindow.setContent("");
         var device_feature_properties = event.target.extData;
         var lnglat = event.lnglat;
-        var data={
-            'udid':device_feature_properties['udid'],
-            'username':device_feature_properties['username'],
-            'timestamp':device_feature_properties['timestamp'],
-            'phone':device_feature_properties['phone'],
-            'speed':device_feature_properties['speed'],
-            'course':device_feature_properties['course'],
-            'message':device_feature_properties['message'],
+        var data = {
+            'udid': device_feature_properties['udid'],
+            'username': device_feature_properties['username'],
+            'timestamp': device_feature_properties['timestamp'],
+            'phone': device_feature_properties['phone'],
+            'speed': device_feature_properties['speed'],
+            'course': device_feature_properties['course'],
+            'message': device_feature_properties['message'],
+            'historical':mapConfig['historical'],
+        }
+        if(isMarkerClicked){
+            data['history'] = true;
+            mapConfig['activeDevice'] = device_feature_properties['udid'];
         }
         var s = $.Mustache.render('info_window_template', data);
         infoWindow.setContent(s);
         infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
     }
 
-    var showStandardInfoWindowOnMarkerClicked2 = function(event){
-        infoWindow.setContent("");
-        var device_feature_properties = event.target.extData;
-        var lnglat = event.lnglat;
-
-        var udid = device_feature_properties['udid'];
-        var username = device_feature_properties['username'];
-        var timestamp = device_feature_properties['timestamp'];
-        var phone = device_feature_properties['phone'];
-        var speed = device_feature_properties['speed'];
-        var course = device_feature_properties['course'];
-        var message = device_feature_properties['message'];
-
-        var s = "<div class=\"marker-info\">"
-        s = s.concat("<div>", username," ( <a href=\"tel:",phone,"\">",phone,"</a> )</div>");
-        s = s.concat("<div> <hr color=\"blue\" size=\"1\"></hr></div>");
-        s = s.concat("<div>设备:", udid, "</div>");
-        s = s.concat("<div>时间:", timestamp, "</div>");
-        if((typeof speed != "undefined")) {
-            s = s.concat("<div>速度:", speed, " km/h ");
-            if ((typeof course != "undefined")) {
-                s = s.concat(course, "°");
-            }
-            s = s.concat("</div>");
-        }
-        if(typeof message != "undefined"){
-            s = s.concat("<div>信息:",message,"</div>");
-        }
-        s = s.concat("</div>")
-
-        infoWindow.setContent(s);
-        infoWindow.open(map, new AMap.LngLat(lnglat['lng'], lnglat['lat']));
-    }
-
     var parseGEOJSON = function(geojson) {
+        /*
+        if('mclub_tracker_positions_historical' === geojson['id']){
+            mapConfig['historical'] = true;
+        }else{
+            mapConfig['historical'] = false;
+        }
+        */
+
         if ("FeatureCollection" === geojson["type"]) {
             for (var i = 0; i < geojson.features.length; i++) {
                 var feature = geojson.features[i];
@@ -476,6 +456,11 @@ $(function() {
                     LineStringRender.render(coordinates/*path_points*/, line_position_ids, udid);
                 }
             };
+
+            // adjust the map center and zoom
+            //if(map.center != mapConfig.centerCoordinate || map.zoom != mapConfig.mapZoomLevel){
+            //    map.setZoomAndCenter(mapConfig.mapZoomLevel,mapConfig.centerCoordinate);
+            //}
             //map.setFitView();
         };
     };
@@ -530,6 +515,10 @@ $(function() {
                 };
                 this.websocket.onmessage = function(e) {
                     if(!self.running){
+                        return;
+                    }
+                    // Don't receive live updates if historical data is loaded
+                    if(mapConfig.historical){
                         return;
                     }
                     var json = e.data;
@@ -617,7 +606,7 @@ $(function() {
 
     var dataRequest = null;
     // init entry point
-    map_reload = function(init_load){
+    map_reload = function(init_load, params){
         if(dataRequest){
             dataRequest.abort();
             dataRequest = null;
@@ -625,15 +614,20 @@ $(function() {
         }
 
         // appending the map bounds to query parameter
-        var data = {}
-        if(mapFilter['udid']){
-            data['udid'] = mapFilter['udid'];
-        }
-        if(mapFilter['type']){
-            data['type'] = mapFilter['type'];
-        }
-        if(mapFilter['bounds']){
-            data['bounds'] = mapFilter['bounds'].join(',');
+        var data;
+        if(params){
+            data = params;
+        }else{
+            data = {};
+            if(mapFilter['udid']){
+                data['udid'] = mapFilter['udid'];
+            }
+            if(mapFilter['type']){
+                data['type'] = mapFilter['type'];
+            }
+            if(mapFilter['bounds']){
+                data['bounds'] = mapFilter['bounds'].join(',');
+            }
         }
 
         if(init_load == true){
@@ -660,6 +654,12 @@ $(function() {
         });
     };
 
+    map_hide_info_window = function(){
+        if(infoWindow.getIsOpen()){
+            infoWindow.close();
+        }
+    }
+
     map_clear = function(){
         // clear all makers
         PointRender.clear();
@@ -671,6 +671,8 @@ $(function() {
         if(!query){
             return;
         }
+        // restore the historical flag if query received
+        mapConfig['historical'] = false;
         var url = mapConfig.queryURL;
         $.get(url,{q:query},function(data){
             var e = data['errorMessage'];
@@ -684,11 +686,11 @@ $(function() {
                 //map_clear();
                 if(map.center != mapConfig.centerCoordinate){
                     map.setCenter(mapConfig.centerCoordinate);
-                    map.setZoom(10);
+                    map.setZoom(mapConfig.mapZoomLevel);
                     // will trigger reload after map moveend event
                 }else{
                     // else force reload
-                    map_reload(false);
+                    map_reload(false,null);
                 }
             }
         });

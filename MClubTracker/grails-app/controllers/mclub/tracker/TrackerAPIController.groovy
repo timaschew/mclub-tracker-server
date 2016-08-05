@@ -9,10 +9,15 @@ import mclub.user.UserService.UserSession
 import mclub.util.DateUtils
 
 import org.codehaus.groovy.runtime.InvokerHelper
-import org.h2.util.MathUtils;
+import org.h2.util.MathUtils
+import org.springframework.beans.PropertyEditorRegistrar
+import org.springframework.beans.PropertyEditorRegistry
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.web.multipart.MultipartFile
 
-import com.github.davidmoten.geo.*;
+import com.github.davidmoten.geo.*
+
+import java.text.SimpleDateFormat;
 
 
 class TrackerAPIController {
@@ -206,6 +211,7 @@ class TrackerAPIController {
 
 			if(filter.udid != null){
 				// query by udid, if udid contains '$', means load specific position id
+				String originalUdid = filter.udid;
 				if(filter.udid.indexOf('$') > 0){
 					String[] s = filter.udid.split('\\$');
 					filter.udid = s[0];
@@ -218,6 +224,11 @@ class TrackerAPIController {
 				}
 				// load devices according to the filters
 				allDevices = trackerService.findTrackerDevices(filter);
+				if(positionId && allDevices.size() > 1){
+					log.warn("Invalid udid/pos_id ${originalUdid}, expect one device but ${allDevices.size()} devices returned")
+					allDevices.clear();
+					positionId = null;
+				}
 			}else{
 				// no udid specified, so check the bounds parameter
 				if(filter.bounds == null){
@@ -240,27 +251,32 @@ class TrackerAPIController {
 		}
 
 		// Load features by devices
-		def featureCollectionOfGeoJSON;
+		def featureCollectionOfGeoJSON = [:];
 
-		if(positionId && allDevices?.size() > 0){
+		if(positionId && allDevices?.size() == 1){
 			// just load device with specific position data
-			TrackerDevice dev = allDevices[0];
+			TrackerDevice dev = allDevices[0]; // make sure (allDevices.length == 1)
 			TrackerPosition pos = TrackerPosition.findById(positionId);
 			if(pos && dev.id.equals(pos.device?.id)){
 				featureCollectionOfGeoJSON = trackerService.buildDeviceFeatureCollection(dev,pos,false);
 			}else{
 				log.info("Device ${dev.udid} does not contain position #${positionId}");
 			}
-		}else {
+		}else if(filter.historyTime && allDevices?.size() == 1){
+			// load historical data of a device
+			TrackerDevice dev = allDevices[0];
+			featureCollectionOfGeoJSON = trackerService.buildHistoricalDeviceFeatureCollection(dev,filter.historyTime);
+
+		}else if(allDevices.size() > 0) {
 			featureCollectionOfGeoJSON = trackerService.buildGeojsonFeatureCollection(allDevices);
 		}
 
 		// Allow browser XSS
-		response.setHeader('Access-Control-Allow-Origin',"*")
-		response.setHeader('X-Powered-By', "BG5HHP")
+		//response.setHeader('Access-Control-Allow-Origin',"*")
+		response.setHeader('X-Powered-By', "BG5HHP(shawn.chain@gmail.com)")
 		render featureCollectionOfGeoJSON as JSON;
 	}
-	
+
 //	/**
 //	 * Returns an array of device positions.
 //	 * @param udid
@@ -546,3 +562,10 @@ class PositionUpdateCommand{
 	Long	timestamp;		// Timestamp in seconds
 }
 
+
+//class CustomDateEditorRegistrar implements PropertyEditorRegistrar {
+//	public void registerCustomEditors(PropertyEditorRegistry registry) {
+//		String dateFormat = 'yyyy-MM-dd'
+//		registry.registerCustomEditor(Date, new CustomDateEditor(new SimpleDateFormat(dateFormat), true))
+//	}
+//}

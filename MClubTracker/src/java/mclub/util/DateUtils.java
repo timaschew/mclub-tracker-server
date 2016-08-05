@@ -62,6 +62,36 @@ public class DateUtils {
 
         return null;
 	}
+
+	public static Date[] getBeginEndTimeOfDay(String dayString){
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			Date begin = sdf.parse(dayString);
+			return getBeginEndTimeOfDay(begin);
+		}catch(Exception e){
+			// NOOP
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the begin/end time of the given day
+	 * @param day
+	 * @return
+	 */
+	public static Date[] getBeginEndTimeOfDay(Date day){
+		Date begin,end;
+		begin = day;
+
+		Calendar cal = getCalendar();
+		cal.setTime(begin);
+		cal.set(Calendar.HOUR, 23);
+		cal.add(Calendar.MINUTE, 59);
+		cal.add(Calendar.SECOND, 59);
+		cal.set(Calendar.MILLISECOND,999);
+		end = cal.getTime();
+		return new Date[]{begin,end};
+	}
 	
 	public static Date yesterday(){
 		return new java.util.Date(today().getTime() - TIME_OF_ONE_DAY);
