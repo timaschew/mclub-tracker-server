@@ -211,7 +211,7 @@ class MapController {
             if(lonlat){
                 mapConfig.centerCoordinate = [lonlat[0],lonlat[1]];
             }else{
-                result['errorMessage'] = "NO data found";
+                result['errorMessage'] = "Nothing found, check your query please!";
             }
         }else if("all".equalsIgnoreCase(q)){
             mapFilter.udid = q;
@@ -253,7 +253,7 @@ class MapController {
                 }
                 result['count'] = devices.size();
             }else{
-                result['errorMessage'] = "NO data found"
+                result['errorMessage'] = "Nothing found, check your query please!";
             }
         }
         return result;

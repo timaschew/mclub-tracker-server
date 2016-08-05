@@ -6,6 +6,7 @@
 //= require bootstrap
 //= require mustache
 //= require jquery.mustache
+//= require jquery.alert
 //= require_self
 
 var map;
@@ -678,7 +679,8 @@ $(function() {
             var e = data['errorMessage'];
             if(e){
                 //TODO - error alert
-                alert("Error: " + e);
+                //alert("Error: " + e);
+                $.alert('<strong style=\"color:darkred\">' + e + '</strong>');
             }else if(data['mapConfig']){
                 mapConfig = data['mapConfig'];
                 mapFilter = data['mapFilter'];
