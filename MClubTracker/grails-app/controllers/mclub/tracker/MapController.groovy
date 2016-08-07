@@ -4,7 +4,6 @@ import com.github.davidmoten.geo.GeoHash
 import com.github.davidmoten.geo.LatLong
 import grails.converters.JSON
 import grails.util.Environment
-import mclub.ham.repeater.util.TextHelper
 import mclub.sys.ConfigService
 import mclub.sys.ConfigServiceKeys;
 import mclub.user.User;
