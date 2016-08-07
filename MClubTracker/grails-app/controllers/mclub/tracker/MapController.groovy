@@ -12,6 +12,8 @@ import mclub.sys.IpService;
 
 import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 
+import java.util.regex.Pattern
+
 class MapController {
 	
 	private static final String KEY_APRS_MAP_MIRROR = "aprs.map.mirror";
@@ -211,7 +213,7 @@ class MapController {
 
         q = q.toUpperCase();
 
-        if(q.length() >=2 && TextHelper.isChinese(q)){
+        if(q.length() >=2 && StringUtils.isChinese(q)){
             // input is chinese location name
             List<Double> lonlat = ipService.addressToLocation(q);
             if(lonlat){
@@ -306,7 +308,7 @@ class MapController {
 
 		if(!id && q){
 			// if q=杭州, will query by that place
-			if(q.length() >=2 && TextHelper.isChinese(q)){
+			if(q.length() >=2 && StringUtils.isChinese(q)){
 				// input is chinese location name
 				def lonlat = ipService.addressToLocation(q);
 				if(lonlat){
@@ -495,4 +497,14 @@ class MapFilter{
     double[] bounds;
     String mapId;
     int type;
+}
+
+class StringUtils{
+	public static boolean isChinese(String str) {
+		if (str == null) {
+			return false;
+		}
+		Pattern pattern = Pattern.compile("[\\u4E00-\\u9FBF]+");
+		return pattern.matcher(str.trim()).find();
+	}
 }
