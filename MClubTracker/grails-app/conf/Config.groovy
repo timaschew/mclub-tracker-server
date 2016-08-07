@@ -99,7 +99,7 @@ log4j = {
         rollingFile name: 'talkboxAppender',
                 maxFileSize: 10240000,
                 layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-                file: '/mclub/mclub_talkbox.log'
+                file: '/tmp/mclub_talkbox.log'
 	}
 	
 
