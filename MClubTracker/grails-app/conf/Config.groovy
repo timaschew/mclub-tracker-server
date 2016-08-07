@@ -84,22 +84,22 @@ log4j = {
 		rollingFile name: 'aprsAppender',
 					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-					file: '/var/log/aprs.log'
+					file: '/tmp/mclub_aprs.log'
 					
 		rollingFile name: 'perfAppender',
 					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-					file: '/tmp/mtracker_perf.log'
+					file: '/tmp/mclub_perf.log'
 					
 		rollingFile name: 'gpsAppender',
 					maxFileSize: 10240000,
 					layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-					file: '/tmp/mtracker_gps.log'
+					file: '/tmp/mclub_gps.log'
 
         rollingFile name: 'talkboxAppender',
                 maxFileSize: 10240000,
                 layout:pattern(conversionPattern: '%d{yyyy-MM-dd/HH:mm:ss.SSS} - %m%n'),
-                file: '/var/log/talkbox.log'
+                file: '/mclub/mclub_talkbox.log'
 	}
 	
 
