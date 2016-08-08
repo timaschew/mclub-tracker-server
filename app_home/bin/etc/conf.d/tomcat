@@ -1,0 +1,4 @@
+JAVAHOME=/usr/lib/jvm/java-8-oracle
+CATALINAHOME=/opt/tomcat
+JAVAOPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom
+CATALINAOPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC -Dmclub.home=/opt/mclub

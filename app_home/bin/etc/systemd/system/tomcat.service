@@ -1,0 +1,12 @@
+[Unit]
+Description=Tomcat 8 Server
+[Service]
+Type=forking
+User=mclub
+Group=mclub
+EnvironmentFile=/etc/conf.d/tomcat
+ExecStart=/opt/tomcat/bin/catalina.sh run
+ExecStopPost=/bin/rm -rf /opt/tomcat/temp/*
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
