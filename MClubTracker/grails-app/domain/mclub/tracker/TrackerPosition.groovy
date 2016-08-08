@@ -22,8 +22,8 @@ class TrackerPosition {
     }
 	
 	static mapping = {
-		device		index:'idx_trackerposition_device'
-		time		index:'idx_trackerposition_time'
+		device		index:'idx_trackerposition_deviceid_time'
+		time		index:'idx_trackerposition_deviceid_time'
 		extendedInfo	type:'text' 
 		version false
 	}

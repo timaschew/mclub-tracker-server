@@ -24,8 +24,8 @@ class TrackerDevice {
 	static mapping = {
 		udid index:'idx_trackerdevice_udid'
 		username index:'idx_trackerdevice_username'
-		status index:'idx_trackerdevice_status'
-		latestPositionTime index:'idx_trackerdevice_lastpositiontime'
+		status index:'idx_trackerdevice_status_lastpositiontime,idx_trackerdevice_status'
+		latestPositionTime index:'idx_trackerdevice_status_lastpositiontime'
 		locationHash index:'idx_trackerdevice_locationhash'
 	}
 	
