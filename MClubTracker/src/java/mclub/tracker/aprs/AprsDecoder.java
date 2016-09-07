@@ -192,7 +192,9 @@ public class AprsDecoder extends OneToOneDecoder{
 		}else if(table == '\\'){
 			return "aprs_2_" + String.format("%02d", index - '!');
 		}else{
-			return "aprs_1_29"; // '>', Car
+			// ignore the overlay currently, always choose from the table 1
+			return "aprs_1_" + String.format("%02d", index - '!');
+			// "aprs_1_29"; // '>', Car
 		}
 	}
 }
