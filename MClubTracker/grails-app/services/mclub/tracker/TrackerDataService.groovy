@@ -274,8 +274,9 @@ class TrackerDataService {
             try{
                 TrackerPosition lastPos = TrackerPosition.load(device.latestPositionId);
                 if(!isAprsDevicePositionChanged(newPos,lastPos)){
-                    // position is NOT CHANGED, just update the timestamp...
-                    lastPos.time = positionData.time;
+                    // position is NOT CHANGED, just update the timestamp and extended info
+                    lastPos.time = newPos.time;
+                    lastPos.extendedInfo = newPos.extendedInfo;
                     newPos = lastPos; // replace for later update/save
                     positionChanged = false;
                     log.debug("Device ${device.udid} pos is not changed,  ${newPos.latitude}/${newPos.longitude}/${newPos.extendedInfo}");
