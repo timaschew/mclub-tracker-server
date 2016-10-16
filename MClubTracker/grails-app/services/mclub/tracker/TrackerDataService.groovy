@@ -2,23 +2,17 @@ package mclub.tracker
 
 import com.github.davidmoten.geo.GeoHash
 import grails.converters.JSON
-import grails.transaction.Transactional;
+import grails.transaction.Transactional
 
-import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService
-
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
-import mclub.util.DateUtils
 import mclub.sys.ConfigService
-import mclub.sys.MessageListener
 import mclub.sys.MessageService
 import mclub.tracker.aprs.AprsData;
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.springframework.transaction.TransactionDefinition;
 
 class TrackerDataService {
 	GrailsApplication grailsApplication;
@@ -82,7 +76,7 @@ class TrackerDataService {
 	 * @param positionId
 	 * @throws Exception
 	 */
-	public void updateLatestPosition(Long deviceId, TrackerPosition position) throws Exception{
+	public void updateLatestPositionAndTime(Long deviceId, TrackerPosition position) throws Exception{
 		// direct associate the position id to the device
 		String geohash = GeoHash.encodeHash(position.latitude,position.longitude);
 		Long positionId = position.id;
@@ -197,6 +191,13 @@ class TrackerDataService {
         return notChanged;
 	}
 
+	private boolean checkEquals(Object o1, Object o2){
+		if(o1 == null || o2 == null){
+			return o1 == o2;
+		}
+		return o1.equals(o2);
+	}
+
 	/**
 	 * Update tracker position according to the received data object.
 	 * @param udid
@@ -268,17 +269,18 @@ class TrackerDataService {
 		}
 
 		// For APRS station positions without SPEED, will check and update the previous record instead of insert a new one.
-        boolean positionChanged = true;
+        boolean positionDataChanged = true;
 		if(positionData.isAprs()){
 			// check the previous position
             try{
                 TrackerPosition lastPos = TrackerPosition.load(device.latestPositionId);
-                if(!isAprsDevicePositionChanged(newPos,lastPos)){
-                    // position is NOT CHANGED, just update the timestamp and extended info
+                if(!isAprsDevicePositionChanged(newPos,lastPos) &&
+						(checkEquals(lastPos.message,newPos.message)) &&
+						(checkEquals(lastPos.extendedInfo,newPos.extendedInfo))){
+                    // position is NOT CHANGED, just update the timestamp
                     lastPos.time = newPos.time;
-                    lastPos.extendedInfo = newPos.extendedInfo;
                     newPos = lastPos; // replace for later update/save
-                    positionChanged = false;
+					positionDataChanged = false;
                     log.debug("Device ${device.udid} pos is not changed,  ${newPos.latitude}/${newPos.longitude}/${newPos.extendedInfo}");
                 }
             }catch(Exception e ){
@@ -286,26 +288,22 @@ class TrackerDataService {
             }
 		}
 
-		// Save the position data
+		// Save the received position data(or just update the timestamp if no changes)
 		try {
 			Long id = saveOrUpdatePosition(newPos);
 			assert (id.equals(newPos.id));
 			if (id != null) {
-				updateLatestPosition(device.id, newPos);
-
-                // if position changed, also need to invalidate the cache and broadcast the changes
-                if(true/*positionChanged*/){
-                    // clear the position cache
-                    trackerCacheService.removeDeviceFeature(device.udid);
-
-                    if(log.isDebugEnabled()){
-                        log.debug("Device ${device.udid} position updated to [${newPos.latitude},${newPos.longitude}], message:${newPos.message}");
-                    }
-                    // broadcast the position data change
-                    // HACK - we should set the device type currently for websocket filtering work.
-                    positionData.deviceType = device.status;
-                    notifyPositionChanges(positionData);
-                }
+				// update latest position and time
+				updateLatestPositionAndTime(device.id, newPos);
+				if(log.isDebugEnabled()){
+					log.debug("Device ${device.udid} position updated to [${newPos.latitude},${newPos.longitude}], message:${newPos.message}");
+				}
+				// invalidate the cache and broadcast the changes
+				trackerCacheService.removeDeviceFeature(device.udid);
+				// broadcast the position data change
+				// HACK - we should set the device type currently for websocket filtering work.
+				positionData.deviceType = device.status;
+				notifyPositionChanges(positionData);
 			}
 		} catch (Exception error) {
 			log.warn("update position error, " + error.getMessage());

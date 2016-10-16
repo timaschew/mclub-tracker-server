@@ -48,10 +48,10 @@ public class MockTrackerService extends TrackerDataService {
     }
 
 	/* (non-Javadoc)
-	 * @see mclub.tracker.TrackerService#updateLatestPosition(java.lang.Long, java.lang.Long)
+	 * @see mclub.tracker.TrackerService#updateLatestPositionAndTime(java.lang.Long, java.lang.Long)
 	 */
     @Override
-    public void updateLatestPosition(Long deviceId, TrackerPosition position) throws Exception{
+    public void updateLatestPositionAndTime(Long deviceId, TrackerPosition position) throws Exception{
 	    // noop
     }
 }
