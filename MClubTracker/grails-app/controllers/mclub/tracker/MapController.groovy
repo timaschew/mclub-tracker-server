@@ -142,17 +142,13 @@ class MapController {
             return;
         }
         String serverName = request.getServerName();
-        if(serverName.toLowerCase().indexOf('aprs') >=0){ // aprs.foobar.com
+		// For APRS only
+        if(serverName.toLowerCase().indexOf('aprs.hamclub.net') >=0 || serverName.toLowerCase().indexOf('aprs.to') >=0){ // aprs.foobar.com
             forward(action:'aprs');
             return;
         }
 
-		// special case
-		if(id == null){
-			render(text:"The mClub Map")
-			return;
-		}
-
+		// Othersize forward to the pro map
 		forward(action:'mclub');
 	}
 
@@ -162,6 +158,11 @@ class MapController {
 	 * @param q
 	 */
 	def mclub(String id, String q){
+		// otherwise will be pro case
+		if(id == null){
+			render(text:"The mClub Map")
+			return;
+		}
 
 		// The mClub Map part
 		TrackerMap map = TrackerMap.findByUniqueId(id);
