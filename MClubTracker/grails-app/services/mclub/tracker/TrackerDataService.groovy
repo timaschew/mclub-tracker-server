@@ -211,7 +211,7 @@ class TrackerDataService {
 		if(positionData.isAprs()){
 			// for aprs devices, we have a black list
 			if(deviceIsBlackListed(positionData.udid)) {
-				log.info("Device ${positionData.udid} is blacklisted, position update will be ignored")
+				log.debug("Device ${positionData.udid} is blacklisted, position update will be ignored")
 				return;
 			}
 			device = loadDeviceForAprsPosition(positionData);
