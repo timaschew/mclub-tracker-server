@@ -108,7 +108,8 @@ public class Gps103TrackerServer extends TrackerServer{
         // Parse message
         Matcher parser = pattern.matcher(sentence);
         if (!parser.matches()) {
-            log.info("Parsing error, message: " + sentence);
+            if(log.isInfoEnabled())
+                log.info("Parse failed, message: " + sentence);
             return null;
         }
 
@@ -172,8 +173,9 @@ public class Gps103TrackerServer extends TrackerServer{
 
         // Altitude
         position.setAltitude(-1d);
-        // Speed
-        position.setSpeed(Double.valueOf(parser.group(index++)));
+        // Speed from knot to km
+        position.setSpeed(1.852 * Double.valueOf(parser.group(index++)));
+
         // Course
         String course = parser.group(index++);
         if (course != null) {

@@ -176,4 +176,21 @@ public class Gps103ProtocolDecoderTest {
 
 	}
 
+
+	@Test
+	public void testDecode_NoGPS() throws Exception{
+		Gps103TrackerServer decoder = new Gps103TrackerServer(new MockNettyBootstrap(),"",new MockTrackerService(),new MockConfigService());
+		PositionData pos = null;
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,151025172744,,L,,,5717,,860e,,,;");
+		assertNull(pos);
+
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:868683020378349,tracker,161121080859,,L,,,5718,,a528,,,;");
+		assertNull(pos);
+		pos = (PositionData)decoder.decode(null,null,
+				"imei:353451048729261,tracker,0000000000,,L,,,5827,,6890,,,;");
+		assertNull(pos);
+	}
+
 }
