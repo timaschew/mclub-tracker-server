@@ -1,6 +1,7 @@
 package mclub.tracker.aprs;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -261,8 +262,8 @@ public class AprsReceiver {
 			// Add the text line codec combination first,
 			pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192,
 					Delimiters.lineDelimiter()));
-			pipeline.addLast("decoder", new StringDecoder());
-			pipeline.addLast("encoder", new StringEncoder());
+			pipeline.addLast("decoder", new StringDecoder(Charset.forName("UTF-8")));
+			pipeline.addLast("encoder", new StringEncoder(Charset.forName("UTF-8")));
 			pipeline.addLast("aprsDecoder",new AprsDecoder(
 					configService.getConfigString("tracker.aprs.call"),
 					configService.getConfigString("tracker.aprs.pass"),
