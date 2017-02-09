@@ -31,18 +31,33 @@ class TaskService {
 		log.info("TaskService stopped");
 	}
 	
-	public void execute(final Runnable task, final long taskSleepIntervalMs){
+	public void schedule(final Task task, final long taskSleepIntervalMs){
 		assert(task != null);
 		assert(taskSleepIntervalMs > 0);
 		taskThreads.execute(new Runnable(){
 			public void run(){
 				while(!stopFlag){
-					task.run();
+					if(task.run()){
+						// task.run() returns true means the task is done.
+						// stop running anymore
+						break;
+					}
 					synchronized(lock){
 						lock.wait(taskSleepIntervalMs);
 					}
 				}
 			}
 		});
+	}
+
+	/**
+	 * Task interface
+	 */
+	public static interface Task{
+		/**
+		 * task body
+		 * @return false for run again, true for task completion and task service will not not run it anymore.
+		 */
+		public abstract boolean run();
 	}
 }

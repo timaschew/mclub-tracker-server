@@ -34,9 +34,10 @@ public class ConfigService implements ConfigServiceKeys{
 		config = new Properties();
 		
 		// check every 30s
-		taskService.execute(new Runnable(){
-			public void run(){
+		taskService.schedule(new TaskService.Task(){
+			public boolean run(){
 				ConfigService.this.loadConfig();
+				return false;
 			}
 		}, 30 * SECONDS);
 	}

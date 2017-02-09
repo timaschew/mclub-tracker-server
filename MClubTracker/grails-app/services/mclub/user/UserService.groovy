@@ -1,7 +1,6 @@
 package mclub.user
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -11,7 +10,7 @@ import mclub.sys.TaskService
 import mclub.user.User
 import static mclub.user.AuthUtils.*;
 
-public class UserService implements Runnable{
+public class UserService{
 	
 	ConcurrentHashMap<String,UserSession> userSessionStore = new ConcurrentHashMap<String,UserSession>();
 	private static final long SESSION_EXPIRE_TIME_SEC = 48 * 60 * 60; // session expires in 48 hours of idle by default
@@ -21,7 +20,16 @@ public class UserService implements Runnable{
 	@PostConstruct
 	public void start(){
 		// start the session check task
-		taskService.execute(this, SESSION_CHECK_INTERVAL_MS);
+		taskService.schedule(new TaskService.Task(){
+			boolean run() {
+				try {
+					doSessionCheckTask();
+				}catch(Exception e){
+					log.error(e);
+				}
+				return false
+			}
+		}, SESSION_CHECK_INTERVAL_MS);
 
 		// QUICK-AND-DIRTY solution: Perform a delay data initialize due to some dependency issues.
 		new Thread(new java.lang.Runnable(){
@@ -35,16 +43,8 @@ public class UserService implements Runnable{
 	}
 
 	@PreDestroy
-	public void stop(){
+	public void stop() {
 		log.info "UserService destroyed"
-	}
-
-	/**
-	 * Called by the task service reguarlly.	
-	 */
-	public void run(){
-		// check the session
-		doSessionCheckTask();
 	}
 	
 	private void doSessionCheckTask(){
