@@ -14,6 +14,8 @@ import org.codehaus.groovy.grails.commons.GrailsApplication;
  *
  */
 public class ConfigService implements ConfigServiceKeys{
+	boolean lazyInit = false
+
 	GrailsApplication grailsApplication;
 	TaskService taskService;
 	

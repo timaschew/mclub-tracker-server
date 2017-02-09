@@ -7,6 +7,8 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 public class MessageService {
+	boolean lazyInit = false
+
 	private static Object lock = new Object();
 	private ExecutorService notifyThread;
 	private boolean stopFlag;

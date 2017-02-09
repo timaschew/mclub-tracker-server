@@ -11,6 +11,8 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 class TaskService {
+	boolean lazyInit = false
+
 	private static Object lock = new Object();
 	private ExecutorService taskThreads;
 	private boolean stopFlag;
@@ -30,7 +32,11 @@ class TaskService {
 		taskThreads.shutdown();
 		log.info("TaskService stopped");
 	}
-	
+
+//	public void schedule(final Task task, final long taskBusyWaitIntervalMs, final long taskIdleWaitIntervalMs){
+//
+//	}
+
 	public void schedule(final Task task, final long taskSleepIntervalMs){
 		assert(task != null);
 		assert(taskSleepIntervalMs > 0);
