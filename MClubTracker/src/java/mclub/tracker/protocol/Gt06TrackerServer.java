@@ -265,8 +265,8 @@ public class Gt06TrackerServer extends TrackerServer {
 
 			double latitude = buf.readUnsignedInt() / 60.0 / 30000.0;
 			double longitude = buf.readUnsignedInt() / 60.0 / 30000.0;
-			position.setSpeed(UnitsConverter.knotsFromKph(buf
-					.readUnsignedByte()));
+			//position.setSpeed(UnitsConverter.knotsFromKph(buf.readUnsignedByte()));
+			position.setSpeed((double)buf.readUnsignedByte()); // we're using km/h metric
 
 			int flags = buf.readUnsignedShort();
 			position.setCourse(Double.parseDouble("" + BitUtil.to(flags, 10)));

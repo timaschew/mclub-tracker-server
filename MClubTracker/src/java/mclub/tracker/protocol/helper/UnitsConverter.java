@@ -37,4 +37,7 @@ public final class UnitsConverter {
         return value * 0.0194384449;
     }
 
+
+    public static double kphFromKnots(double value){ return value * 1.85199;}
+
 }
